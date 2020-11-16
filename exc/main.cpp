@@ -1,5 +1,5 @@
-import <iostream>;
+import console;
 
-int main() {
+int main(int, char **) {
 	return 0;
 }
