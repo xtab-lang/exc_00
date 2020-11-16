@@ -29,6 +29,8 @@
 /* warning 4706: assignment within conditional expression */
 //#pragma warning(disable: 26495)
 
-#define S(zText) (zText), __crt_countof(zText)
+#define S(text) (text), (int)__crt_countof(text)
+
+constexpr auto cstrlen(const char *text) { return text ? (int)strlen(text) : 0; }
 
 #endif // STDAFX_H_

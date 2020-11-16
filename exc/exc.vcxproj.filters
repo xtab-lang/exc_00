@@ -5,6 +5,9 @@
     <ClCompile Include="console.ixx">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="string.ixx">
+      <Filter>common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="common">

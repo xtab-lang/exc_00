@@ -146,9 +146,9 @@
       <CallingConvention>StdCall</CallingConvention>
       <FloatingPointExceptions>true</FloatingPointExceptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <EnableModules>true</EnableModules>
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <AdditionalOptions>/translateInclude</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -162,6 +162,7 @@
   <ItemGroup>
     <ClCompile Include="console.ixx" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="string.ixx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
