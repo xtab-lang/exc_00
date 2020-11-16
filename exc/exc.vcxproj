@@ -164,9 +164,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.ixx">
+    <ClInclude Include="stdafx.h">
       <FileType>Document</FileType>
-    </ClCompile>
+    </ClInclude>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

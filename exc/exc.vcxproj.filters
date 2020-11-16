@@ -5,13 +5,15 @@
     <ClCompile Include="console.ixx">
       <Filter>common</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.ixx">
-      <Filter>common</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="common">
       <UniqueIdentifier>{4e5777b7-105d-458a-b719-eae94086e464}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>common</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -2,8 +2,7 @@
 // author: munenedu@gmail.com
 //   date: 2020-11-16
 ////////////////////////////////////////////////////////////////
-module;
-
+#pragma once
 #ifndef STDAFX_H_
 #define STDAFX_H_
 
@@ -30,6 +29,6 @@ module;
 /* warning 4706: assignment within conditional expression */
 //#pragma warning(disable: 26495)
 
-#endif // STDAFX_H_
+#define S(zText) (zText), __crt_countof(zText)
 
-export module stdafx;
+#endif // STDAFX_H_
