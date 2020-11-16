@@ -1,2 +1,2 @@
 # exc
-The compiler of the ex programming language.
+The compiler of the **exy** programming language.
