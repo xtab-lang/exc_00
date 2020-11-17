@@ -5,7 +5,9 @@
 
 module;
 #include "stdafx.h"
-export module common;
+export module string;
+
+import hash;
 
 export struct String final {
     const char  *text   = nullptr;

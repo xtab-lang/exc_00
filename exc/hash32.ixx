@@ -5,7 +5,7 @@
 
 module;
 #include "stdafx.h"
-export module common;
+export module hash;
 
 // Forward declarations.
 void MurmurHash3_x86_32(const void *key, int len, unsigned int seed, void *out);

@@ -6,7 +6,9 @@
 module;
 #include "stdafx.h"
 #include <wincon.h>
-export module common;
+export module console;
+
+import string;
 
 namespace console {
 
