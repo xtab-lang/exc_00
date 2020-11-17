@@ -11,10 +11,16 @@
     <ClCompile Include="hash32.ixx">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="syntax_tree.ixx">
+      <Filter>syntax</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="common">
       <UniqueIdentifier>{4e5777b7-105d-458a-b719-eae94086e464}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="syntax">
+      <UniqueIdentifier>{d50b3175-00bb-4980-b8a8-dd2ff7d1cf6d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

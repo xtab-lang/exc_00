@@ -164,6 +164,7 @@
     <ClCompile Include="hash32.ixx" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="string.ixx" />
+    <ClCompile Include="syntax_tree.ixx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">

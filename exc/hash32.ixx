@@ -2,13 +2,15 @@
 // author: exy.lang
 //   date: 2020-11-17
 ////////////////////////////////////////////////////////////////
+
 module;
 #include "stdafx.h"
-export module hash;
+export module common;
 
 // Forward declarations.
 void MurmurHash3_x86_32(const void *key, int len, unsigned int seed, void *out);
 
+////////////////////////////////////////////////////////////////
 export unsigned int hash32(const void *v, int vlen) {
 	if (!v || !vlen) {
 		return 0ui32;
@@ -17,6 +19,8 @@ export unsigned int hash32(const void *v, int vlen) {
     MurmurHash3_x86_32(v, vlen, 0, &hash);
 	return hash;
 }
+
+module:private;
 
 // From https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
 

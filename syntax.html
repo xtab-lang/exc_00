@@ -1,0 +1,297 @@
+<!doctype html>
+<html doctype="html">
+<head>
+  <style>
+    body {
+      background-color: #252424;
+      font-family: "Source Code Pro", "Monaco", monospace;
+      color: #f1eaea;
+      font-size: 14px;
+    }
+    a, a:link, a:visited, a:hover, a:active {
+      color: #5fc3e2;
+      font-style: italic;
+    }
+
+    body > section {
+      padding: 0.5em;
+      border: 1px solid #757373;
+      width: 60em;
+      margin: auto;
+    }
+
+    body > section > header {
+      color: #f59f9f;
+    }
+
+    body > section > div {
+      padding-left: 1em;
+      display: flex;
+      flex-direction: column;
+      align-items: baseline;
+    }
+
+    body > section > div > * {
+      display: block;
+    }
+
+    sub {
+      font-style: italic;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap" rel="stylesheet">
+  <title>xtab language reference (syntax)</title>
+</head>
+<body>
+
+  <section>
+    <header>UTF8</header>
+    <div>UTF8 (1, 2, 3 or 4 B)</div>
+  </section>
+
+  <section>
+    <header>HexadecimalDigit</header>
+    <div>[0-9a-fA-F]</div>
+  </section>
+
+  <section>
+    <header>DecimalDigit</header>
+    <div>[0-9]</div>
+  </section>
+
+  <section>
+    <header>SpaceCharacter</header>
+    <div>[ \t]</div>
+  </section>
+
+  <section>
+    <header>Space</header>
+    <div><a href="#SpaceCharacter">SpaceCharacter</a></div>
+    <div><div><a href="#SpaceCharacter">SpaceCharacter</a> <a href="#Space">Space</a></div></div>
+  </section>
+
+  <section>
+    <header>NewLineCharacter</header>
+    <div>\n</div>
+    <div>\r\n</div>
+  </section>
+
+  <section>
+    <header>NewLine</header>
+    <div><div><a href="#Space">Space</a><sub>optional</sub> <a href="#NewLineCharacter">NewLineCharacter</a> <a href="#NewLine">NewLine</a><sub>optional</sub></div></div>
+  </section>
+
+  <section>
+    <header>HexadecimalCharacterEscape</header>
+    <div><div>\x <a href="#HexadecimalDigit">HexadecimalDigit</a> <a href="#SpaceCharacter">SpaceCharacter</a></div></div>
+    <div><div>\x <a href="#HexadecimalDigit">HexadecimalDigit</a> <a href="#HexadecimalDigit">HexadecimalDigit</a></div></div>
+  </section>
+
+  <section>
+    <header>ASCII_Escape</header>
+    <div><div>\'</div></div>
+    <div><div>\"</div></div>
+    <div><div>\\</div></div>
+    <div><div>\?</div></div>
+    <div><div>\a</div></div>
+    <div><div>\b</div></div>
+    <div><div>\f</div></div>
+    <div><div>\n</div></div>
+    <div><div>\r</div></div>
+    <div><div>\t</div></div>
+    <div><div>\v</div></div>
+    <div><a href="#HexadecimalCharacterEscape">HexadecimalCharacterEscape</a></div>
+  </section>
+
+  <section>
+    <header>UnicodeEscape</header>
+    <div><div>\u <a href="#HexadecimalDigit">HexadecimalDigit</a><sub>optional</sub> <a href="#HexadecimalDigit">HexadecimalDigit</a><sub>optional</sub> <a href="#HexadecimalDigit">HexadecimalDigit</a><sub>optional</sub> <a href="#HexadecimalDigit">HexadecimalDigit</a></div></div>
+  </section>
+
+  <section>
+    <header>CharacterEscape</header>
+    <div><a href="#ASCII_Escape">ASCII_Escape</a></div>
+    <div><a href="#UnicodeEscape">UnicodeEscape</a></div>
+  </section>
+
+  <section>
+    <header>Character</header>
+    <div><div><a href="#UTF8">UTF8</a></div></div>
+    <div><div><a href="#CharacterEscape">CharacterEscape</a></div></div>
+  </section>
+
+  <section>
+    <header>Characters</header>
+    <div>
+      <div><a href="#Character">Character</a></div>
+      <div><a href="#Character">Character</a> <a href="#Characters">Characters</a></div>
+    </div>
+  </section>
+
+  <section>
+    <header>SingleQuotedCharacter</header>
+    <div>
+      <div>' <a href="#Character">Character</a> '</div>
+      <div>w' <a href="#Character">Character</a> '</div>
+    </div>
+  </section>
+
+  <section>
+    <header>Interpolation</header>
+    <div>
+      <div>#( <a href="#Block">Block</a> )</div>
+      <div>#( <a href="#Expression">Expression</a> )</div>
+    </div>
+  </section>
+
+  <section>
+    <header>QuotedInterpolation</header>
+    <div>
+      <div><a href="#Interpolation">Interpolation</a></div>
+      <div><a href="#Characters">Characters</a> <a href="#QuotedInterpolation">QuotedInterpolation</a></div>
+    </div>
+  </section>
+
+  <section>
+    <header>SingleQuotedLiteral</header>
+    <div>
+      <div>' <a href="#QuotedInterpolation">QuotedInterpolation</a> '</div>
+      <div>w' <a href="#QuotedInterpolation">QuotedInterpolation</a> '</div>
+    </div>
+  </section>
+
+  <section>
+    <header>DoubleQuotedLiteral</header>
+    <div>
+      <div>" <a href="#QuotedInterpolation">QuotedInterpolation</a> "</div>
+      <div>w" <a href="#QuotedInterpolation">QuotedInterpolation</a> "</div>
+    </div>
+  </section>
+
+  <section>
+    <header>Quoted</header>
+    <div>
+      <a href="#SingleQuotedCharacter">SingleQuotedCharacter</a>
+      <a href="#SingleQuotedLiteral">SingleQuotedLiteral</a>
+      <a href="#DoubleQuoted">DoubleQuotedLiteral</a>
+    </div>
+  </section>
+
+  <section>
+    <header>DecimalDigitOrUnderscore</header>
+    <div>
+      <div><a href="#DecimalDigit">DecimalDigit</a></div>
+      <div>_</div>
+    </div>
+  </section>
+
+  <section>
+    <header>Decimal</header>
+    <div>
+      <div><a href="#DecimalDigit">DecimalDigit</a></div>
+      <div><a href="#DecimalDigit">DecimalDigit</a> <a href="#DecimalDigitOrUnderscore">DecimalDigitOrUnderscore</a></div>
+    </div>
+  </section>
+
+  <section>
+    <header>Identifier</header>
+    <div>
+      <div>identifier</div>
+    </div>
+  </section>
+
+  <section>
+    <header>IdentifierList</header>
+    <div>
+      <div><a href="#Identifier">Identifier</a></div>
+      <div><a href="#Identifier">Identifier</a> , <a href="#IdentifierList">IdentifierList</a></div>
+    </div>
+  </section>
+
+  <section>
+    <header>VariableName</header>
+    <div>
+      <div><a href="#Identifier">Identifier</a></div>
+      <div>( <a href="#IdentifierList">IdentifierList</a> )</div>
+    </div>
+  </section>
+
+  <section>
+    <header>NonStaticVariableDeclarationModifier</header>
+    <div>
+      <div>const</div><div>readonly</div><div>auto</div><div>var</div>
+    </div>
+  </section>
+
+  <section>
+    <header>NonStaticVariableDeclarationModifiersList</header>
+    <div>
+      <div><a href="#NonStaticVariableDeclarationModifier">NonStaticVariableDeclarationModifier</a></div>
+      <div><a href="#NonStaticVariableDeclarationModifier">NonStaticVariableDeclarationModifier</a> <a href="#NonStaticVariableDeclarationModifiersList">NonStaticVariableDeclarationModifiersList</a></div>
+    </div>
+  </section>
+
+  <section>
+    <header>StaticVariableDeclarationModifierList</header>
+    <div>
+      <div><a href="#NonStaticVariableDeclarationModifiersList">NonStaticVariableDeclarationModifiersList</a><sub>optional</sub> static <a href="#StaticVariableDeclarationModifierList">StaticVariableDeclarationModifierList</a><sub>optional</sub></div>
+    </div>
+  </section>
+
+  <section>
+    <header>StaticVariableDeclaration</header>
+    <div>
+      <div><a href="#StaticVariableDeclarationModifierList">StaticVariableDeclarationModifierList</a> <a href="#VariableName">VariableName</a> = <a href="#Expression">Expression</a></div>
+      <div><a href="#StaticVariableDeclarationModifierList">StaticVariableDeclarationModifierList</a> <a href="#VariableName">VariableName</a> : <a href="#TypeName">TypeName</a> = <a href="#Expression">Expression</a></div>
+    </div>
+  </section>
+
+  <section>
+    <header>NonStaticVariableDeclaration</header>
+    <div>
+      <div><a href="#NonStaticVariableDeclarationModifiersList">NonStaticVariableDeclarationModifiersList</a> <a href="#VariableName">VariableName</a> = <a href="#Expression">Expression</a></div>
+      <div><a href="#NonStaticVariableDeclarationModifiersList">NonStaticVariableDeclarationModifiersList</a> <a href="#VariableName">VariableName</a> : <a href="#TypeName">TypeName</a> = <a href="#Expression">Expression</a></div>
+    </div>
+  </section>
+
+  <section>
+    <header>VariableDeclaration</header>
+    <div>
+      <div><a href="#NonStaticVariableDeclaration">NonStaticVariableDeclaration</a></div>
+      <div><a href="#StaticVariableDeclaration">StaticVariableDeclaration</a></div>
+    </div>
+  </section>
+
+  <section>
+    <header>FileStatement</header>
+    <div><a href="#TypeDeclaration">TypeDeclaration</a></div>
+    <div><a href="#VariableDeclaration">VariableDeclaration</a></div>
+    <div><a href="#FunctionCall">FunctionCall</a></div>
+  </section>
+
+  <section>
+    <header>File</header>
+    <div>
+      <div><a href="#FileStatement">FileStatement</a></div>
+      <div><a href="#FileStatement">FileStatement</a> <a href="#File">File</a></div>
+    </div>
+  </section>
+
+  <section>
+    <header>Folder</header>
+    <div>
+      <div><a href="#File">File</a></div>
+      <div><a href="#File">File</a> <a href="#Folder">Folder</a></div>
+    </div>
+  </section>
+
+  <section>
+    <header>Program</header>
+    <div>
+      <div><a href="#Folder">Folder</a></div>
+      <div><a href="#Folder">Folder</a> <a href="#Program">Program</a></div>
+    </div>
+  </section>
+
+</body>
+</html>
