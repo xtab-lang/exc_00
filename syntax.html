@@ -1,296 +1,1741 @@
-<!doctype html>
-<html doctype="html">
+<!DOCTYPE html>
+<html>
+<style type="text/css">
+  * { font-family: "Source Code Pro"; }
+  article { padding-left: 1em; padding-bottom: 1em; }
+  i { font-weight: bold; }
+  section { border-top: 1px solid black; }
+</style>
 <head>
-  <style>
-    body {
-      background-color: #252424;
-      font-family: "Source Code Pro", "Monaco", monospace;
-      color: #f1eaea;
-      font-size: 14px;
-    }
-    a, a:link, a:visited, a:hover, a:active {
-      color: #5fc3e2;
-      font-style: italic;
-    }
-
-    body > section {
-      padding: 0.5em;
-      border: 1px solid #757373;
-      width: 60em;
-      margin: auto;
-    }
-
-    body > section > header {
-      color: #f59f9f;
-    }
-
-    body > section > div {
-      padding-left: 1em;
-      display: flex;
-      flex-direction: column;
-      align-items: baseline;
-    }
-
-    body > section > div > * {
-      display: block;
-    }
-
-    sub {
-      font-style: italic;
-    }
-  </style>
-  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap" rel="stylesheet">
-  <title>xtab language reference (syntax)</title>
+  <title>Syntax | xtab</title>
 </head>
 <body>
-
   <section>
-    <header>UTF8</header>
-    <div>UTF8 (1, 2, 3 or 4 B)</div>
+    <header>Keyword := <b>one of</b></header>
+    <article>
+      <div><i>typeof nameof</i></div>
+      <div><i>new delete</i></div>
+      <div><i>this super</i></div>
+      <div><i>use</i></div>
+      <div><i>import</i> <i>export</i> <i>from</i> <i>as</i></div>
+      <div><i>if</i> <i>else</i> <i>elif</i></div> 
+      <div><i>for</i> <i>each</i> <i>while</i> <i>in</i> <i>break</i> <i>continue</i></div>
+      <div><i>switch</i> <i>case</i> <i>default</i> <i>fallthrough</i></div>
+      <div><i>return</i> <i>yield</i> <i>await</i> <i>throw</i></div>
+      <div><i>static const readonly auto var let async private synchronized override</i></div>
+      <div><i>defer</i></div>
+      <div><i>srw</i></div>
+      <div>TypeKeyword</div>
+      <div>DoubleUnderscoreKeyword</div>
+    </article>
   </section>
 
   <section>
-    <header>HexadecimalDigit</header>
-    <div>[0-9a-fA-F]</div>
+    <header>TypeKeyword := <b>one of</b></header>
+    <article>
+      <div><i>struct</i> <i>union</i> <i>object</i></div>
+      <div><i>enum</i></div>
+      <div><i>lambda</i></div>
+      <div><i>fn</i> <i>html</i> <i>css</i> <i>js</i> <i>json</i> <i>sql</i> <i>blob</i> <i>urlhandler</i></div>
+      <div>BuiltinTypeKeyword</div>
+    </article>
   </section>
 
   <section>
-    <header>DecimalDigit</header>
-    <div>[0-9]</div>
+    <header>BuiltinTypeKeyword := <b>one of</b></header>
+    <article>
+      <div><i>Bool</i> <i>Void</i> <i>Char</i> <i>WChar</i> <i>UTF8Char</i></div>
+      <div><i>Int8</i> <i>Int16</i> <i>Int32</i> <i>Int64</i> <i>Int128</i> <i>Int256</i> <i>Int512</i></div>
+      <div><i>UInt8</i> <i>UInt16</i> <i>UInt32</i> <i>UInt64</i> <i>UInt128</i> <i>UInt256</i> <i>UInt512</i></div>
+      <div><i>Float</i></div>
+      <div><i>Double</i></div>
+      <div><i>Floatx4</i> <i>Floatx8</i> <i>Floatx16</i> <i>Floatx32</i></div>
+      <div><i>Doublex2</i> <i>Doublex4</i> <i>Doublex8</i> <i>Doublex16</i></div>
+      <div><i>Int8x16</i> <i>Int8x32</i> <i>Int8x64</i> <i>Int8x128</i></div>
+      <div><i>UInt8x16</i> <i>UInt8x32</i> <i>UInt8x64</i> <i>UInt8x128</i></div>
+      <div><i>Int16x8</i> <i>Int16x16</i> <i>Int16x32</i> <i>Int16x64</i></div>
+      <div><i>UInt16x8</i> <i>UInt16x16</i> <i>UInt16x32</i> <i>UInt16x64</i></div>
+      <div><i>Int32x4</i> <i>Int32x8</i> <i>Int32x16</i> <i>Int32x32</i></div>
+      <div><i>UInt32x4</i> <i>UInt32x8</i> <i>UInt32x16</i> <i>UInt32x32</i></div>
+      <div><i>Int64x2</i> <i>Int64x4</i> <i>Int64x8</i> <i>Int64x16</i></div>
+      <div><i>UInt64x2</i> <i>UInt64x4</i> <i>UInt64x8</i> <i>UInt64x16</i></div>
+    </article>
   </section>
 
   <section>
-    <header>SpaceCharacter</header>
-    <div>[ \t]</div>
+    <header>DoubleUnderscoreKeyword := <b>one of</b></header>
+    <article>
+      <div><i>__package__ __folder__ __module__ __file__ __function__ __line__</i></div>
+      <div><i>__typeid__ __type__</i></div>
+    </article>
   </section>
 
   <section>
-    <header>Space</header>
-    <div><a href="#SpaceCharacter">SpaceCharacter</a></div>
-    <div><div><a href="#SpaceCharacter">SpaceCharacter</a> <a href="#Space">Space</a></div></div>
+    <header>Punctuation := <b>one of</b></header>
+    <article>
+      <div><i>-</i> <i>+</i>  <i>!</i> <i>%</i> <i>/</i> <i>*</i> <i>&gt;</i> <i>&lt;</i> <i>=</i> <i>|</i> <i>&</i> <i>?</i></div>
+      <div><i>.</i> <i>..</i> <i>...</i></div>
+      <div><i>(</i> <i>)</i> <i>&lt;</i> <i>&gt;</i> <i>{</i> <i>}</i> <i>[</i> <i>]</i></div>
+      <div><i>,</i> <i>'</i> <i>"</i> <i>#</i> <i>\</i> <i>;</i> <i>:</i></div>
+    </article>
   </section>
 
   <section>
-    <header>NewLineCharacter</header>
-    <div>\n</div>
-    <div>\r\n</div>
+    <header>Program :=</header>
+    <article>
+      <div>ProgramItem Program<sub>optional</sub></div>
+    </article>
   </section>
 
   <section>
-    <header>NewLine</header>
-    <div><div><a href="#Space">Space</a><sub>optional</sub> <a href="#NewLineCharacter">NewLineCharacter</a> <a href="#NewLine">NewLine</a><sub>optional</sub></div></div>
+    <header>ProgramItem :=</header>
+    <article>
+      <div>Folder</div>
+      <div>File</div>
+    </article>
   </section>
 
   <section>
-    <header>HexadecimalCharacterEscape</header>
-    <div><div>\x <a href="#HexadecimalDigit">HexadecimalDigit</a> <a href="#SpaceCharacter">SpaceCharacter</a></div></div>
-    <div><div>\x <a href="#HexadecimalDigit">HexadecimalDigit</a> <a href="#HexadecimalDigit">HexadecimalDigit</a></div></div>
+    <header>Folder :=</header>
+    <article>
+      <div>Folder Program<sub>optional</sub></div>
+      <div>File Program<sub>optional</sub></div>
+    </article>
   </section>
 
   <section>
-    <header>ASCII_Escape</header>
-    <div><div>\'</div></div>
-    <div><div>\"</div></div>
-    <div><div>\\</div></div>
-    <div><div>\?</div></div>
-    <div><div>\a</div></div>
-    <div><div>\b</div></div>
-    <div><div>\f</div></div>
-    <div><div>\n</div></div>
-    <div><div>\r</div></div>
-    <div><div>\t</div></div>
-    <div><div>\v</div></div>
-    <div><a href="#HexadecimalCharacterEscape">HexadecimalCharacterEscape</a></div>
+    <header>File :=</header>
+    <article>
+      <div>FileStatement File<sub>optional</sub></div>
+    </article>
   </section>
 
   <section>
-    <header>UnicodeEscape</header>
-    <div><div>\u <a href="#HexadecimalDigit">HexadecimalDigit</a><sub>optional</sub> <a href="#HexadecimalDigit">HexadecimalDigit</a><sub>optional</sub> <a href="#HexadecimalDigit">HexadecimalDigit</a><sub>optional</sub> <a href="#HexadecimalDigit">HexadecimalDigit</a></div></div>
+    <header>FileStatement :=</header>
+    <article>
+      <div>PackageDeclaration</div>
+      <div>ModuleDeclaration</div>
+      <div>Declaration</div>
+      <div>CallExpression</div>
+    </article>
   </section>
 
   <section>
-    <header>CharacterEscape</header>
-    <div><a href="#ASCII_Escape">ASCII_Escape</a></div>
-    <div><a href="#UnicodeEscape">UnicodeEscape</a></div>
+    <header>PackageDeclaration :=</header>
+    <article>
+      <div><i>private</i><sub>optional</sub> <i>package fullname</i></div>
+    </article>
   </section>
 
   <section>
-    <header>Character</header>
-    <div><div><a href="#UTF8">UTF8</a></div></div>
-    <div><div><a href="#CharacterEscape">CharacterEscape</a></div></div>
+    <header>ModuleDeclaration :=</header>
+    <article>
+      <div><i>private</i><sub>optional</sub> <i>module fullname</i></div>
+    </article>
   </section>
 
   <section>
-    <header>Characters</header>
-    <div>
-      <div><a href="#Character">Character</a></div>
-      <div><a href="#Character">Character</a> <a href="#Characters">Characters</a></div>
-    </div>
+    <header>StatementList :=</header>
+    <article>
+      <div>Statement</div>
+      <div>Statement StatementList</div>
+    </article>
   </section>
 
   <section>
-    <header>SingleQuotedCharacter</header>
-    <div>
-      <div>' <a href="#Character">Character</a> '</div>
-      <div>w' <a href="#Character">Character</a> '</div>
-    </div>
+    <header>Statement :=</header>
+    <article>
+      <div>SynchronizedBlock</div>
+      <div>BlockStatement</div>
+      <div>UseStatement</div>
+      <div>ImportStatement</div>
+      <div>ExportStatement</div>
+      <div>DeferStatement</div>
+      <div>IfStatement</div>
+      <div>ForStatement</div>
+      <div>ForInStatement</div>
+      <div>SwitchStatement</div>
+      <div>WithStatement</div>
+      <div>FallthroughStatement</div>
+      <div>ReturnStatement</div>
+      <div>ContinueStatement</div>
+      <div>BreakStatement</div>
+      <div>ThrowStatement</div>
+      <div>AssertStatement</div>
+      <div>Expression</div>
+    </article>
   </section>
 
   <section>
-    <header>Interpolation</header>
-    <div>
-      <div>#( <a href="#Block">Block</a> )</div>
-      <div>#( <a href="#Expression">Expression</a> )</div>
-    </div>
+    <header>SynchronizedBlock :=</header>
+    <article>
+      <div><i>synchronized (</i> Expression<sub>optional</sub> <i>) {</i> StatementList<sub>optional</sub> <i>}</i></div>
+      <div><i>synchronized</i> <i>{</i> StatementList<sub>optional</sub> <i>}</i></div>
+    </article>
   </section>
 
   <section>
-    <header>QuotedInterpolation</header>
-    <div>
-      <div><a href="#Interpolation">Interpolation</a></div>
-      <div><a href="#Characters">Characters</a> <a href="#QuotedInterpolation">QuotedInterpolation</a></div>
-    </div>
+    <header>BlockStatement :=</header>
+    <article>
+      <div><i>{</i> StatementList<sub>optional</sub> <i>}</i></div>
+    </article>
   </section>
 
   <section>
-    <header>SingleQuotedLiteral</header>
-    <div>
-      <div>' <a href="#QuotedInterpolation">QuotedInterpolation</a> '</div>
-      <div>w' <a href="#QuotedInterpolation">QuotedInterpolation</a> '</div>
-    </div>
+    <header>UseStatement :=</header>
+    <article>
+      <div><i>use</i> Expression <i>as identifier</i></div>
+    </article>
   </section>
 
   <section>
-    <header>DoubleQuotedLiteral</header>
-    <div>
-      <div>" <a href="#QuotedInterpolation">QuotedInterpolation</a> "</div>
-      <div>w" <a href="#QuotedInterpolation">QuotedInterpolation</a> "</div>
-    </div>
+    <header>ImportStatement :=</header>
+    <article>
+      <div><i>import</i> ImportList</div>
+    </article>
   </section>
 
   <section>
-    <header>Quoted</header>
-    <div>
-      <a href="#SingleQuotedCharacter">SingleQuotedCharacter</a>
-      <a href="#SingleQuotedLiteral">SingleQuotedLiteral</a>
-      <a href="#DoubleQuoted">DoubleQuotedLiteral</a>
-    </div>
+    <header>ImportList :=</header>
+    <article>
+      <div>ImportAlias</div>
+      <div>ImportAlias <i>,</i> ImportList</div>
+    </article>
   </section>
 
   <section>
-    <header>DecimalDigitOrUnderscore</header>
-    <div>
-      <div><a href="#DecimalDigit">DecimalDigit</a></div>
-      <div>_</div>
-    </div>
+    <header>ImportAlias :=</header>
+    <article>
+      <div>ImportName</div>
+      <div>ImportName <i>as identifier</i></div>
+    </article>
   </section>
 
   <section>
-    <header>Decimal</header>
-    <div>
-      <div><a href="#DecimalDigit">DecimalDigit</a></div>
-      <div><a href="#DecimalDigit">DecimalDigit</a> <a href="#DecimalDigitOrUnderscore">DecimalDigitOrUnderscore</a></div>
-    </div>
+    <header>ImportName :=</header>
+    <article>
+      <div><i>fullname</i></div>
+      <div><i>fullname</i> <i>from</i> <i>fullname</i></div>
+    </article>
   </section>
 
   <section>
-    <header>Identifier</header>
-    <div>
-      <div>identifier</div>
-    </div>
+    <header>ExportStatement :=</header>
+    <article>
+      <div><i>export</i> ImportList</div>
+    </article>
   </section>
 
   <section>
-    <header>IdentifierList</header>
-    <div>
-      <div><a href="#Identifier">Identifier</a></div>
-      <div><a href="#Identifier">Identifier</a> , <a href="#IdentifierList">IdentifierList</a></div>
-    </div>
+    <header>DeferStatement :=</header>
+    <article>
+      <div><i>defer</i> Expression</div>
+    </article>
   </section>
 
   <section>
-    <header>VariableName</header>
-    <div>
-      <div><a href="#Identifier">Identifier</a></div>
-      <div>( <a href="#IdentifierList">IdentifierList</a> )</div>
-    </div>
+    <header>IfStatement :=</header>
+    <article>
+      <div><i>if</i> Expression Statement</div>
+      <div><i>if</i> Expression Statement <i>else</i> Statement</div>
+    </article>
   </section>
 
   <section>
-    <header>NonStaticVariableDeclarationModifier</header>
-    <div>
-      <div>const</div><div>readonly</div><div>auto</div><div>var</div>
-    </div>
+    <header>ForStatement :=</header>
+    <article>
+      <div><i>for</i> Expression<sub>optional</sub> <i>;</i> Expression <i>;</i> Expression<sub>optional</sub> Statement</div>
+      <div><i>for</i> <i>(</i> Expression<sub>optional</sub> <i>;</i> Expression <i>;</i> Expression<sub>optional</sub> <i>)</i> Statement</div>
+      <div><i>for</i> Expression<sub>optional</sub> Statement</div>
+    </article>
   </section>
 
   <section>
-    <header>NonStaticVariableDeclarationModifiersList</header>
-    <div>
-      <div><a href="#NonStaticVariableDeclarationModifier">NonStaticVariableDeclarationModifier</a></div>
-      <div><a href="#NonStaticVariableDeclarationModifier">NonStaticVariableDeclarationModifier</a> <a href="#NonStaticVariableDeclarationModifiersList">NonStaticVariableDeclarationModifiersList</a></div>
-    </div>
+    <header>ForInStatement :=</header>
+    <article>
+      <div><i>await</i><sub>optional</sub> <i>for</i> IdentifierList <i>in</i> Expression Statement</div>
+      <div><i>await</i><sub>optional</sub> <i>for (</i> IdentifierList <i>in</i> Expression <i>)</i> Statement</div>
+    </article>
   </section>
 
   <section>
-    <header>StaticVariableDeclarationModifierList</header>
-    <div>
-      <div><a href="#NonStaticVariableDeclarationModifiersList">NonStaticVariableDeclarationModifiersList</a><sub>optional</sub> static <a href="#StaticVariableDeclarationModifierList">StaticVariableDeclarationModifierList</a><sub>optional</sub></div>
-    </div>
+    <header>SwitchStatement :=</header>
+    <article>
+      <div><i>switch</i> Expression<sub>optional</sub> <i>{</i> CaseList <i>}</i></div>
+      <div><i>switch</i> Expression <i>{</i> TypeCaseList <i>}</i></div>
+    </article>
   </section>
 
   <section>
-    <header>StaticVariableDeclaration</header>
-    <div>
-      <div><a href="#StaticVariableDeclarationModifierList">StaticVariableDeclarationModifierList</a> <a href="#VariableName">VariableName</a> = <a href="#Expression">Expression</a></div>
-      <div><a href="#StaticVariableDeclarationModifierList">StaticVariableDeclarationModifierList</a> <a href="#VariableName">VariableName</a> : <a href="#TypeName">TypeName</a> = <a href="#Expression">Expression</a></div>
-    </div>
+    <header>CaseList :=</header>
+    <article>
+      <div>CaseStatement CaseList<sub>optional</sub></div>
+    </article>
   </section>
 
   <section>
-    <header>NonStaticVariableDeclaration</header>
-    <div>
-      <div><a href="#NonStaticVariableDeclarationModifiersList">NonStaticVariableDeclarationModifiersList</a> <a href="#VariableName">VariableName</a> = <a href="#Expression">Expression</a></div>
-      <div><a href="#NonStaticVariableDeclarationModifiersList">NonStaticVariableDeclarationModifiersList</a> <a href="#VariableName">VariableName</a> : <a href="#TypeName">TypeName</a> = <a href="#Expression">Expression</a></div>
-    </div>
+    <header>CaseStatement :=</header>
+    <article>
+      <div><i>case</i> ExpressionList Statement<sub>optional</sub></div>
+      <div><i>default</i> Statement</div>
+    </article>
   </section>
 
   <section>
-    <header>VariableDeclaration</header>
-    <div>
-      <div><a href="#NonStaticVariableDeclaration">NonStaticVariableDeclaration</a></div>
-      <div><a href="#StaticVariableDeclaration">StaticVariableDeclaration</a></div>
-    </div>
+    <header>TypeCaseList :=</header>
+    <article>
+      <div>TypeCaseStatement TypeCaseList<sub>optional</sub></div>
+    </article>
   </section>
 
   <section>
-    <header>FileStatement</header>
-    <div><a href="#TypeDeclaration">TypeDeclaration</a></div>
-    <div><a href="#VariableDeclaration">VariableDeclaration</a></div>
-    <div><a href="#FunctionCall">FunctionCall</a></div>
+    <header>TypeCaseStatement :=</header>
+    <article>
+      <div><i>case</i> TypeCaseExpression Statement<sub>optional</sub></div>
+      <div><i>default</i> Statement</div>
+    </article>
   </section>
 
   <section>
-    <header>File</header>
-    <div>
-      <div><a href="#FileStatement">FileStatement</a></div>
-      <div><a href="#FileStatement">FileStatement</a> <a href="#File">File</a></div>
-    </div>
+    <header>TypeCaseExpression :=</header>
+    <article>
+      <div>TypeExpression</div>
+      <div><i>identifier :</i> TypeExpression</div>
+    </article>
   </section>
 
   <section>
-    <header>Folder</header>
-    <div>
-      <div><a href="#File">File</a></div>
-      <div><a href="#File">File</a> <a href="#Folder">Folder</a></div>
-    </div>
+    <header>WithStatement :=</header>
+    <article>
+      <div><i>with</i> Expression Statement</div>
+    </article>
   </section>
 
   <section>
-    <header>Program</header>
-    <div>
-      <div><a href="#Folder">Folder</a></div>
-      <div><a href="#Folder">Folder</a> <a href="#Program">Program</a></div>
-    </div>
+    <header>FallthroughStatement :=</header>
+    <article>
+      <div><i>fallthrough</i></div>
+      <div><i>fallthrough if</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>ReturnStatement :=</header>
+    <article>
+      <div><i>return</i> Expression<sub>optional</sub></div>
+      <div><i>return if</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>ContinueStatement :=</header>
+    <article>
+      <div><i>continue</i></div>
+      <div><i>continue if</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>BreakStatement :=</header>
+    <article>
+      <div><i>break</i></div>
+      <div><i>break if</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>ThrowStatement :=</header>
+    <article>
+      <div><i>throw</i> Expression<sub>optional</sub></div>
+      <div><i>throw if</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>AssertStatement :=</header>
+    <article>
+      <div><i>assert</i> AssertArguments<sub>optional</sub></div>
+      <div><i>assert</i> AssertArguments<sub>optional</sub> <i>with</i> Statement</div>
+    </article>
+  </section>
+
+  <section>
+    <header>AssertArguments :=</header>
+    <article>
+      <div>ExpressionList</div>
+      <div><i>(</i> ExpressionList <i>)</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>ExpressionList :=</header>
+    <article>
+      <div>Expression</div>
+      <div>Expression <i>,</i> ExpressionList</div>
+    </article>
+  </section>
+
+  <section>
+    <header>Expression :=</header>
+    <article>
+      <div>Declaration</div>
+      <div>AssignExpression</div>
+      <div>Literal</div>
+    </article>
+  </section>
+
+  <section>
+    <header>Declaration :=</header>
+    <article>
+      <div>VariableDeclaration</div>
+      <div>TypeDeclaration</div>
+    </article>
+  </section>
+
+  <section>
+    <header>VariableDeclaration :=</header>
+    <article>
+      <div>VariableModifiers <i>identifier</i> TypeApplication</div>
+      <div>VariableModifiers <i>identifier</i> TypeApplication<sub>optional</sub> <i>=</i> Expression</div>
+      <div>VariableModifiers <i>(</i> IdentifierList <i>)</i> TypeApplication</div>
+      <div>VariableModifiers <i>(</i> IdentifierList <i>)</i> TypeApplication<sub>optional</sub> <i>=</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>VariableModifiers :=</header>
+    <article>
+      <div>VariableModifier VariableModifiers<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>VariableModifier := <b>one of</b></header>
+    <article>
+      <div><i>static</i> <i>const</i> <i>readonly</i> <i>auto</i> <i>var</i> <i>let</i> <i>private</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>TypeApplication :=</header>
+    <article>
+      <div><i>:</i> TypeExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>TypeExpression :=</header>
+    <article>
+      <div>IndirectTypeExpression</div>
+      <div>DirectTypeExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>IndirectTypeExpression :=</header>
+    <article>
+      <div>PointerTypeExpression</div>
+      <div>ReferenceTypeExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>PointerTypeExpression :=</header>
+    <article>
+      <div>TypeExpression <i>*</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>ReferenceTypeExpression :=</header>
+    <article>
+      <div>TypeExpression <i>&</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>DirectTypeExpression :=</header>
+    <article>
+      <div>TupleTypeExpression</div>
+      <div>ObjectTypeExpression</div>
+      <div>ArrayTypeExpression</div>
+      <div>ListTypeExpression</div>
+      <div>TypeName</div>
+      <div><i>name</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>TupleTypeExpression :=</header>
+    <article>
+      <div><i>(</i> TypeExpressionList <i>)</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>TypeExpressionList :=</header>
+    <article>
+      <div>TypeExpression</div>
+      <div>TypeExpression <i>,</i> TypeExpressionList</div>
+    </article>
+  </section>
+
+  <section>
+    <header>ObjectTypeExpression :=</header>
+    <article>
+      <div><i>object</i><sub>optional</sub> <i>{</i> NamedTypeExpressionList <i>}</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>NamedTypeExpressionList :=</header>
+    <article>
+      <div>TypeExpression</div>
+      <div><i>identifier</i> <i>:</i> TypeExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>ArrayTypeExpression :=</header>
+    <article>
+      <div>TypeExpression <i>[</i> Expression <i>]</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>ListTypeExpression :=</header>
+    <article>
+      <div>TypeExpression <i>[</i> <i>]</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>TypeName :=</header>
+    <article>
+      <div>TypeExpression <i>&lt;</i> TypeExpressionList <i>&gt;</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>TypeDeclaration :=</header>
+    <article>
+      <div>FnDeclaration</div>
+      <div>TextFunctionDeclaration</div>
+      <div>UrlhanderDeclaration</div>
+      <div>LambdaDeclaration</div>
+      <div>AliasedExternDeclaration</div>
+      <div>StructDeclaration</div>
+      <div>UnionDeclaration</div>
+      <div>EnumDeclaration</div>
+    </article>
+  </section>
+
+  <section>
+    <header>FnDeclaration :=</header>
+    <article>
+      <div>SpecialMemberFnDeclaration</div>
+      <div>FnModifiers<sub>optional</sub> <i>fn</i> FnName<sub>optional</sub> FnParameters<sub>optional</sub> FnReturn<sub>optional</sub> FnBody</div>
+    </article>
+  </section>
+
+  <section>
+    <header>SpecialMemberFnDeclaration :=</header>
+    <article>
+      <div><i>fn dispose (this)</i> FnBody</div>
+      <div><i>fn next (this)</i> FnBody</div>
+      <div><i>fn next (this, identifier)</i> FnBody</div>
+      <div><i>fn nameof (this)</i> FnBody</div>
+      <div><i>fn valueof (this, name)</i> FnBody</div>
+    </article>
+  </section>
+
+  <section>
+    <header>FnModifiers :=</header>
+    <article>
+      <div>FnModifier FnModifiers<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>FnModifier := <b>one of</b></header>
+    <article>
+      <div><i>static const auto async abstract private synchronized override</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>FnName := <b>one of</b></header>
+    <article>
+      <div><i>identifier</i></div>
+      <div><i>operator</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>FnParameters :=</header>
+    <article>
+      <div><i>(</i> FnParameterList<sub>optional</sub> <i>)</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>FnParameterList :=</header>
+    <article>
+      <div>FnParameterDeclaration</div>
+      <div>FnParameterDeclaration <i>,</i> FnParameterList<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>FnParameterDeclaration :=</header>
+    <article>
+      <div><i>this</i></div>
+      <div>FnParameterModifiers<sub>optional</sub> <i>identifier</i> TypeApplication<sub>optional</sub> (<i>=</i> Expression)<sub>optional</sub></div>
+      <div><i>...</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>FnParameterModifiers :=</header>
+    <article>
+      <div>FnParameterModifier FnParameterModifiers<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>FnParameterModifier := <b>one of</b></header>
+    <article>
+      <div><i>const auto synchronized</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>FnReturn :=</header>
+    <article>
+      <div><i>:</i> TypeExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>FnBody :=</header>
+    <article>
+      <div><i>=</i> Statement</div>
+      <div>BlockStatement</div>
+    </article>
+  </section>
+
+  <section>
+    <header>TextFunctionDeclaration :=</header>
+    <article>
+      <div>FnModifiers<sub>optional</sub> TextFunctionKeyword FnParameters<sub>optional</sub> FnReturn<sub>optional</sub> <i>#{</i> TextFnBody<sub>optional</sub> <i>#}</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>TextFunctionKeyword := <b>one of</b></header>
+    <article>
+      <div><i>html</i> <i>css</i> <i>js</i> <i>json</i> <i>sql</i> <i>blob</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>TextFnBody :=</header>
+    <article>
+      <div>TextFunctionStatement</div>
+      <div>TextFunctionStatement TestFnBody</div>
+    </article>
+  </section>
+
+  <section>
+    <header>TextFunctionStatement :=</header>
+    <article>
+      <div>TextLiteral</div>
+      <div>Interpolation</div>
+    </article>
+  </section>
+
+  <section>
+    <header>TextLiteral :=</header>
+    <article>
+      <div><i>any byte or UTF8Character except #} or #{</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>Interpolation :=</header>
+    <article>
+      <div><i>#{</i> StatementList<sub>optional</sub> <i>}</i> InterpolationSuffix<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>InterpolationSuffix :=</header>
+    <article>
+      <div><i>#(</i> StringLiteral <i>)</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>UrlhandlerDeclaration :=</header>
+    <article>
+      <div>FnModifiers<sub>optional</sub> <i>urlhandler</i> UrlName<sub>optional</sub> FnParameters FnBody</div>
+    </article>
+  </section>
+
+  <section>
+    <header>UrlName :=</header>
+    <article>
+      <div><i>identifier</i></div>
+      <div><i>"</i> UrlPath<sub>optional</sub> <i>"</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>UrlPath :=</header>
+    <article>
+      <div>UrlPart</div>
+      <div>UrlPart <i>/</i> UrlPath</div>
+    </article>
+  </section>
+
+  <section>
+    <header>UrlPart :=</header>
+    <article>
+      <div>UTF8 character<sub>except <i>/</i></sub> UrlPart<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>LambdaDeclaration :=</header>
+    <article>
+      <div><i>lambda</i> <i>identifier</i><sub>optional</sub> FnParameters<sub>optional</sub> FnReturn<sub>optional</sub> FnBody</div>
+    </article>
+  </section>
+
+  <section>
+    <header>AliasedExternDeclaration :=</header>
+    <article>
+      <div>SourcedExternDeclaration</div>
+      <div>SourcedExternDeclaration <i>as identifier</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>SourcedExternDeclaration :=</header>
+    <article>
+      <div>ExternDeclaration</div>
+      <div>ExternDeclaration <i>from</i> StringLiteral</div>
+    </article>
+  </section>
+
+  <section>
+    <header>ExternDeclaration :=</header>
+    <article>
+      <div>ExternVariableDeclaration</div>
+      <div>ExternFunctionDeclaration</div>
+    </article>
+  </section>
+
+  <section>
+    <header>ExternVariableDeclaration :=</header>
+    <article>
+      <div><i>extern identifier :</i> TypeExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>ExternFunctionDeclaration :=</header>
+    <article>
+      <div><i>extern identifier</i> FnParameters <i>:</i> TypeExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>StructDeclaration :=</header>
+    <article>
+      <div>StructModifiers<sub>optional</sub> StructAttributes<sub>optional</sub> <i>struct</i> <i>identifier</i><sub>optional</sub> TypeParameters<sub>optional</sub> Supers<sub>optional</sub> <i>{</i> StructureBody<sub>optional</sub> <i>}</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>StructModifiers :=</header>
+    <article>
+      <div>StructModifier StructModifiers<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>StructModifier := <b>one of</b></header>
+    <article>
+      <div><i>static</i> <i>const</i> <i>auto</i> <i>private</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>StructAttributes :=</header>
+    <article>
+      <div>StructAttribute StructAttributes<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>StructAttribute :=</header>
+    <article>
+      <div><i>align(</i> Expression <i>)</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>TypeParameters :=</header>
+    <article>
+      <div><i>&lt;</i> TypeParameterList <i>&gt;</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>TypeParameterList :=</header>
+    <article>
+      <div>TypeParameter</div>
+      <div>TypeParameter <i>,</i> TypeParameterList</div>
+    </article>
+  </section>
+
+  <section>
+    <header>TypeParameter :=</header>
+    <article>
+      <div>Literal</div>
+      <div><i>identifier</i></div>
+      <div><i>identifier</i> <i>=</i> TypeExpression</div>
+      <div><i>identifier</i> <i>=</i> Literal</div>
+      <div><i>...</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>Supers :=</header>
+    <article>
+      <div><i>:</i> TypeExpressionList</div>
+    </article>
+  </section>
+
+  <section>
+    <header>StructureBody :=</header>
+    <article>
+      <div>Declaration StructureBody<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>UnionDeclaration :=</header>
+    <article>
+      <div>UnionModifiers<sub>optional</sub> <i>union</i> <i>identifier</i><sub>optional</sub> TypeParameters<sub>optional</sub> <i>{</i> StructureBody<sub>optional</sub> <i>}</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>UnionModifiers :=</header>
+    <article>
+      <div>UnionModifier UnionModifiers<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>UnionModifier := <b>one of</b></header>
+    <article>
+      <div><i>static</i> <i>const</i> <i>private</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>EnumDeclaration :=</header>
+    <article>
+      <div>EnumModifiers<sub>optional</sub> <i>enum</i> <i>identifier</i><sub>optional</sub> EnumBase<sub>optional</sub> <i>{</i> EnumBody<sub>optional</sub> <i>}</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>EnumModifiers :=</header>
+    <article>
+      <div>EnumModifier EnumModifier<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>EnumModifier := <b>one of</b></header>
+    <article>
+      <div><i>static</i> <i>const</i> <i>private</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>EnumBase :=</header>
+    <article>
+      <div><i>:</i> TypeExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>EnumBody :=</header>
+    <article>
+      <div>EnumMember</div>
+      <div>EnumMember <i>,</i> EnumBody<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>EnumMember :=</header>
+    <article>
+      <div><i>identifier</i></div>
+      <div><i>identifier = </i> Expression</div>
+      <div>TypeDeclaration</div>
+    </article>
+  </section>
+
+  <section>
+    <header>AssignExpression :=</header>
+    <article>
+      <div>IfExpression</div>
+      <div>AssignExpression <i>^=</i> IfExpression</div>
+      <div>AssignExpression <i>|=</i> IfExpression</div>
+      <div>AssignExpression <i>&=</i> IfExpression</div>
+      <div>AssignExpression <i>&lt;&lt;=</i> IfExpression</div>
+      <div>AssignExpression <i>&gt;&gt;=</i> IfExpression</div>
+      <div>AssignExpression <i>&gt;&gt;&gt;=</i> IfExpression</div>
+      <div>AssignExpression <i>-=</i> IfExpression</div>
+      <div>AssignExpression <i>+=</i> IfExpression</div>
+      <div>AssignExpression <i>%=</i> IfExpression</div>
+      <div>AssignExpression <i>/=</i> IfExpression</div>
+      <div>AssignExpression <i>*=</i> IfExpression</div>
+      <div>AssignExpression <i>=</i> IfExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>IfExpression :=</header>
+    <article>
+      <div>ConditionalExpression</div>
+      <div>ConditionalExpression <i>if</i> AssignExpression</div>
+      <div>ConditionalExpression <i>if</i> ConditionalExpression <i>else</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>ConditionalExpression :=</header>
+    <article>
+      <div>LogicalExpression</div>
+      <div>LogicalExpression <i>?</i> LogicalExpression <i>:</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>LogicalExpression :=</header>
+    <article>
+      <div>BitwiseExpression</div>
+      <div>LogicalExpression <i>||</i> BitwiseExpression</div>
+      <div>LogicalExpression <i>&&</i> BitwiseExpression</div>
+      <div>LogicalExpression <i>??</i> BitwiseExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>BitwiseExpression :=</header>
+    <article>
+      <div>ComparisonExpression</div>
+      <div>ComparisonExpression <i>|</i> BitwiseExpression</div>
+      <div>ComparisonExpression <i>&</i> BitwiseExpression</div>
+      <div>ComparisonExpression <i>^</i> BitwiseExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>ComparisonExpression :=</header>
+    <article>
+      <div>ShiftExpression</div>
+      <div>ShiftExpression <i>!in</i> ShiftExpression</div>
+      <div>ShiftExpression <i>in</i> ShiftExpression</div>
+      <div>ShiftExpression <i>!=</i> ShiftExpression</div>
+      <div>ShiftExpression <i>==</i> ShiftExpression</div>
+      <div>ShiftExpression <i>!==</i> ShiftExpression</div>
+      <div>ShiftExpression <i>===</i> ShiftExpression</div>
+      <div>ShiftExpression <i>&lt;</i> ShiftExpression</div>
+      <div>ShiftExpression <i>&lt;=</i> ShiftExpression</div>
+      <div>ShiftExpression <i>&gt;</i> ShiftExpression</div>
+      <div>ShiftExpression <i>&gt;=</i> ShiftExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>ShiftExpression :=</header>
+    <article>
+      <div>AdditiveExpression</div>
+      <div>ShiftExpression <i>&lt;&lt;</i> AdditiveExpression</div>
+      <div>ShiftExpression <i>&gt;&gt;</i> AdditiveExpression</div>
+      <div>ShiftExpression <i>&gt;&gt;&gt;</i> AdditiveExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>AdditiveExpression :=</header>
+    <article>
+      <div>MultiplicativeExpression</div>
+      <div>MultiplicativeExpression <i>-</i> AdditiveExpression</div>
+      <div>MultiplicativeExpression <i>+</i> AdditiveExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>MultiplicativeExpression :=</header>
+    <article>
+      <div>CastExpression</div>
+      <div>CastExpression <i>%%</i> MultiplicativeExpression</div>
+      <div>CastExpression <i>%</i> MultiplicativeExpression</div>
+      <div>CastExpression <i>/</i> MultiplicativeExpression</div>
+      <div>CastExpression <i>*</i> MultiplicativeExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>CastExpression :=</header>
+    <article>
+      <div>IdentityExpression</div>
+      <div>UnaryPrefixExpression</div>
+      <div>UnaryPrefixExpression <i>as</i> TypeExpression</div>
+      <div>UnaryPrefixExpression <i>to</i> TypeExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>IdentityExpression :=</header>
+    <article>
+      <div>PrefixExpression</div>
+      <div>PrefixExpression <i>!is</i> TypeExpression</div>
+      <div>PrefixExpression <i>is</i> TypeExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>PrefixExpression :=</header>
+    <article>
+      <div>NewExpression</div>
+      <div>DeleteExpression</div>
+      <div>TypeOfExpression</div>
+      <div>NameOfExpression</div>
+      <div>AwaitExpression</div>
+      <div>YieldExpression</div>
+      <div>UnaryPrefixExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>NewExpression :=</header>
+    <article>
+      <div><i>new</i> TypeExpression</div>
+      <div><i>new</i> InitializerExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>DeleteExpression :=</header>
+    <article>
+      <div><i>delete</i> PrefixExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>TypeOfExpression :=</header>
+    <article>
+      <div><i>typeof</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>NameOfExpression :=</header>
+    <article>
+      <div><i>nameof</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>AwaitExpression :=</header>
+    <article>
+      <div><i>await</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>YieldExpression :=</header>
+    <article>
+      <div><i>yield</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>UnaryPrefixExpression :=</header>
+    <article>
+      <div>UnarySuffixExpression</div>
+      <div><i>&</i> UnaryPrefixExpression</div>
+      <div><i>*</i> UnaryPrefixExpression</div>
+      <div><i>~</i> UnaryPrefixExpression</div>
+      <div><i>-</i> UnaryPrefixExpression</div>
+      <div><i>+</i> UnaryPrefixExpression</div>
+      <div><i>--</i> UnaryPrefixExpression</div>
+      <div><i>++</i> UnaryPrefixExpression</div>
+      <div><i>!</i> UnaryPrefixExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>UnarySuffixExpression :=</header>
+    <article>
+      <div>PathExpression</div>
+      <div>PathExpression <i>--</i></div>
+      <div>PathExpression <i>++</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>PathExpression :=</header>
+    <article>
+      <div>PrimaryExpression</div>
+      <div>PathExpression <i>.</i> PrimaryExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>PrimaryExpression :=</header>
+    <article>
+      <div>TypeExpression</div>
+      <div>TupleExpression</div>
+      <div>ArrayExpression</div>
+      <div>ObjectExpression</div>
+      <div>CallExpression</div>
+      <div>IndexExpression</div>
+      <div>Literal</div>
+      <div><i>identifier</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>TupleExpression :=</header>
+    <article>
+      <div>ParenthesizedExpression</div>
+      <div><i>(</i> ExpressionList <i>)</i></div>
+      <div><i>(</i> Expression <i>,</i> <i>)</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>ParenthesizedExpression :=</header>
+    <article>
+      <div><i>(</i> Expression <i>)</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>ArrayExpression :=</header>
+    <article>
+      <div><i>[</i> ExpressionList <i>]</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>ObjectExpression :=</header>
+    <article>
+      <div><i>{</i> ArgumentList <i>}</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>CallExpression :=</header>
+    <article>
+      <div>PrimaryExpression <i>(</i> ArgumentList<sub>optional</sub> <i>)</i></div>
+      <div>PrimaryExpression <i>(</i> ArgumentList <i>)</i> <i>with</i> Statement</div>
+    </article>
+  </section>
+
+  <section>
+    <header>IndexExpression :=</header>
+    <article>
+      <div>PrimaryExpression <i>[</i> ArgumentList<sub>optional</sub> <i>]</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>InitializerExpression :=</header>
+    <article>
+      <div>TypeExpression <i>{</i> ArgumentList<sub>optional</sub> <i>}</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>ArgumentList :=</header>
+    <article>
+      <div>Argument</div>
+      <div>Argument <i>,</i> ArgumentList</div>
+    </article>
+  </section>
+
+  <section>
+    <header>Argument :=</header>
+    <article>
+      <div>Expression</div>
+      <div><i>identifier</i> <i>=</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>Literal :=</header>
+    <article>
+      <div>NullLiteral</div>
+      <div>VoidLiteral</div>
+      <div>BooleanLiteral</div>
+      <div>NumericLiteral</div>
+      <div>WideStringLiteral</div>
+      <div>RawStringLiteral</div>
+      <div>StringLiteral</div>
+      <div>CharacterLiteral</div>
+    </article>
+  </section>
+
+  <section>
+    <header>NullLiteral :=</header>
+    <article>
+      <div><i>null</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>VoidLiteral :=</header>
+    <article>
+      <div><i>void</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>BooleanLiteral :=</header>
+    <article>
+      <div><i>true</i></div>
+      <div><i>false</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>NumericLiteral :=</header>
+    <article>
+      <div>IntegerLiteral</div>
+      <div>FloatLiteral</div>
+    </article>
+  </section>
+
+  <section>
+    <header>IntegerLiteral :=</header>
+    <article>
+      <div>DecLiteral</div>
+      <div>HexLiteral</div>
+      <div>BinaryLiteral</div>
+      <div>OctalLiteral</div>
+    </article>
+  </section>
+
+  <section>
+    <header>DecLiteral :=</header>
+    <article>
+      <div>DecDigit DecDigits<sub>optional</sub> IntegerSuffix<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>DecDigits :=</header>
+    <article>
+      <div>DecDigitOrUnderscore DecDigits<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>DecDigitOrUnderscore := <b>one of</b></header>
+    <article>
+      <div><i>_</i> DecDigit</div>
+    </article>
+  </section>
+
+  <section>
+    <header>DecDigit := <b>one of</b></header>
+    <article>
+      <div><i>0</i> <i>1</i> <i>2</i> <i>3</i> <i>4</i> <i>5</i> <i>6</i> <i>7</i> <i>8</i> <i>9</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>IntegerSuffix :=</header>
+    <article>
+      <div>IntegerSuffixLetter</div>
+      <div>IntegerSuffixLetter IntegerSuffixBits</div>
+    </article>
+  </section>
+
+  <section>
+    <header>IntegerSuffixLetter := <b>one of</b></header>
+    <article>
+      <div><i>i</i> <i>u</i> <i>I</i> <i>U</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>IntegerSuffixBits := <b>one of</b></header>
+    <article>
+      <div><i>8</i> <i>16</i> <i>32</i> <i>64</i> <i>128</i> <i>256</i> <i>512</i> <i>1024</i> <i>2048</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>HexLiteral :=</header>
+    <article>
+      <div>HexPrefix HexDigits IntegerSuffix<sub>optional</sub></div>
+      <div>HexDigit HexDigits<sub>optional</sub> <i>h</i> IntegerSuffix<sub>optional</sub></div>
+      <div>HexDigit HexDigits<sub>optional</sub> <i>H</i> IntegerSuffix<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>HexPrefix := <b>one of</b></header>
+    <article>
+      <div><i>0x</i> <i>0X</i> <i>0h</i> <i>0H</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>HexDigits :=</header>
+    <article>
+      <div>HexDigitOrUnderscore HexDigits<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>HexDigitOrUnderscore := <b>one of</b></header>
+    <article>
+      <div><i>_</i> HexDigit</div>
+    </article>
+  </section>
+
+  <section>
+    <header>HexDigit := <b>one of</b></header>
+    <article>
+      <div><i>0</i> <i>1</i> <i>2</i> <i>3</i> <i>4</i> <i>5</i> <i>6</i> <i>7</i> <i>8</i> <i>9</i> <i>a</i> <i>b</i> <i>c</i> <i>d</i> <i>e</i> <i>f</i> <i>A</i> <i>B</i> <i>C</i> <i>D</i> <i>E</i> <i>F</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>BinaryLiteral :=</header>
+    <article>
+      <div>BinaryPrefix BinaryDigits IntegerSuffix<sub>optional</sub></div>
+      <div>BinaryDigit BinaryDigits<sub>optional</sub> <i>b</i> IntegerSuffix<sub>optional</sub></div>
+      <div>BinaryDigit BinaryDigits<sub>optional</sub> <i>B</i> IntegerSuffix<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>BinaryPrefix := <b>one of</b></header>
+    <article>
+      <div><i>0b</i> <i>0B</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>BinaryDigits :=</header>
+    <article>
+      <div>BinaryDigitOrUnderscore BinaryDigits<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>BinaryDigitOrUnderscore := <b>one of</b></header>
+    <article>
+      <div><i>_</i> BinaryDigit</div>
+    </article>
+  </section>
+
+  <section>
+    <header>BinaryDigit := <b>one of</b></header>
+    <article>
+      <div><i>0</i> <i>1</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>OctalLiteral :=</header>
+    <article>
+      <div>OctalPrefix OctalDigits IntegerSuffix<sub>optional</sub></div>
+      <div>OctalDigit OctalDigits<sub>optional</sub> <i>o</i> IntegerSuffix<sub>optional</sub></div>
+      <div>OctalDigit OctalDigits<sub>optional</sub> <i>O</i> IntegerSuffix<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>OctalPrefix := <b>one of</b></header>
+    <article>
+      <div><i>0o</i> <i>0O</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>OctalDigits :=</header>
+    <article>
+      <div>OctalDigitOrUnderscore OctalDigits<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>OctalDigitOrUnderscore := <b>one of</b></header>
+    <article>
+      <div><i>_</i> OctalDigit</div>
+    </article>
+  </section>
+
+  <section>
+    <header>OctalDigit := <b>one of</b></header>
+    <article>
+      <div><i>0</i> <i>1</i> <i>2</i> <i>3</i> <i>4</i> <i>5</i> <i>6</i> <i>7</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>FloatLiteral :=</header>
+    <article>
+      <div>DecFloatLiteral</div>
+      <div>HexFloatLiteral</div>
+      <div>BinaryFloatLiteral</div>
+    </article>
+  </section>
+
+  <section>
+    <header>DecFloatLiteral :=</header>
+    <article>
+      <div>DecDigit DecDigits<sub>optional</sub> DecExponent<sub>optional</sub> DecFloatSuffix</div>
+      <div>DecDigit DecDigits<sub>optional</sub> DecExponent DecFloatSuffix<sub>optional</sub></div>
+      <div>DecDigit DecDigits<sub>optional</sub> <i>.</i> DecDigit DecDigits<sub>optional</sub> DecExponent<sub>optional</sub> DecFloatSuffix<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>DecExponent :=</header>
+    <article>
+      <div>DecExponentLetter Sign<sub>optional</sub> DecDigit DecDigits<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>DecExponentLetter := <b>one of</b></header>
+    <article>
+      <div><i>e</i> <i>E</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>Sign := <b>one of</b></header>
+    <article>
+      <div><i>-</i> <i>+</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>DecFloatSuffix :=</header>
+    <article>
+      <div>DecFloatSuffixLetter FloatSuffixNumber<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>DecFloatSuffixLetter := <b>one of</b></header>
+    <article>
+      <div><i>f</i> <i>F</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>FloatSuffixNumber := <b>one of</b></header>
+    <article>
+      <div><i>32</i> <i>64</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>HexFloatLiteral :=</header>
+    <article>
+      <div>HexPrefix HexDigits HexExponent<sub>optional</sub> HexFloatSuffix</div>
+      <div>HexPrefix HexDigits HexExponent HexFloatSuffix<sub>optional</sub></div>
+      <div>HexPrefix HexDigits <i>.</i> HexDigits HexExponent<sub>optional</sub> HexFloatSuffix<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>HexExponent :=</header>
+    <article>
+      <div>HexExponentLetter</div>
+      <div>HexExponentLetter Sign<sub>optional</sub> HexDigit HexDigits<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>HexExponentLetter := <b>one of</b></header>
+    <article>
+      <div><i>p</i> <i>P</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>HexFloatSuffix :=</header>
+    <article>
+      <div>HexFloatSuffixLetter FloatSuffixNumber<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>HexFloatSuffixLetter := <b>one of</b></header>
+    <article>
+      <div><i>g</i> <i>G</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>BinaryFloatLiteral :=</header>
+    <article>
+      <div>BinaryPrefix BinaryDigits DecExponent<sub>optional</sub> DecFloatSuffix</div>
+      <div>BinaryPrefix BinaryDigits DecExponent DecFloatSuffix<sub>optional</sub></div>
+      <div>BinaryPrefix BinaryDigits<sub>optional</sub> <i>.</i> BinaryDigits DecExponent<sub>optional</sub> DecFloatSuffix<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>WideStringLiteral :=</header>
+    <article>
+      <div><i>w</i> StringLiteral</div>
+    </article>
+  </section>
+
+  <section>
+    <header>RawStringLiteral :=</header>
+    <article>
+      <div><i>r</i> StringLiteral</div>
+    </article>
+  </section>
+
+  <section>
+    <header>StringLiteral :=</header>
+    <article>
+      <div><i>'</i> SingleStringContent <i>'</i></div>
+      <div><i>"</i> DoubleStringContent<sub>optional</sub> <i>"</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>SingleStringContent :=</header>
+    <article>
+      <div>DoubleStringContent SingleStringContent</div>
+      <div>SingleStringContent<sub>optional</sub> Interpolation SingleStringContent<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>DoubleStringContent :=</header>
+    <article>
+      <div>Character</div>
+      <div>Interpolation</div>
+    </article>
+  </section>
+
+  <section>
+    <header>Character :=</header>
+    <article>
+      <div><i>any UTF8Character<sub>except closing-quote or \</sub></i></div>
+      <div><i>\</i> NotEscape</div>
+      <div><i>\</i> Escape</div>
+    </article>
+  </section>
+
+  <section>
+    <header>UTF8Character :=</header>
+    <article>
+      <div>ASCIICharacter</div>
+      <div><a href="https://tools.ietf.org/html/rfc3629" target="_blank">UTF-8 specification of multi-byte characters</a></div>
+    </article>
+  </section>
+
+  <section>
+    <header>ASCIICharacter := <b>one of</b></header>
+    <article>
+      <div><i>U+0000</i> &hellip; <i>U+007F</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>NotEscape :=</header>
+    <article>
+      <div><i>any UTF8Character<sub>except Escape</sub></i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>Escape :=</header>
+    <article>
+      <div>CharacterEscape</div>
+      <div>HexEscape</div>
+      <div>OctalEscape</div>
+      <div>UnicodeEscape</div>
+    </article>
+  </section>
+
+  <section>
+    <header>CharacterEscape := <b>one of</b></header>
+    <article>
+      <div><i>'</i> <i>"</i> <i>\</i> <i>a</i> <i>b</i> <i>f</i> <i>n</i> <i>r</i>  <i>t</i> <i>v</i> <i>0</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>HexEscape :=</header>
+    <article>
+      <div><i>x</i> HexDigit HexDigit</div>
+    </article>
+  </section>
+
+  <section>
+    <header>OctalEscape :=</header>
+    <article>
+      <div><i>o</i> OctalDigit OctalDigit OctalDigit</div>
+    </article>
+  </section>
+
+  <section>
+    <header>UnicodeEscape :=</header>
+    <article>
+      <div><i>u</i> HexQuad</div>
+      <div><i>U</i> HexQuad HexQuad</div>
+    </article>
+  </section>
+
+  <section>
+    <header>HexQuad :=</header>
+    <article>
+      <div>HexDigit HexDigit HexDigit HexDigit</div>
+    </article>
+  </section>
+
+  <section>
+    <header>CharacterLiteral :=</header>
+    <article>
+      <div><i>'</i> Character <i>'</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header><i>fullname</i> :=</header>
+    <article>
+      <div><i>identifier</i></div>
+      <div><i>identifier</i> <i>.</i> <i>fullname</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>IdentifierList :=</header>
+    <article>
+      <div><i>identifier</i></div>
+      <div><i>identifier</i> <i>,</i> IdentifierList</div>
+    </article>
+  </section>
+
+  <section>
+    <header><i>identifier</i> :=</header>
+    <article>
+      <div><i>blank</i></div>
+      <div>Letter<sub>except WhiteSpace, Punctuation or OperatorStart</sub> <i>identifier</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header><i>blank</i> :=</header>
+    <article>
+      <div><i>_</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>Letter :=</header>
+    <article>
+      <div><i>any UTF8Character</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>WhiteSpace :=</header>
+    <article>
+      <div>Space</div>
+      <div>NewLine</div>
+    </article>
+  </section>
+
+  <section>
+    <header>Space :=</header>
+    <article>
+      <div>SpaceCharacter Space<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>SpaceCharacter := <b>one of</b></header>
+    <article>
+      <div><i>\t</i> <i>SP</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>NewLine :=</header>
+    <article>
+      <div>Space<sub>optional</sub> NewLineCharacter Space<sub>optional</sub> NewLine<sub>optional</sub></div>
+    </article>
+  </section>
+
+  <section>
+    <header>NewLineCharacter := <b>one of</b></header>
+    <article>
+      <div><i>\r\n</i> <i>\r</i> <i>\n</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>Comment :=</header>
+    <article>
+      <div>MultiLineComment</div>
+      <div>SingleLineComment</div>
+    </article>
+  </section>
+
+  <section>
+    <header>MultiLineComment :=</header>
+    <article>
+      <div><i>/*</i> MultiLineCommentCharacters<sub>optional</sub>  <i>*/</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>MultiLineCommentCharacters :=</header>
+    <article>
+      <div><i>any UTF8Character<sub>optional</sub> except */</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>SingleLineComment :=</header>
+    <article>
+      <div><i>//</i> <i>any UTF8Character</i><sub>optional</sub>  SingleLineCommentTerminator</div>
+    </article>
+  </section>
+
+  <section>
+    <header>SingleLineCommentTerminator :=</header>
+    <article>
+      <div>NewLine</div>
+      <div>EndOfFile</div>
+    </article>
   </section>
 
 </body>
