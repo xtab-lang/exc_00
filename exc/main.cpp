@@ -1,9 +1,15 @@
+////////////////////////////////////////////////////////////////
+// author: exy.lang
+//   date: 2020-11-16
+////////////////////////////////////////////////////////////////
+
 #include "stdafx.h"
 
 import console;
 import string;
 
 int main(int argc, char **argv) {
+    String s{ S("hello") };
     console::writeln(S("Hello c++ modules!"));
     if (argv) {
         for (auto i = 0; i < argc; ++i) {

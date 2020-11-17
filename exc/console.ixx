@@ -1,7 +1,8 @@
 ////////////////////////////////////////////////////////////////
-// author: munenedu@gmail.com
+// author: exy.lang
 //   date: 2020-11-16
 ////////////////////////////////////////////////////////////////
+
 module;
 #include "stdafx.h"
 #include <wincon.h>
@@ -89,6 +90,5 @@ export void writeln(const String *str) {
     write(S("\r\n"));
     unlockConsole();
 }
-
 
 }

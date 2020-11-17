@@ -161,6 +161,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="console.ixx" />
+    <ClCompile Include="hash32.ixx" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="string.ixx" />
   </ItemGroup>
