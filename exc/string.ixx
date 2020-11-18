@@ -5,9 +5,9 @@
 
 module;
 #include "stdafx.h"
-export module string;
+export module lib:string;
 
-import hash;
+import :hash;
 
 export struct String final {
     const char  *text   = nullptr;

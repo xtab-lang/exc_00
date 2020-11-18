@@ -5,7 +5,7 @@
 
 module;
 #include "stdafx.h"
-export module hash;
+export module lib:hash;
 
 // Forward declarations.
 void MurmurHash3_x86_32(const void *key, int len, unsigned int seed, void *out);
@@ -19,8 +19,6 @@ export unsigned int hash32(const void *v, int vlen) {
     MurmurHash3_x86_32(v, vlen, 0, &hash);
 	return hash;
 }
-
-module:private;
 
 // From https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
 

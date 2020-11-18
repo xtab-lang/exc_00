@@ -5,8 +5,7 @@
 
 #include "stdafx.h"
 
-import console;
-import string;
+import lib;
 
 int main(int argc, char **argv) {
     String s{ S("hello") };

@@ -140,7 +140,7 @@
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
-      <CompileAs>CompileAsCppModule</CompileAs>
+      <CompileAs>Default</CompileAs>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <CallingConvention>StdCall</CallingConvention>
@@ -149,6 +149,8 @@
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <AdditionalOptions>/translateInclude</AdditionalOptions>
+      <AdditionalBMIDirectories>
+      </AdditionalBMIDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -162,6 +164,7 @@
   <ItemGroup>
     <ClCompile Include="console.ixx" />
     <ClCompile Include="hash32.ixx" />
+    <ClCompile Include="lib.ixx" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="string.ixx" />
     <ClCompile Include="syntax_tree.ixx" />
