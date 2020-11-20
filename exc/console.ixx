@@ -6,90 +6,61 @@
 module;
 #include "stdafx.h"
 #include <wincon.h>
-export module lib:console;
+export module console;
 
-import :string;
-import :hash;
+import string;
+import hash;
 
-namespace console {
+export struct Console {
+    SRWLOCK  srw{};
+    static thread_local int locks;
 
-static SRWLOCK   srw{};
-thread_local int locks{};
-
-void lockConsole() {
-    if (++locks == 1) {
-        AcquireSRWLockExclusive(&srw);
-    }
-}
-
-void unlockConsole() {
-    if (--locks == 0) {
-        ReleaseSRWLockExclusive(&srw);
-    }
-}
-
-export void write(const char *text, int length) {
-    if (!text) {
-        return;
-    } if (!length) {
-        length = cstrlen(text);
-        if (!length) {
+    void write(const char *text, int length) {
+        if (!text) {
             return;
+        } if (!length) {
+            length = cstrlen(text);
+            if (!length) {
+                return;
+            }
+        }
+        lock();
+        auto out = GetStdHandle(STD_OUTPUT_HANDLE);
+        DWORD written = 0;
+        auto res = WriteConsole(out, text, length, &written, nullptr);
+        if (res == FALSE) { // Failed.
+
+        } // Else succeeded.
+        unlock();
+    }
+
+    void write(const char *text) {
+        write(text, cstrlen(text));
+    }
+    
+    void writeln(const char *text, int length) {
+        lock();
+        write(text, length);
+        write(S("\r\n"));
+        unlock();
+    }
+
+    void writeln(const char *text) {
+        writeln(text, cstrlen(text));
+    }
+
+private:
+    void lock() {
+        if (++locks == 1) {
+            AcquireSRWLockExclusive(&srw);
         }
     }
-    lockConsole();
-    auto out = GetStdHandle(STD_OUTPUT_HANDLE);
-    DWORD written = 0;
-    auto res = WriteConsole(out, text, length, &written, nullptr);
-    if (res == FALSE) { // Failed.
-
-    } // Else succeeded.
-    unlockConsole();
-}
-
-export void writeln(const char *text, int length) {
-    lockConsole();
-    write(text, length);
-    write(S("\r\n"));
-    unlockConsole();
-}
-
-export void writeln(const char *text) {
-    lockConsole();
-    writeln(text, cstrlen(text));
-    unlockConsole();
-}
-
-export void write(const String &str) {
-    lockConsole();
-    write(str.text, str.length);
-    unlockConsole();
-}
-
-export void writeln(const String &str) {
-    lockConsole();
-    write(str);
-    write(S("\r\n"));
-    unlockConsole();
-}
-
-export void write(const String *str) {
-    if (!str) {
-        return;
+    void unlock() {
+        if (--locks == 0) {
+            ReleaseSRWLockExclusive(&srw);
+        }
     }
-    lockConsole();
-    write(str->text, str->length);
-    unlockConsole();
-}
+};
 
-export void writeln(const String *str) {
-    if (!str) {
-        return;
-    }
-    lockConsole();
-    write(str);
-    write(S("\r\n"));
-    unlockConsole();
-}
-
-}
+thread_local int Console::locks{};
+export Console console{};

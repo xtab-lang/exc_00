@@ -1,6 +1,13 @@
+////////////////////////////////////////////////////////////////
+// author: exy.lang
+//   date: 2020-11-16
+////////////////////////////////////////////////////////////////
+
 module;
 #include "stdafx.h"
-export module syntax;
+export module syntax.tree;
+
+import lib;
 
 //--Forward declarations.
 struct SyntaxPos;
@@ -22,7 +29,6 @@ export struct SyntaxFolder final : SyntaxNode {
 };
 
 export struct SyntaxFile final : SyntaxNode {
-
 };
 
 export struct SyntaxModule final : SyntaxNode {

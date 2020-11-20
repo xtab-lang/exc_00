@@ -8,14 +8,13 @@
 import lib;
 
 int main(int argc, char **argv) {
-    String s{ S("hello") };
-    console::writeln(S("Hello c++ modules!"));
+    console.writeln(S("The exy compiler"));
     if (argv) {
         for (auto i = 0; i < argc; ++i) {
-            console::writeln(argv[i], cstrlen(argv[i]));
+            console.writeln(argv[i], cstrlen(argv[i]));
         }
     } else {
-        console::writeln("No command line arguments.");
+        console.writeln("No command line arguments.");
     }
     return 0;
 }

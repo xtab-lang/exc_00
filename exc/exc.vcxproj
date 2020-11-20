@@ -81,6 +81,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <PublicModuleDirectories>
+    </PublicModuleDirectories>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -130,17 +132,14 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
       <ExceptionHandling>false</ExceptionHandling>
       <ControlFlowGuard>false</ControlFlowGuard>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <StringPooling>true</StringPooling>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
-      <CompileAs>Default</CompileAs>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <CallingConvention>StdCall</CallingConvention>
@@ -148,9 +147,11 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <AdditionalOptions>/translateInclude</AdditionalOptions>
       <AdditionalBMIDirectories>
       </AdditionalBMIDirectories>
+      <AdditionalModuleDependencies>
+      </AdditionalModuleDependencies>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

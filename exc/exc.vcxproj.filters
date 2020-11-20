@@ -11,11 +11,11 @@
     <ClCompile Include="hash32.ixx">
       <Filter>lib</Filter>
     </ClCompile>
-    <ClCompile Include="syntax_tree.ixx">
-      <Filter>syntax</Filter>
-    </ClCompile>
     <ClCompile Include="lib.ixx">
       <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="syntax_tree.ixx">
+      <Filter>syntax\tree</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -24,6 +24,9 @@
     </Filter>
     <Filter Include="lib">
       <UniqueIdentifier>{4e5777b7-105d-458a-b719-eae94086e464}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="syntax\tree">
+      <UniqueIdentifier>{97fd0040-de6e-43ed-be7e-8fba04abfb7c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

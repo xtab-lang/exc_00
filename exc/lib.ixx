@@ -7,6 +7,6 @@ module;
 #include "stdafx.h"
 export module lib;
 
-export import :console;
-export import :hash;
-export import :string;
+export import console;
+export import hash;
+export import string;

@@ -5,9 +5,9 @@
 
 module;
 #include "stdafx.h"
-export module lib:string;
+export module string;
 
-import :hash;
+import hash;
 
 export struct String final {
     const char  *text   = nullptr;
@@ -19,4 +19,4 @@ export struct String final {
     String(const char *text, int length) : text(text), length(length), hash(hash32(text, length)) {}
 };
 
-using Identifier = const String*;
+export using Identifier = const String*;
