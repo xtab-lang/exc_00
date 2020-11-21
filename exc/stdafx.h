@@ -17,6 +17,7 @@
 #include <sdkddkver.h>
 #include <windef.h>
 #include <WinBase.h>
+#include <stdlib.h>
 
 /* warning C4201: nonstandard extension used: nameless struct/union */
 //#pragma warning(disable: 4201)
@@ -33,5 +34,16 @@
 #define S(text) (text), (int)__crt_countof(text)
 
 constexpr auto cstrlen(const char *text) { return text ? (int)strlen(text) : 0; }
+
+template<typename T>
+constexpr void memzero(T *mem, int count = 1) { ZeroMemory(mem, sizeof(T) * count); }
+
+template<typename T>
+constexpr void memcopy(T *dst, T *src, int count = 1) { CopyMemory(dst, src, sizeof(T) * count); }
+
+template<typename T>
+constexpr void memmove(T *dst, T *src, int count = 1) { MoveMemory(dst, src, sizeof(T) * count); }
+
+static thread_local char numbuf[_CVTBUFSIZE];
 
 #endif // STDAFX_H_

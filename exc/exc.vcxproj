@@ -151,7 +151,7 @@
       </AdditionalBMIDirectories>
       <AdditionalModuleDependencies>
       </AdditionalModuleDependencies>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -163,14 +163,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="console.ixx" />
-    <ClCompile Include="hash32.ixx" />
-    <ClCompile Include="lib.ixx" />
+    <ClCompile Include="console.cpp" />
+    <ClCompile Include="highlight.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="string.ixx" />
-    <ClCompile Include="syntax_tree.ixx" />
+    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="console.h" />
+    <ClInclude Include="highlight.h" />
     <ClInclude Include="stdafx.h">
       <FileType>Document</FileType>
     </ClInclude>

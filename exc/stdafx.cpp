@@ -1,12 +1,6 @@
 ////////////////////////////////////////////////////////////////
 // author: exy.lang
-//   date: 2020-11-18
+//   date: 2020-11-21
 ////////////////////////////////////////////////////////////////
 
-module;
 #include "stdafx.h"
-export module lib;
-
-export import console;
-export import hash;
-export import string;

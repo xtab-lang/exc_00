@@ -2,21 +2,13 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="console.ixx">
-      <Filter>lib</Filter>
+    <ClCompile Include="console.cpp">
+      <Filter>lib\console</Filter>
     </ClCompile>
-    <ClCompile Include="string.ixx">
-      <Filter>lib</Filter>
+    <ClCompile Include="highlight.cpp">
+      <Filter>lib\highlight</Filter>
     </ClCompile>
-    <ClCompile Include="hash32.ixx">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="lib.ixx">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="syntax_tree.ixx">
-      <Filter>syntax\tree</Filter>
-    </ClCompile>
+    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="syntax">
@@ -28,10 +20,20 @@
     <Filter Include="syntax\tree">
       <UniqueIdentifier>{97fd0040-de6e-43ed-be7e-8fba04abfb7c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib\console">
+      <UniqueIdentifier>{42d0bf31-0a92-40b2-885c-ee3153e74989}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\highlight">
+      <UniqueIdentifier>{120c5924-71c4-48e9-be48-c02ecb804de0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>lib</Filter>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="console.h">
+      <Filter>lib\console</Filter>
+    </ClInclude>
+    <ClInclude Include="highlight.h">
+      <Filter>lib\highlight</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

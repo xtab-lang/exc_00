@@ -4,17 +4,13 @@
 ////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-
-import lib;
+#include "console.h"
+#include "highlight.h"
 
 int main(int argc, char **argv) {
-    console.writeln(S("The exy compiler"));
-    if (argv) {
-        for (auto i = 0; i < argc; ++i) {
-            console.writeln(argv[i], cstrlen(argv[i]));
-        }
-    } else {
-        console.writeln("No command line arguments.");
+    traceln("exc: The exy language\r\nCommand line arguments:");
+    for (auto i = 0; i < argc; ++i) {
+        traceln("\t%c", argv[i]);
     }
     return 0;
 }
