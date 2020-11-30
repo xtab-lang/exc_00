@@ -2,38 +2,98 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="date.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="err.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="compiler.cpp">
+      <Filter>compiler</Filter>
+    </ClCompile>
     <ClCompile Include="console.cpp">
-      <Filter>lib\console</Filter>
+      <Filter>lib</Filter>
     </ClCompile>
-    <ClCompile Include="highlight.cpp">
-      <Filter>lib\highlight</Filter>
+    <ClCompile Include="format.cpp">
+      <Filter>lib</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="string.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="hash.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="list.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="source.cpp">
+      <Filter>compiler\syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="mem.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lexer.cpp">
+      <Filter>compiler\syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="aio.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="syntax">
-      <UniqueIdentifier>{d50b3175-00bb-4980-b8a8-dd2ff7d1cf6d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="lib">
       <UniqueIdentifier>{4e5777b7-105d-458a-b719-eae94086e464}</UniqueIdentifier>
     </Filter>
-    <Filter Include="syntax\tree">
-      <UniqueIdentifier>{97fd0040-de6e-43ed-be7e-8fba04abfb7c}</UniqueIdentifier>
+    <Filter Include="compiler">
+      <UniqueIdentifier>{33466144-b952-4bb6-81f1-64c7281e726b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="lib\console">
-      <UniqueIdentifier>{42d0bf31-0a92-40b2-885c-ee3153e74989}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="lib\highlight">
-      <UniqueIdentifier>{120c5924-71c4-48e9-be48-c02ecb804de0}</UniqueIdentifier>
+    <Filter Include="compiler\syntax">
+      <UniqueIdentifier>{d50b3175-00bb-4980-b8a8-dd2ff7d1cf6d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="console.h">
-      <Filter>lib\console</Filter>
+    <ClInclude Include="date.h">
+      <Filter>lib</Filter>
     </ClInclude>
-    <ClInclude Include="highlight.h">
-      <Filter>lib\highlight</Filter>
+    <ClInclude Include="err.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="compiler.h">
+      <Filter>compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="console.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="format.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="string.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="hash.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="list.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="source.h">
+      <Filter>compiler\syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="mem.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lexer.h">
+      <Filter>compiler\syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="aio.h">
+      <Filter>lib</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

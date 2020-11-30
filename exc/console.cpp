@@ -3,53 +3,54 @@
 //   date: 2020-11-20
 ////////////////////////////////////////////////////////////////
 
-#include "stdafx.h"
-#include "console.h"
+#include "pch.h"
 
 #include <wincon.h>
 
-namespace console {
-static SRWLOCK srw{};
-static thread_local int locks{};
+namespace exy {
+SRWLOCK ConsoleStream::srw{};
+thread_local int ConsoleStream::locks = 0;
 
-Locker::Locker() {
+void ConsoleStream::lock() {
+	Assert(locks >= 0);
 	if (++locks == 1) {
-		shouldRelease = true;
 		AcquireSRWLockExclusive(&srw);
 	}
 }
 
-Locker::~Locker() {
-	if (shouldRelease) {
+void ConsoleStream::unlock() {
+	Assert(locks > 0);
+	if (--locks == 0) {
 		ReleaseSRWLockExclusive(&srw);
 	}
-	--locks;
 }
 
-void write(const char *v, int vlen) {
+void ConsoleStream::write(const char *v, int vlen) {
 	if (!v || vlen <= 0) {
 		return;
 	}
-	Locker locker{};
+	lock();
 	auto handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD bytesWritten{};
-	WriteConsole(handle, v, vlen, &bytesWritten, nullptr);
+	if (!WriteConsole(handle, v, vlen, &bytesWritten, nullptr)) {
+		Assert(0);
+	}
+	unlock();
 }
 
-void write(const char *v) {
-	write(v, cstrlen(v));
+void ConsoleStream::setTextFormat(TextFormat color) {
+	// Syntax: '0x1b[' value 'm'
+#define ESC "\033["
+#define ESC_LEN cstrlen(ESC)
+	char *buf = numbuf;
+	memcopy(buf, ESC, ESC_LEN);
+	_itoa_s((int)color, (char*)buf + ESC_LEN, numbufcap, 10);
+	auto length = cstrlen(buf);
+	buf[length++] = 'm';
+	write(buf, length);
 }
 
-void writeln(const char *v, int vlen) {
-	Locker locker{};
-	write(v, vlen);
-	write(S("\r\n"));
+ConsoleStream getConsoleFormatStream() {
+	return {};
 }
-
-void writeln(const char *v) {
-	Locker locker{};
-	write(v);
-	write(S("\r\n"));
-}
-
-} // namespace console
+} // namespace exy

@@ -1,0 +1,14 @@
+////////////////////////////////////////////////////////////////
+// author: exy.lang
+//   date: 2020-11-24
+////////////////////////////////////////////////////////////////
+
+#pragma once
+#ifndef HASH_H_
+#define HASH_H_
+
+namespace exy {
+unsigned int hash32(const void *v, int vlen);
+} // namespace exy
+
+#endif // HASH_H_

@@ -1,0 +1,14 @@
+////////////////////////////////////////////////////////////////
+// author: exy.lang
+//   date: 2020-11-22
+////////////////////////////////////////////////////////////////
+
+#pragma once
+#ifndef COMPILER_H_
+#define COMPILER_H_
+
+struct Compiler {
+    void dispose();
+    void run(int id);
+};
+#endif // COMPILER_H_

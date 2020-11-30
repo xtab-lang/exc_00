@@ -151,7 +151,8 @@
       </AdditionalBMIDirectories>
       <AdditionalModuleDependencies>
       </AdditionalModuleDependencies>
-      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -163,17 +164,39 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="aio.cpp" />
+    <ClCompile Include="compiler.cpp" />
     <ClCompile Include="console.cpp" />
-    <ClCompile Include="highlight.cpp" />
+    <ClCompile Include="date.cpp" />
+    <ClCompile Include="err.cpp" />
+    <ClCompile Include="format.cpp" />
+    <ClCompile Include="hash.cpp" />
+    <ClCompile Include="lexer.cpp" />
+    <ClCompile Include="lib.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="mem.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="list.cpp" />
+    <ClCompile Include="string.cpp" />
+    <ClCompile Include="source.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="aio.h" />
+    <ClInclude Include="compiler.h" />
     <ClInclude Include="console.h" />
-    <ClInclude Include="highlight.h" />
-    <ClInclude Include="stdafx.h">
-      <FileType>Document</FileType>
-    </ClInclude>
+    <ClInclude Include="date.h" />
+    <ClInclude Include="err.h" />
+    <ClInclude Include="format.h" />
+    <ClInclude Include="hash.h" />
+    <ClInclude Include="lexer.h" />
+    <ClInclude Include="lib.h" />
+    <ClInclude Include="list.h" />
+    <ClInclude Include="mem.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="string.h" />
+    <ClInclude Include="source.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

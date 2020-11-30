@@ -13,18 +13,17 @@
   <section>
     <header>Keyword := <b>one of</b></header>
     <article>
-      <div><i>typeof nameof</i></div>
+      <div><i>typeof nameof sizeof instanceof</i></div>
       <div><i>new delete</i></div>
       <div><i>this super</i></div>
-      <div><i>use</i></div>
-      <div><i>import</i> <i>export</i> <i>from</i> <i>as</i></div>
+      <div><i>use as</i></div>
+      <div><i>import export from</i></div>
       <div><i>if</i> <i>else</i> <i>elif</i></div> 
       <div><i>for</i> <i>each</i> <i>while</i> <i>in</i> <i>break</i> <i>continue</i></div>
       <div><i>switch</i> <i>case</i> <i>default</i> <i>fallthrough</i></div>
       <div><i>return</i> <i>yield</i> <i>await</i> <i>throw</i></div>
       <div><i>static const readonly auto var let async private synchronized override</i></div>
       <div><i>defer</i></div>
-      <div><i>srw</i></div>
       <div>TypeKeyword</div>
       <div>DoubleUnderscoreKeyword</div>
     </article>
@@ -44,38 +43,40 @@
   <section>
     <header>BuiltinTypeKeyword := <b>one of</b></header>
     <article>
-      <div><i>Bool</i> <i>Void</i> <i>Char</i> <i>WChar</i> <i>UTF8Char</i></div>
-      <div><i>Int8</i> <i>Int16</i> <i>Int32</i> <i>Int64</i> <i>Int128</i> <i>Int256</i> <i>Int512</i></div>
-      <div><i>UInt8</i> <i>UInt16</i> <i>UInt32</i> <i>UInt64</i> <i>UInt128</i> <i>UInt256</i> <i>UInt512</i></div>
+      <div><i>Bool Void Char WChar Utf8Char</i></div>
+      <div><i>Int8 Int16 Int32 Int64 Int128 Int256 Int512</i></div>
+      <div><i>UInt8 UInt16 UInt32 UInt64 UInt128 UInt256 UInt512</i></div>
+      <div><i>Byte Int UInt </i></div>
       <div><i>Float</i></div>
       <div><i>Double</i></div>
-      <div><i>Floatx4</i> <i>Floatx8</i> <i>Floatx16</i> <i>Floatx32</i></div>
-      <div><i>Doublex2</i> <i>Doublex4</i> <i>Doublex8</i> <i>Doublex16</i></div>
-      <div><i>Int8x16</i> <i>Int8x32</i> <i>Int8x64</i> <i>Int8x128</i></div>
-      <div><i>UInt8x16</i> <i>UInt8x32</i> <i>UInt8x64</i> <i>UInt8x128</i></div>
-      <div><i>Int16x8</i> <i>Int16x16</i> <i>Int16x32</i> <i>Int16x64</i></div>
-      <div><i>UInt16x8</i> <i>UInt16x16</i> <i>UInt16x32</i> <i>UInt16x64</i></div>
-      <div><i>Int32x4</i> <i>Int32x8</i> <i>Int32x16</i> <i>Int32x32</i></div>
-      <div><i>UInt32x4</i> <i>UInt32x8</i> <i>UInt32x16</i> <i>UInt32x32</i></div>
-      <div><i>Int64x2</i> <i>Int64x4</i> <i>Int64x8</i> <i>Int64x16</i></div>
-      <div><i>UInt64x2</i> <i>UInt64x4</i> <i>UInt64x8</i> <i>UInt64x16</i></div>
+      <div><i>Floatx4 Floatx8 Floatx16 Floatx32</i></div>
+      <div><i>Doublex2 Doublex4 Doublex8 Doublex16</i></div>
+      <div><i>Int8x16 Int8x32 Int8x64 Int8x128</i></div>
+      <div><i>UInt8x16 UInt8x32 UInt8x64 UInt8x128</i></div>
+      <div><i>Int16x8 Int16x16 Int16x32 Int16x64</i></div>
+      <div><i>UInt16x8 UInt16x16 UInt16x32 UInt16x64</i></div>
+      <div><i>Int32x4 Int32x8 Int32x16 Int32x32</i></div>
+      <div><i>UInt32x4 UInt32x8 UInt32x16 UInt32x32</i></div>
+      <div><i>Int64x2 Int64x4 Int64x8 Int64x16</i></div>
+      <div><i>UInt64x2 UInt64x4 UInt64x8 UInt64x16</i></div>
     </article>
   </section>
 
   <section>
     <header>DoubleUnderscoreKeyword := <b>one of</b></header>
     <article>
-      <div><i>__package__ __folder__ __module__ __file__ __function__ __line__</i></div>
+      <div><i>__module__ __file__ __function__ __line__</i></div>
       <div><i>__typeid__ __type__</i></div>
+      <div><i>__srw__</i></div>
     </article>
   </section>
 
   <section>
     <header>Punctuation := <b>one of</b></header>
     <article>
-      <div><i>-</i> <i>+</i>  <i>!</i> <i>%</i> <i>/</i> <i>*</i> <i>&gt;</i> <i>&lt;</i> <i>=</i> <i>|</i> <i>&</i> <i>?</i></div>
-      <div><i>.</i> <i>..</i> <i>...</i></div>
-      <div><i>(</i> <i>)</i> <i>&lt;</i> <i>&gt;</i> <i>{</i> <i>}</i> <i>[</i> <i>]</i></div>
+      <div><i>- + ! % / * &gt; &lt; = | & ?</i></div>
+      <div><i>. .. ...</i></div>
+      <div><i>( ) [ ] { }</i></div>
       <div><i>,</i> <i>'</i> <i>"</i> <i>#</i> <i>\</i> <i>;</i> <i>:</i></div>
     </article>
   </section>
@@ -106,24 +107,7 @@
   <section>
     <header>File :=</header>
     <article>
-      <div>FileStatement File<sub>optional</sub></div>
-    </article>
-  </section>
-
-  <section>
-    <header>FileStatement :=</header>
-    <article>
-      <div>PackageDeclaration</div>
-      <div>ModuleDeclaration</div>
-      <div>Declaration</div>
-      <div>CallExpression</div>
-    </article>
-  </section>
-
-  <section>
-    <header>PackageDeclaration :=</header>
-    <article>
-      <div><i>private</i><sub>optional</sub> <i>package fullname</i></div>
+      <div>ModuleDeclaration<sub>optional</sub> FileStatements<sub>optional</sub></div>
     </article>
   </section>
 
@@ -131,6 +115,13 @@
     <header>ModuleDeclaration :=</header>
     <article>
       <div><i>private</i><sub>optional</sub> <i>module fullname</i></div>
+    </article>
+  </section>
+
+  <section>
+    <header>FileStatements :=</header>
+    <article>
+      <div>Declaration FileStatements<sub>optional</sub></div>
     </article>
   </section>
 
@@ -151,6 +142,7 @@
       <div>ImportStatement</div>
       <div>ExportStatement</div>
       <div>DeferStatement</div>
+      <div>EmptyStatement</div>
       <div>IfStatement</div>
       <div>ForStatement</div>
       <div>ForInStatement</div>
@@ -230,6 +222,14 @@
     <header>DeferStatement :=</header>
     <article>
       <div><i>defer</i> Expression</div>
+      <div><i>defer</i> BlockStatement</div>
+    </article>
+  </section>
+
+  <section>
+    <header>EmptyStatement :=</header>
+    <article>
+      <div><i>;</i></div>
     </article>
   </section>
 
@@ -244,8 +244,7 @@
   <section>
     <header>ForStatement :=</header>
     <article>
-      <div><i>for</i> Expression<sub>optional</sub> <i>;</i> Expression <i>;</i> Expression<sub>optional</sub> Statement</div>
-      <div><i>for</i> <i>(</i> Expression<sub>optional</sub> <i>;</i> Expression <i>;</i> Expression<sub>optional</sub> <i>)</i> Statement</div>
+      <div><i>for</i> ExpressionList<sub>optional</sub> <i>;</i> Expression <i>;</i> ExpressionList<sub>optional</sub> Statement</div>
       <div><i>for</i> Expression<sub>optional</sub> Statement</div>
     </article>
   </section>
@@ -254,7 +253,6 @@
     <header>ForInStatement :=</header>
     <article>
       <div><i>await</i><sub>optional</sub> <i>for</i> IdentifierList <i>in</i> Expression Statement</div>
-      <div><i>await</i><sub>optional</sub> <i>for (</i> IdentifierList <i>in</i> Expression <i>)</i> Statement</div>
     </article>
   </section>
 
@@ -461,7 +459,7 @@
       <div>ArrayTypeExpression</div>
       <div>ListTypeExpression</div>
       <div>TypeName</div>
-      <div><i>name</i></div>
+      <div><i>fullname</i></div>
     </article>
   </section>
 
@@ -627,7 +625,7 @@
   <section>
     <header>TextFunctionDeclaration :=</header>
     <article>
-      <div>FnModifiers<sub>optional</sub> TextFunctionKeyword FnParameters<sub>optional</sub> FnReturn<sub>optional</sub> <i>#{</i> TextFnBody<sub>optional</sub> <i>#}</i></div>
+      <div>FnModifiers<sub>optional</sub> TextFunctionKeyword FnParameters<sub>optional</sub> FnReturn<sub>optional</sub> <i>#{</i> TextFnBody<sub>optional</sub> <i>}#</i></div>
     </article>
   </section>
 
@@ -641,8 +639,7 @@
   <section>
     <header>TextFnBody :=</header>
     <article>
-      <div>TextFunctionStatement</div>
-      <div>TextFunctionStatement TestFnBody</div>
+      <div>TextFunctionStatement TestFnBody<sub>optional</sub></div>
     </article>
   </section>
 
@@ -657,7 +654,7 @@
   <section>
     <header>TextLiteral :=</header>
     <article>
-      <div><i>any byte or UTF8Character except #} or #{</i></div>
+      <div><i>any byte or UTF8Character except }# or #{</i></div>
     </article>
   </section>
 
@@ -894,36 +891,36 @@
   <section>
     <header>AssignExpression :=</header>
     <article>
-      <div>IfExpression</div>
-      <div>AssignExpression <i>^=</i> IfExpression</div>
-      <div>AssignExpression <i>|=</i> IfExpression</div>
-      <div>AssignExpression <i>&=</i> IfExpression</div>
-      <div>AssignExpression <i>&lt;&lt;=</i> IfExpression</div>
-      <div>AssignExpression <i>&gt;&gt;=</i> IfExpression</div>
-      <div>AssignExpression <i>&gt;&gt;&gt;=</i> IfExpression</div>
-      <div>AssignExpression <i>-=</i> IfExpression</div>
-      <div>AssignExpression <i>+=</i> IfExpression</div>
-      <div>AssignExpression <i>%=</i> IfExpression</div>
-      <div>AssignExpression <i>/=</i> IfExpression</div>
-      <div>AssignExpression <i>*=</i> IfExpression</div>
-      <div>AssignExpression <i>=</i> IfExpression</div>
-    </article>
-  </section>
-
-  <section>
-    <header>IfExpression :=</header>
-    <article>
       <div>ConditionalExpression</div>
-      <div>ConditionalExpression <i>if</i> AssignExpression</div>
-      <div>ConditionalExpression <i>if</i> ConditionalExpression <i>else</i> Expression</div>
+      <div>AssignExpression <i>^=</i> ConditionalExpression</div>
+      <div>AssignExpression <i>|=</i> ConditionalExpression</div>
+      <div>AssignExpression <i>&=</i> ConditionalExpression</div>
+      <div>AssignExpression <i>&lt;&lt;=</i> ConditionalExpression</div>
+      <div>AssignExpression <i>&gt;&gt;=</i> ConditionalExpression</div>
+      <div>AssignExpression <i>&gt;&gt;&gt;=</i> ConditionalExpression</div>
+      <div>AssignExpression <i>-=</i> ConditionalExpression</div>
+      <div>AssignExpression <i>+=</i> ConditionalExpression</div>
+      <div>AssignExpression <i>%=</i> ConditionalExpression</div>
+      <div>AssignExpression <i>/=</i> ConditionalExpression</div>
+      <div>AssignExpression <i>*=</i> ConditionalExpression</div>
+      <div>AssignExpression <i>=</i> ConditionalExpression</div>
     </article>
   </section>
 
   <section>
     <header>ConditionalExpression :=</header>
     <article>
+      <div>IfExpression</div>
+      <div>IfExpression <i>?</i> IfExpression <i>:</i> IfExpression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>IfExpression :=</header>
+    <article>
       <div>LogicalExpression</div>
-      <div>LogicalExpression <i>?</i> LogicalExpression <i>:</i> Expression</div>
+      <div>LogicalExpression <i>if</i> AssignExpression</div>
+      <div>LogicalExpression <i>if</i> ConditionalExpression <i>else</i> Expression</div>
     </article>
   </section>
 
@@ -1022,6 +1019,7 @@
       <div>NameOfExpression</div>
       <div>AwaitExpression</div>
       <div>YieldExpression</div>
+      <div>YieldFromExpression</div>
       <div>UnaryPrefixExpression</div>
     </article>
   </section>
@@ -1066,6 +1064,13 @@
     <header>YieldExpression :=</header>
     <article>
       <div><i>yield</i> Expression</div>
+    </article>
+  </section>
+
+  <section>
+    <header>YieldFromExpression :=</header>
+    <article>
+      <div><i>yield from</i> Expression</div>
     </article>
   </section>
 
@@ -1690,7 +1695,7 @@
   <section>
     <header>NewLine :=</header>
     <article>
-      <div>Space<sub>optional</sub> NewLineCharacter Space<sub>optional</sub> NewLine<sub>optional</sub></div>
+      <div>Space<sub>optional</sub> NewLineCharacter NewLine<sub>optional</sub></div>
     </article>
   </section>
 

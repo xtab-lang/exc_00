@@ -3,14 +3,16 @@
 //   date: 2020-11-16
 ////////////////////////////////////////////////////////////////
 
-#include "stdafx.h"
-#include "console.h"
-#include "highlight.h"
+#include "pch.h"
+#include "compiler.h"
 
-int main(int argc, char **argv) {
-    traceln("exc: The exy language\r\nCommand line arguments:");
-    for (auto i = 0; i < argc; ++i) {
-        traceln("\t%c", argv[i]);
+int main(int, char**) {
+    for (auto i = 0; i < 10; ++i) {
+        lib::start();
+        Compiler compiler{};
+        compiler.run(i);
+        compiler.dispose();
+        lib::stop();
     }
     return 0;
 }
