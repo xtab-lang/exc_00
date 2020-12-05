@@ -1,0 +1,3 @@
+let                 NULL = null
+let                FALSE = 0
+let INVALID_HANDLE_VALUE = -1 as void*

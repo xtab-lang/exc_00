@@ -168,10 +168,15 @@
     <ClCompile Include="compiler.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="date.cpp" />
+    <ClCompile Include="dict.cpp" />
     <ClCompile Include="err.cpp" />
     <ClCompile Include="format.cpp" />
     <ClCompile Include="hash.cpp" />
-    <ClCompile Include="lexer.cpp" />
+    <ClCompile Include="identifiers.cpp" />
+    <ClCompile Include="parser.cpp" />
+    <ClCompile Include="preparser.cpp" />
+    <ClCompile Include="queue.cpp" />
+    <ClCompile Include="tokenizer.cpp" />
     <ClCompile Include="lib.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mem.cpp" />
@@ -181,22 +186,29 @@
     <ClCompile Include="list.cpp" />
     <ClCompile Include="string.cpp" />
     <ClCompile Include="source.cpp" />
+    <ClCompile Include="syntax.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aio.h" />
     <ClInclude Include="compiler.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="date.h" />
+    <ClInclude Include="dict.h" />
     <ClInclude Include="err.h" />
     <ClInclude Include="format.h" />
     <ClInclude Include="hash.h" />
-    <ClInclude Include="lexer.h" />
+    <ClInclude Include="identifiers.h" />
+    <ClInclude Include="parser.h" />
+    <ClInclude Include="preparser.h" />
+    <ClInclude Include="queue.h" />
+    <ClInclude Include="tokenizer.h" />
     <ClInclude Include="lib.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="mem.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="string.h" />
     <ClInclude Include="source.h" />
+    <ClInclude Include="syntax.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

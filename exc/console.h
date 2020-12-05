@@ -17,6 +17,7 @@ struct ConsoleStream : FormatStream {
 private:
 	static SRWLOCK srw;
 	static thread_local int locks;
+	static bool initialized;
 }; // struct Stream
 
 ConsoleStream getConsoleFormatStream();

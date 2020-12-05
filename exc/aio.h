@@ -1,7 +1,7 @@
-//////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
 // author: exy.lang
 //   date: 2020-11-25
-//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 #ifndef AIO_H_
@@ -12,8 +12,8 @@ template<typename TWorkItem>
 struct WorkProvider {
     using Batch = List<TWorkItem*>;
 
-    const int perBatch;
-    SRWLOCK   srw{};
+    int     perBatch;
+    SRWLOCK srw{};
 
     WorkProvider(int perBatch) : perBatch(perBatch) {}
 };
@@ -37,10 +37,10 @@ void post(Instance *instance, FnInstance fnInstance, Provider *provider, FnProvi
 } // namespace _internal_
 
 template<typename TInstance, typename TProvider>
-void run(TInstance *instance, TProvider &provider) {
+void run(TInstance &instance, TProvider &provider) {
     // For each thread, post a work item. All threads will quit if there are
     // no more work items in the {TProvider}.
-    _internal_::post((_internal_::Instance*)instance,
+    _internal_::post((_internal_::Instance*)&instance,
                      (_internal_::FnInstance)&TInstance::next,
                      (_internal_::Provider*)&provider, 
                      (_internal_::FnProvider)&TProvider::next);

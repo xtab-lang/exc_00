@@ -299,7 +299,7 @@ void MurmurHash3_x64_128(const void * key, const int len,
 unsigned int hash32(const void *v, int vlen) {
     unsigned int out = 0;
     if (v && vlen >= 0) {
-        (v, vlen, 172803665, &out);
+        MurmurHash3_x86_32(v, vlen, 172803665, &out);
     }
     return out;
 }

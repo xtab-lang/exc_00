@@ -1,7 +1,5 @@
 #include "pch.h"
 
-#include <new>
-
 namespace exy {
 namespace aio {
 struct Iocp {
@@ -49,6 +47,7 @@ struct Runner {
             for (auto i = 0; i < batch.length; i++) {
                 (instance->*fnInstance)(batch.items[i]);
             }
+            batch.clear();
         }
 
         batch.dispose();
@@ -91,7 +90,7 @@ bool Iocp::open() {
     handle = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, n);
 
     if (handle == nullptr) {
-        Assert(0);
+        OsError("CreateIoCompletionPort", nullptr);
         return false;
     }
 
@@ -101,7 +100,7 @@ bool Iocp::open() {
         if (threadHandle != nullptr) {
             threads.append(threadHandle);
         } else {
-            Assert(0);
+            OsError("CreateThread", nullptr);
             ++errors;
         }
     }
@@ -117,7 +116,7 @@ void Iocp::close() {
     traceln("Closing %i#<green> threads", threads.length);
     running = 0;
     if (WaitForMultipleObjects(threads.length, threads.items, 1, INFINITE) != WAIT_OBJECT_0) {
-        Assert(0);
+        OsError("WaitForMultipleObjects", "Expected return value to be '%c#<green>'", "WAIT_OBJECT_0");
     }
 
     Assert(active == 0);
@@ -128,7 +127,7 @@ void Iocp::close() {
     // Dispose IOCP handle.
     if (handle != nullptr) {
         if (CloseHandle(handle) == 0) {
-            Assert(0);
+            OsError("CloseHandle", nullptr);
         }
         handle = nullptr;
     }
@@ -151,7 +150,7 @@ DWORD Iocp::loop(void*) {
             if (hResult == WAIT_TIMEOUT) {
                 continue;
             }
-            Assert(0);
+            OsError("GetQueuedCompletionStatus", nullptr);
         } else {
             auto runner = (aio::_internal_::Runner*)overlapped;
             Assert(runner);
@@ -172,7 +171,7 @@ void Iocp::waitUntil(volatile long *counter, int n) {
     while (*counter != n) {
         if (WaitOnAddress(counter, (void*)counter, sizeof(*counter), 16) == 0) {
             if (GetLastError() != ERROR_TIMEOUT) {
-                Assert(0);
+                OsError("WaitOnAddress", nullptr);
                 break;
             }
         }

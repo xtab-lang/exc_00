@@ -7,11 +7,9 @@
 #include "compiler.h"
 
 int main(int, char**) {
-    for (auto i = 0; i < 10; ++i) {
+    for (auto i = 0; i < 1; ++i) {
         lib::start();
-        Compiler compiler{};
-        compiler.run(i);
-        compiler.dispose();
+        exy::comp_pass::run(i);
         lib::stop();
     }
     return 0;

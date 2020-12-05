@@ -7,6 +7,11 @@
 #ifndef ERR_H_
 #define ERR_H_
 
-#define Assert(expr) if (!(expr)) DebugBreak();
+namespace exy {
+#define Assert(expr) do { if (!(expr)) DebugBreak(); } while (0)
+#define OsError(osFunction, userMsg, ...) formatOsError(GetLastError(), osFunction, userMsg, __VA_ARGS__)
+
+void formatOsError(DWORD code, const char *osFunction, const char *msg, ...);
+} // namespace exy
 
 #endif // ERR_H_

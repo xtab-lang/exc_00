@@ -18,6 +18,9 @@
 #include <windef.h>
 #include <WinBase.h>
 #include <stdlib.h>
+#include <new.h>
+
+#pragma warning(disable: 26495)
 
 /* warning C4201: nonstandard extension used: nameless struct/union */
 //#pragma warning(disable: 4201)
@@ -34,15 +37,6 @@
 #define S(text) (text), ((int)__crt_countof(text) - 1)
 
 constexpr auto cstrlen(const char *text) { return text ? (int)strlen(text) : 0; }
-
-template<typename T>
-constexpr void memzero(T *mem, int count = 1) { ZeroMemory(mem, sizeof(T) * count); }
-
-template<typename T, typename U>
-constexpr void memcopy(T *dst, U *src, int count = 1) { CopyMemory((void*)dst, (void*)src, sizeof(T) * count); }
-
-template<typename T, typename U>
-constexpr void memmove(T *dst, U *src, int count = 1) { MoveMemory(dst, src, sizeof(T) * count); }
 
 constexpr int numbufcap = 1024;
 static thread_local char numbuf[numbufcap];

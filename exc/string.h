@@ -15,8 +15,12 @@ struct String {
 
     String() {}
     String(const char *v, const char *vend);
+    String(const char *v, const char *vend, unsigned int hash);
     String(const char *text, int length);
     String(const char *text, int length, unsigned int hash);
+
+    void dispose();
+    String& clear();
 
     bool operator==(const String &other) const;
     bool operator!=(const String &other) const;
@@ -29,6 +33,17 @@ struct String {
     int cmp(const char *v, int vlen, bool caseSensitive = true) const;
 
     bool isEmpty() const;
+    const char* end() const;
+
+    String& reserve(int size);
+    String& append(const String &other);
+    String& append(const String *other);
+    String& append(const char *v);
+    String& append(const char *v, int vlen);
+
+    String getFullFileName() const;
+    String getFileName() const;
+    String getFileExtension() const;
 };
 
 using Identifier = const String*;

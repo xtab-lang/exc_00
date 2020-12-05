@@ -6,10 +6,12 @@
 #include "pch.h"
 
 #include <wincon.h>
+#include <WinNls.h>
 
 namespace exy {
 SRWLOCK ConsoleStream::srw{};
 thread_local int ConsoleStream::locks = 0;
+bool ConsoleStream::initialized{};
 
 void ConsoleStream::lock() {
 	Assert(locks >= 0);
@@ -31,6 +33,11 @@ void ConsoleStream::write(const char *v, int vlen) {
 	}
 	lock();
 	auto handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (!initialized) {
+		SetConsoleCP(CP_UTF8);
+		SetConsoleOutputCP(CP_UTF8);
+		initialized = true;
+	}
 	DWORD bytesWritten{};
 	if (!WriteConsole(handle, v, vlen, &bytesWritten, nullptr)) {
 		Assert(0);
@@ -43,7 +50,7 @@ void ConsoleStream::setTextFormat(TextFormat color) {
 #define ESC "\033["
 #define ESC_LEN cstrlen(ESC)
 	char *buf = numbuf;
-	memcopy(buf, ESC, ESC_LEN);
+	MemCopy(buf, ESC, ESC_LEN);
 	_itoa_s((int)color, (char*)buf + ESC_LEN, numbufcap, 10);
 	auto length = cstrlen(buf);
 	buf[length++] = 'm';

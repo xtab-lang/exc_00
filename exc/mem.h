@@ -31,10 +31,16 @@ struct Mem {
         return (T*)doAlloc(sizeof(T) * count);
     }
 
+    template<typename T, typename ...TArgs>
+    T* New(TArgs&&...args) {
+        auto m = alloc<T>();
+        return new(m) T{ meta::fwd<TArgs>(args)... };
+    }
+
 private:
     struct Slab {
-        int length = 0;
-        int   used = sizeof(int) * 2;
+        int length;
+        int   used;
 
         int unused() const { return length - used; }
         void* alloc(int size);
@@ -48,26 +54,32 @@ private:
 
 template<typename T>
 T* memalloc(int count = 1) {
-    if (count > 0) {
-        return (T*)Heap::alloc(sizeof(T) * count);
-    }
-    return (T*)nullptr;
+    return (T*)Heap::alloc(sizeof(T) * count);
 }
 
 template<typename T>
 T* memrealloc(T *m, int count = 1) {
-    if (m && count > 0) {
-        return (T*)Heap::realloc(m, sizeof(T) * count);
-    }
-    return (T*)nullptr;
+    return (T*)Heap::realloc(m, sizeof(T) * count);
 }
 
 template<typename T>
 T* memfree(T *m) {
-    if (m) {
-        return (T*)Heap::free(m);
-    }
-    return (T*)nullptr;
+    return (T*)Heap::free(m);
+}
+
+template<typename T>
+constexpr void memzero(T *mem, int count = 1) { 
+    ZeroMemory(mem, sizeof(T) * count); 
+}
+
+template<typename T, typename U>
+constexpr void MemCopy(T *dst, U *src, int count = 1) { 
+    CopyMemory((void*)dst, (void*)src, sizeof(T) * count); 
+}
+
+template<typename T, typename U>
+constexpr void MemMove(T *dst, U *src, int count = 1) { 
+    MoveMemory(dst, src, sizeof(T) * count); 
 }
 
 } // namespace exy

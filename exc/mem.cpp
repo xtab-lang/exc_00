@@ -7,6 +7,33 @@ namespace exy {
 
 constexpr int cap = 0x1000;
 
+template<typename T>
+static T* heapAlloc(int count) {
+	auto size = sizeof(T) * count;
+	auto    m = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size);
+	Heap::allocs++;
+	Heap::used += size;
+	return (T*)m;
+}
+
+template<typename T>
+static T* heapRealloc(T *m, int newCount, int oldCount) {
+	auto newSize = sizeof(T) * newCount;
+	auto       x = HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, m, newSize);
+	Heap::reallocs++;
+	Heap::used -= sizeof(T) * oldCount;
+	Heap::used += newSize;
+	return (T*)x;
+}
+
+template<typename T>
+static T* heapFree(T *m, int count) {
+	HeapFree(GetProcessHeap(), 0, m);
+	Heap::frees++;
+	Heap::used -= sizeof(T) * count;
+	return (T*)nullptr;
+}
+
 struct Block {
 	UINT64 id;
 	int    size;
@@ -28,38 +55,28 @@ struct Blocks {
 					Assert(0);
 				}
 			}
-			HeapFree(GetProcessHeap(), 0, list);
-			list = nullptr;
+			list = heapFree(list, length);
 			length = 0;
-			Heap::frees++;
 		}
 	}
 
 	void put(Block *block, int size) {
 		if (!list) {
 			length = cap;
-			list = (Block**)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(Block*) * length);
-			Heap::allocs++;
+			list = heapAlloc<Block*>(length);
 		} else while (block->id >= length) {
+			auto oldLength = length;
 			length *= 2;
-			if (list) {
-				list = (Block**)HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, list, sizeof(Block*) * length);
-			}
-			Heap::reallocs++;
-		} if (list) {
-			list[block->id] = block;
-		} else {
-			Assert(0);
+			list = heapRealloc(list, length, oldLength);
 		}
-		Heap::used -= block->size;
-		Heap::used += size;
+		Assert(block->id < length);
+		list[block->id] = block;
 		block->size = size;
 	}
 
 	void remove(Block *block) {
 		Assert(block->id >= 0 && block->id < length);
 		list[block->id] = nullptr;
-		Heap::used -= block->size;
 	}
 };
 
@@ -76,11 +93,9 @@ struct FreeIds {
 
 	void dispose() {
 		if (list) {
-			HeapFree(GetProcessHeap(), 0, list);
-			list = nullptr;
-			length = 0;
+			list     = heapFree(list, capacity);
+			length   = 0;
 			capacity = 0;
-			Heap::frees++;
 		}
 	}
 
@@ -91,15 +106,13 @@ struct FreeIds {
 	void push(UINT64 id) {
 		if (length == capacity) {
 			if (capacity) {
+				auto oldcap = capacity;
 				capacity = cap * 2;
-				list = (UINT64*)HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, list, sizeof(int) * capacity);
-				Heap::reallocs++;
+				list = heapRealloc(list, capacity, oldcap);
 			} else {
 				capacity = cap;
-				list = (UINT64*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(int) * capacity);
-				Heap::allocs++;
+				list = heapAlloc<UINT64>(capacity);
 			}
-			Heap::used += sizeof(int) * cap;
 		} if (list) {
 			list[length++] = id;
 		} else {
@@ -124,24 +137,25 @@ void Heap::initialize() {
 void Heap::dispose() {
 	blocks.dispose();
 	freeIds.dispose();
+	Assert(allocs == frees);
+	Assert(used == 0);
 }
 
 void* Heap::alloc(int size) {
-#if defined(MEM_DEBUG)
-	auto block = (Block*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(Block) + size);
-	if (!block) {
-		Assert(0);
+	if (size <= 0) {
 		return nullptr;
 	}
+#if defined(MEM_DEBUG)
 	AcquireSRWLockExclusive(&srw);
+	auto block = (Block*)heapAlloc<char>(sizeof(Block) + size);
 	if (freeIds.length) {
 		block->id = freeIds.pop();
 	} else {
-		block->id = allocs++;
+		block->id = Heap::allocs - 1;
 	}
 	blocks.put(block, size);
 	ReleaseSRWLockExclusive(&srw);
-	return (BYTE*)block + sizeof(Block);
+	return (char*)block + sizeof(Block);
 #else
 	return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size);
 #endif
@@ -149,30 +163,41 @@ void* Heap::alloc(int size) {
 
 void* Heap::realloc(void *m, int size) {
 #if defined(MEM_DEBUG)
-	auto block = (Block*)((BYTE*)m - sizeof(Block));
-	block = (Block*)HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, block, sizeof(Block) + size);
+	if (!m) {
+		return Heap::alloc(size);
+	} if (size <= 0) {
+		return nullptr;
+	}
+	constexpr int sizeOfBlock = sizeof(Block);
+	auto block = (Block*)((char*)m - sizeOfBlock);
 	AcquireSRWLockExclusive(&srw);
-	reallocs++;
+	block = (Block*)heapRealloc<char>((char*)block, sizeOfBlock + size, sizeOfBlock + block->size);
 	blocks.put(block, size);
 	ReleaseSRWLockExclusive(&srw);
-	return (BYTE*)block + sizeof(Block);
+	return (char*)block + sizeof(Block);
 #else
-	return HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, m, size);
+	if (size <= 0) {
+		return nullptr;
+	} if (m) {
+		return HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, m, size);
+	}
+	return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size);
 #endif
 }
 
 void* Heap::free(void *m) {
-#if defined(MEM_DEBUG)
-	auto block = (Block*)((BYTE*)m - sizeof(Block));
-	AcquireSRWLockExclusive(&srw);
-	frees++;
-	blocks.remove(block);
-	freeIds.push(block->id);
-	HeapFree(GetProcessHeap(), 0, block);
-	ReleaseSRWLockExclusive(&srw);
-#else
-	HeapFree(GetProcessHeap(), 0, m);
-#endif
+	if (m) {
+	#if defined(MEM_DEBUG)
+		auto block = (Block*)((char*)m - sizeof(Block));
+		AcquireSRWLockExclusive(&srw);
+		blocks.remove(block);
+		freeIds.push(block->id);
+		heapFree((char*)block, sizeof(Block) + block->size);
+		ReleaseSRWLockExclusive(&srw);
+	#else
+		HeapFree(GetProcessHeap(), 0, m);
+	#endif
+	}
 	return nullptr;
 }
 
@@ -180,42 +205,56 @@ void Mem::dispose() {
 	if (slabs) {
 		for (auto i = 0; i < length; ++i) {
 			if (auto slab = slabs[i]) {
-				Heap::free(slab);
+				heapFree((char*)slab, slab->length);
 			}
 		}
-		Heap::free(slabs);
-		slabs = nullptr;
+		slabs = heapFree(slabs, length);
 		length = 0;
 	}
 }
 
-constexpr int slabSize = cap;
+constexpr auto defaultSlabSize = cap;
+
+static auto getSlabSize(int dataSize) {
+	auto size = defaultSlabSize;
+	while (size < dataSize) size *= 2;
+	return size;
+}
 
 void* Mem::doAlloc(int size) {
 	Assert(size > 0);
 	AcquireSRWLockExclusive(&srw);
-	if (!slabs) {
-		slabs = (Slab**)Heap::alloc(sizeof(Slab*));
-		auto slab = (Slab*)Heap::alloc(sizeof(Slab) + slabSize);
-		slab->length = slabSize;
-		slabs[length++] = slab;
-	}
 	void *result{};
-	auto slab = slabs[length - 1];
-	result = slab->alloc(size);
-	if (!result) {
-		auto slabLength = slabSize;
-		while (slabLength < size + 8) {
-			slabLength *= 2;
-		}
-		slab = (Slab*)Heap::alloc(sizeof(Slab) + slabSize);
-		slab->length = slabSize;
-		slabs[length++] = slab;
+	if (!slabs) {
+		auto slabSize = getSlabSize(size + sizeof(Slab));
+		auto     slab = (Slab*)heapAlloc<char>(slabSize);
+		slab->length  = slabSize;
+		slab->used    = sizeof(Slab);
+
+		length = 1;
+		slabs  = heapAlloc<Slab*>(length);
+		slabs[length - 1] = slab;
+
 		result = slab->alloc(size);
-		Assert(result);
+	} else {
+		auto slab = slabs[length - 1];
+		result    = slab->alloc(size);
+		if (!result) {
+			auto slabSize = getSlabSize(size + sizeof(Slab));
+			slab          = (Slab*)heapAlloc<char>(slabSize);
+			slab->length  = slabSize;
+			slab->used    = sizeof(Slab);
+
+			++length;
+			slabs = heapRealloc(slabs, length, length - 1);
+			slabs[length - 1] = slab;
+
+			result = slab->alloc(size);
+		}
 	}
 	ReleaseSRWLockExclusive(&srw);
-    return nullptr;
+	Assert(result);
+    return result;
 }
 
 void* Mem::Slab::alloc(int size) {

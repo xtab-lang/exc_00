@@ -16,13 +16,13 @@
       <div><i>typeof nameof sizeof instanceof</i></div>
       <div><i>new delete</i></div>
       <div><i>this super</i></div>
-      <div><i>use as</i></div>
-      <div><i>import export from</i></div>
+      <div><i>let</i></div>
+      <div><i>import export as from</i></div>
       <div><i>if</i> <i>else</i> <i>elif</i></div> 
       <div><i>for</i> <i>each</i> <i>while</i> <i>in</i> <i>break</i> <i>continue</i></div>
       <div><i>switch</i> <i>case</i> <i>default</i> <i>fallthrough</i></div>
-      <div><i>return</i> <i>yield</i> <i>await</i> <i>throw</i></div>
-      <div><i>static const readonly auto var let async private synchronized override</i></div>
+      <div><i>return yield await throw</i></div>
+      <div><i>static const readonly auto var async private synchronized override</i></div>
       <div><i>defer</i></div>
       <div>TypeKeyword</div>
       <div>DoubleUnderscoreKeyword</div>
@@ -115,6 +115,7 @@
     <header>ModuleDeclaration :=</header>
     <article>
       <div><i>private</i><sub>optional</sub> <i>module fullname</i></div>
+      <div><i>private</i><sub>optional</sub> <i>. module fullname</i></div>
     </article>
   </section>
 
@@ -138,7 +139,7 @@
     <article>
       <div>SynchronizedBlock</div>
       <div>BlockStatement</div>
-      <div>UseStatement</div>
+      <div>LetStatement</div>
       <div>ImportStatement</div>
       <div>ExportStatement</div>
       <div>DeferStatement</div>
@@ -174,9 +175,9 @@
   </section>
 
   <section>
-    <header>UseStatement :=</header>
+    <header>LetStatement :=</header>
     <article>
-      <div><i>use</i> Expression <i>as identifier</i></div>
+      <div><i>let identifier = </i> Expression</div>
     </article>
   </section>
 
@@ -206,8 +207,8 @@
   <section>
     <header>ImportName :=</header>
     <article>
-      <div><i>fullname</i></div>
-      <div><i>fullname</i> <i>from</i> <i>fullname</i></div>
+      <div><i>.</i><sub>optional</sub> <i>fullname</i></div>
+      <div><i>.</i><sub>optional</sub> <i>fullname</i> <i>from</i> <i>fullname</i></div>
     </article>
   </section>
 
@@ -410,7 +411,7 @@
   <section>
     <header>VariableModifier := <b>one of</b></header>
     <article>
-      <div><i>static</i> <i>const</i> <i>readonly</i> <i>auto</i> <i>var</i> <i>let</i> <i>private</i></div>
+      <div><i>static const readonly auto var private</i></div>
     </article>
   </section>
 

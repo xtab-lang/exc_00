@@ -67,7 +67,7 @@ private:
     void parse() {
         // {mark} is at '%'.
         // {pos} is just past '%'.
-        switch (*pos++) { // Now {pos} is past 1st character after '%'.
+        switch (auto ch = *pos++) { // Now {pos} is past 1st character after '%'.
             case '%': { // '%%'
                 stream.write(S("%"));
                 ++pos; // Past 2nd '%'.
@@ -85,6 +85,14 @@ private:
                     auto arg = __crt_va_arg(vargs, const char*);
                     Colorizer colorizer{ specs, stream };
                     stream.write(arg);
+                }
+            } break;
+            case 's': {
+                auto specs = parseSpecifiers();
+                auto arg = __crt_va_arg(vargs, const String*);
+                Colorizer colorizer{ specs, stream };
+                if (arg) {
+                    stream.write(arg->text, arg->length);
                 }
             } break;
             case 'i': {
@@ -107,9 +115,30 @@ private:
                 Colorizer colorizer{ specs, stream };
                 stream.write(numbuf, cstrlen(numbuf));
             } break;
+            case 'u': {
+                if (*pos == '6') {
+                    ++pos; // Past '6'.
+                    if (*pos == '4') { // '%u64'
+                        ++pos; // Past '4'.
+                        auto specs = parseSpecifiers();
+                        auto arg = __crt_va_arg(vargs, __int64);
+                        _ui64toa_s(arg, numbuf, numbufcap, 10);
+                        Colorizer colorizer{ specs, stream };
+                        stream.write(numbuf, cstrlen(numbuf));
+                        break;
+                    }
+                    --pos; // Back to '6'.
+                }
+                auto specs = parseSpecifiers();
+                auto arg = __crt_va_arg(vargs, unsigned long);
+                _ultoa_s(arg, numbuf, numbufcap, 10);
+                Colorizer colorizer{ specs, stream };
+                stream.write(numbuf, cstrlen(numbuf));
+            } break;
             default: { // '%' not followed by a format specifier.
-                stream.write(S("%"));
-                --pos; // Put {pos} just past '%'.
+                Assert(0);
+                //stream.write(S("%"));
+                //--pos; // Put {pos} just past '%'.
             } break;
         }
         mark = pos;
@@ -295,7 +324,7 @@ void vprint(FormatStream *stream, const char *fmt, va_list vargs) {
             stream->unlock();
         } else {
             auto strm = getConsoleFormatStream();
-            vprint(stream, fmt, vargs);
+            vprint(&strm, fmt, vargs);
         }
     }
 }
