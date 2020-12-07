@@ -67,6 +67,7 @@ void run(int compId);
 #define DeclareUserDefinedTypeKeywords(ZM) \
     /* User-Defined Types (UDTs) */ \
     ZM(Struct,       "struct")      \
+    ZM(Object,       "object")      \
     ZM(Union,        "union")       \
     ZM(Enum,         "enum")        \
     ZM(Lambda,       "lambda")      \
@@ -81,7 +82,7 @@ void run(int compId);
     ZM(Blob,         "blob")        \
 
 #define DeclareKeywords(ZM)         \
-    /* Module usage */              \
+    /* Namespace usage */           \
     ZM(Module,      "module")       \
     ZM(Import,      "import")       \
     ZM(Export,      "export")       \
@@ -90,11 +91,14 @@ void run(int compId);
     ZM(Else,        "else")         \
     ZM(Switch,      "switch")       \
     ZM(Case,        "case")         \
+    ZM(Default,     "default")      \
     /* Flow break */                \
     ZM(Break,       "break")        \
     ZM(Continue,    "continue")     \
     ZM(Return,      "return")       \
+    /* Generator */                 \
     ZM(Yield,       "yield")        \
+    ZM(Awaut,       "await")        \
     /* Loop */                      \
     ZM(For,         "for")          \
     ZM(In,          "in")           \
@@ -105,37 +109,58 @@ void run(int compId);
     ZM(To,          "to")           \
     ZM(Is,          "is")           \
     ZM(NotIs,       "!is")          \
+    ZM(NotIn,       "!in")          \
     /* Unary functions */           \
+    ZM(AlignOf,     "alignof")      \
     ZM(SizeOf,      "sizeof")       \
     ZM(TypeOf,      "typeof")       \
-    ZM(InstanceOf,  "instanceof")   \
-    /* Modifiers */                 \
+    ZM(NameOf,      "nameof")       \
+    ZM(ValueOf,     "valueof")      \
+    ZM(New,         "new")          \
+    ZM(Delete,      "delete")       \
+    /* Literals */                  \
+    ZM(Null,        "null")         \
+    ZM(True,        "true")         \
+    ZM(False,       "false")        \
+    /* Variables */                 \
+    ZM(This,        "this")         \
+    ZM(Super,       "super")        \
+    /* Others */                    \
+    ZM(Defer,       "defer")        \
+    ZM(From,        "from")         \
+    ZM(With,        "with")
+
+#define DeclareModifiers(ZM)        \
+    ZM(Private,     "private")      \
     ZM(Static,      "static")       \
     ZM(Const,       "const")        \
     ZM(ReadOnly,    "readonly")     \
     ZM(Auto,        "auto")         \
+    ZM(Var,         "var")          \
     ZM(Async,       "async")        \
-    ZM(Private,     "private")      \
     ZM(Abstract,    "abstract")     \
     ZM(Override,    "override")     \
-    ZM(Var,         "var")          \
-    /* Others */                    \
-    ZM(From,         "from")        \
-    ZM(With,         "with")
 
-enum class Keyword : BYTE {
+enum class Keyword {
     None,
 #define ZM(zName, zSize) zName,
     DeclareKeywords(ZM)
 #undef ZM
+    _begin_modifiers,
+#define ZM(zName, zSize) zName,
+    DeclareModifiers(ZM)
+#undef ZM
+    _end_modifiers,
     _begin_udts,
 #define ZM(zName, zText) zName,
     DeclareUserDefinedTypeKeywords(ZM)
 #undef ZM
+    _end_utds,
     _begin_builtins,
 #define ZM(zName, zText) zName,
     DeclareBuiltinTypeKeywords(ZM)
 #undef ZM
+    _end_builtins
 };
 
 #define DeclarePunctuationTokens(ZM)        \
@@ -322,10 +347,37 @@ struct Compiler {
         int    defaultFilesPerThread{};
     } options{};
 
+    void error(const SourceToken*, const char*, const char*, int, const char *fmt, ...);
+    void error(const SourceToken&, const char*, const char*, int, const char *fmt, ...);
 private:
     void run();
 
+    enum class HighlightKind {
+        Error,
+        Warning,
+        Info
+    };
+    void highlight(HighlightKind, const SourceToken&, const SourceToken&, const char*, const char*, int, const char*, va_list);
+    void printMessage(HighlightKind, const SourceFile&, const SourceRange&, const char*, va_list);
+    void printCppLocation(const char *cppFile, const char *cppFunc, int cppLine);
+
+    struct Line {
+        const char *start;
+        const char *end;
+        int   number;
+    };
+    static const int maxLines       = 6;
+    static const int maxLinesAbove  = 2;
+    static const int lineNumberSize = 6;
+    void printLines(HighlightKind, const String &source, const SourceRange&);
+    void collectLines(const String &source, const SourceRange&, Line*);
+    void highlightLines(HighlightKind, const SourceRange&, Line*);
+    void highlightLine(HighlightKind, const SourceRange&, const Line&);
+
     friend void comp_pass::run(int);
+    friend static Line makeLineFrom(const String&, const char*, int);
+    friend static Line makePreviousLine(const String&, const char*, int);
+    friend static Line makeNextLine(const String&, const char*, int);
 };
 
 __declspec(selectany) Compiler comp;
@@ -353,7 +405,7 @@ void ldispose(Dict<T*> &dict) {
     dict.dispose([](T *x) { ndispose(x); });
 }
 
-#define err(token, msg, ...)
+#define err(token, msg, ...) comp.error(token, __FILE__, __FUNCTION__, __LINE__, msg, __VA_ARGS__)
 } // namespace exy
 
 #endif // COMPILER_H_

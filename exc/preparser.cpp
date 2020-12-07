@@ -18,6 +18,9 @@ void initializeKeywords() {
         DeclareKeywords(ZM)
     #undef ZM
     #define ZM(zName, zText) keywords.append(hash32(S(zText)), Keyword::zName);
+        DeclareModifiers(ZM)
+    #undef ZM
+    #define ZM(zName, zText) keywords.append(hash32(S(zText)), Keyword::zName);
         DeclareUserDefinedTypeKeywords(ZM)
     #undef ZM
     #define ZM(zName, zSize) keywords.append(hash32(S(#zName)), Keyword::zName);
@@ -31,7 +34,7 @@ void disposeKeywords() {
 
 Keyword getKeyword(const String &value) {
     auto hash = hash32(value.text, value.length);
-    auto idx = keywords.indexOf(hash);
+    auto  idx = keywords.indexOf(hash);
     if (idx >= 0) {
         return keywords.items[idx].value;
     }

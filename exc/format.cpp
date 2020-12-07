@@ -4,6 +4,8 @@
 
 #include "pch.h"
 
+#include "compiler.h"
+
 namespace exy {
 using Color = FormatStream::TextFormat;
 
@@ -134,6 +136,18 @@ private:
                 _ultoa_s(arg, numbuf, numbufcap, 10);
                 Colorizer colorizer{ specs, stream };
                 stream.write(numbuf, cstrlen(numbuf));
+            } break;
+            case 't': {
+                auto specs = parseSpecifiers();
+                auto   arg = __crt_va_arg(vargs, const SourceToken*);
+                if (arg) {
+                    auto value = arg->value();
+                    if (!specs.isColored()) {
+                        specs.fore = Color::ForeYellow;
+                    }
+                    Colorizer colorizer{ specs, stream };
+                    stream.write(value.text, value.length);
+                }
             } break;
             default: { // '%' not followed by a format specifier.
                 Assert(0);

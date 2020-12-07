@@ -17,8 +17,18 @@ void SyntaxTree::dispose() {
     mem.dispose();
 }
 //------------------------------------------------------------------------------------------------
+void SyntaxNode::dispose() {
+    modifiers = ndispose(modifiers);
+}
+//------------------------------------------------------------------------------------------------
+void SyntaxModifiers::dispose() {
+    ldispose(list);
+    __super::dispose();
+}
+//------------------------------------------------------------------------------------------------
 void SyntaxFile::dispose() {
-    nodes.dispose([](auto *x) { x->dispose(); });
+    ldispose(nodes);
+    __super::dispose();
 }
 
 const SourceFile& SyntaxFile::sourceFile() const {
@@ -31,21 +41,25 @@ const List<SourceToken>& SyntaxFile::tokens() const {
 //------------------------------------------------------------------------------------------------
 void SyntaxModule::dispose() {
     name = ndispose(name);
+    __super::dispose();
 }
 //------------------------------------------------------------------------------------------------
 void SyntaxImportOrExport::dispose() {
     name = ndispose(name);
     from = ndispose(from);
     as = ndispose(as);
+    __super::dispose();
 }
 //------------------------------------------------------------------------------------------------
 void SyntaxCommaList::dispose() {
     ldispose(nodes);
+    __super::dispose();
 }
 //------------------------------------------------------------------------------------------------
 void SyntaxDotExpression::dispose() {
     lhs = ndispose(lhs);
     rhs = ndispose(rhs);
+    __super::dispose();
 }
 //------------------------------------------------------------------------------------------------
 SyntaxFileProvider::SyntaxFileProvider() : WorkProvider(comp.options.defaultFilesPerThread),
@@ -99,6 +113,7 @@ bool run() {
     } {
         SyntaxFileProvider provider{};
         Parser             parser{};
+        provider.perBatch = aio::ioThreads();
         aio::run(parser, provider);
         provider.dispose();
     }
