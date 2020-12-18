@@ -8,7 +8,6 @@
 
 #include "parser.h"
 #include "source.h"
-#include "compiler.h"
 
 namespace exy {
 //------------------------------------------------------------------------------------------------
@@ -22,26 +21,57 @@ void SyntaxNode::dispose() {
 }
 //------------------------------------------------------------------------------------------------
 void SyntaxModifiers::dispose() {
-    ldispose(list);
+    ldispose(nodes);
     __super::dispose();
+}
+Pos SyntaxModifiers::lastpos() const {
+    if (nodes.length) {
+        return nodes.last()->lastpos();
+    }
+    return __super::lastpos();
+}
+bool SyntaxModifiers::contains(Keyword kw) const {
+    for (auto i = 0; i < nodes.length; ++i) {
+        auto modifier = nodes.items[i];
+        if (modifier->value == kw) {
+            return true;
+        }
+    }
+    return false;
 }
 //------------------------------------------------------------------------------------------------
 void SyntaxFile::dispose() {
+    mod = ndispose(mod);
     ldispose(nodes);
     __super::dispose();
 }
 
+Pos SyntaxFile::lastpos() const {
+    if (nodes.length) {
+        return nodes.last()->lastpos();
+    } if (mod) {
+        return mod->lastpos();
+    }
+    return __super::lastpos();
+}
+
 const SourceFile& SyntaxFile::sourceFile() const {
-    return *pos.file;
+    return pos.loc.file;
 }
 
 const List<SourceToken>& SyntaxFile::tokens() const {
-    return sourceFile().tokens;
+    return pos.loc.file.tokens;
 }
 //------------------------------------------------------------------------------------------------
 void SyntaxModule::dispose() {
     name = ndispose(name);
     __super::dispose();
+}
+Pos SyntaxModule::lastpos() const {
+    if (name) {
+        return name->lastpos();
+    }
+    return __super::lastpos();
 }
 //------------------------------------------------------------------------------------------------
 void SyntaxImportOrExport::dispose() {
@@ -50,16 +80,111 @@ void SyntaxImportOrExport::dispose() {
     as = ndispose(as);
     __super::dispose();
 }
+Pos SyntaxImportOrExport::lastpos() const {
+    if (from) {
+        if (as) {
+            auto &fpos = from->lastpos();
+            auto &apos = as->lastpos();
+            if (fpos.loc.range.end > apos.loc.range.end) {
+                return fpos;
+            }
+            return apos;
+        }
+        return from->lastpos();
+    } if (as) {
+        return as->lastpos();
+    } if (name) {
+        return name->lastpos();
+    }
+    return __super::lastpos();
+}
+//------------------------------------------------------------------------------------------------
+void SyntaxLet::dispose() {
+    name  = ndispose(name);
+    value = ndispose(value);
+    __super::dispose();
+}
+Pos SyntaxLet::lastpos() const {
+    if (value) {
+        return value->lastpos();
+    } if (name) {
+        return name->lastpos();
+    }
+    return __super::lastpos();
+}
 //------------------------------------------------------------------------------------------------
 void SyntaxCommaList::dispose() {
     ldispose(nodes);
     __super::dispose();
+}
+Pos SyntaxCommaList::lastpos() const {
+    if (close) {
+        return *close;
+    } if (nodes.length) {
+        return nodes.last()->lastpos();
+    } if (open) {
+        return *open;
+    }
+    return __super::lastpos();
+}
+//------------------------------------------------------------------------------------------------
+void SyntaxUnary::dispose() {
+    value = ndispose(value);
+    __super::dispose();
+}
+Pos SyntaxUnaryPrefix::lastpos() const {
+    if (value) {
+        return value->lastpos();
+    }
+    return op;
+}
+Pos SyntaxUnarySuffix::lastpos() const {
+    return op;
 }
 //------------------------------------------------------------------------------------------------
 void SyntaxDotExpression::dispose() {
     lhs = ndispose(lhs);
     rhs = ndispose(rhs);
     __super::dispose();
+}
+Pos SyntaxDotExpression::lastpos() const {
+    if (rhs) {
+        return rhs->lastpos();
+    }
+    return dot;
+}
+//------------------------------------------------------------------------------------------------
+void SyntaxArgumentizedExpression::dispose() {
+    name = ndispose(name);
+    arguments = ndispose(arguments);
+    __super::dispose();
+}
+Pos SyntaxArgumentizedExpression::lastpos() const {
+    if (arguments) {
+        return arguments->lastpos();
+    } if (name) {
+        return name->lastpos();
+    }
+    return __super::lastpos();
+}
+//------------------------------------------------------------------------------------------------
+void SyntaxNameValue::dispose() {
+    name     = ndispose(name);
+    typeName = ndispose(typeName);
+    value    = ndispose(value);
+    __super::dispose();
+}
+Pos SyntaxNameValue::lastpos() const {
+    if (value) {
+        return value->lastpos();
+    } if (assign) {
+        return *assign;
+    } if (typeName) {
+        return typeName->lastpos();
+    } if (name) {
+        return name->lastpos();
+    }
+    return __super::lastpos();
 }
 //------------------------------------------------------------------------------------------------
 SyntaxFileProvider::SyntaxFileProvider() : WorkProvider(comp.options.defaultFilesPerThread),
@@ -78,49 +203,4 @@ bool SyntaxFileProvider::next(List<SyntaxFile*> &batch) {
     ReleaseSRWLockExclusive(&srw);
     return batch.isNotEmpty();
 }
-//------------------------------------------------------------------------------------------------
-namespace syn_pass {
-static void createSyntaxFiles(List<SourceFile*> &files) {
-    auto syntax = comp.syntax;
-    auto   &mem = syntax->mem;
-    for (auto i = 0; i < files.length; ++i) {
-        auto sourceFile = files.items[i];
-        Assert(sourceFile->tokens.length);
-        auto       &pos = sourceFile->tokens.first();
-        auto syntaxFile = mem.New<SyntaxFile>(pos);
-        syntax->files.append(syntaxFile);
-    }
-}
-
-struct Parser {
-    auto next(SyntaxFile &file) {
-        parse(file);
-    }
-};
-
-bool run() {
-    traceln("\r\n%cl#<cyan|blue> { filesPerThread: %i#<magenta>, threads: %i#<magenta> }",
-            S("parser"), comp.source->files, comp.source->bytes, comp.options.defaultFilesPerThread,
-            aio::ioThreads());
-
-    comp.syntax = memalloc<SyntaxTree>();
-    comp.syntax = new(comp.syntax) SyntaxTree{};
-
-    {
-        SourceFileProvider provider{};
-        createSyntaxFiles(provider.files);
-        provider.dispose();
-    } {
-        SyntaxFileProvider provider{};
-        Parser             parser{};
-        provider.perBatch = aio::ioThreads();
-        aio::run(parser, provider);
-        provider.dispose();
-    }
-
-    traceln("%cl#<cyan|blue> { }", S("parser"));
-
-    return comp.errors == 0;
-}
-} // namespace syn_pass
 } // namespace exy

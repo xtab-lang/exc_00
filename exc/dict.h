@@ -31,7 +31,7 @@ struct Dict final {
 
     // Disposes {this} dict without disposing each value.
     void dispose() {
-        items = memfree(items);
+        items = MemFree(items);
         length = capacity = 0;
     }
 
@@ -174,7 +174,7 @@ private:
         if (length == capacity) {
             const auto cap = internal_dict_::nextPrime(capacity);
             Assert(cap > capacity);
-            items = memrealloc(items, cap);
+            items = MemReAlloc(items, cap);
             for (auto i = 0; i < cap; ++i) {
                 items[i].next = items[i].bucket = -1;
             } for (capacity = 0; capacity < length; ++capacity) {

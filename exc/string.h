@@ -13,7 +13,7 @@ struct String {
     int   length{};
     unsigned int hash{};
 
-    String() {}
+    String() = default;
     String(const char *v, const char *vend);
     String(const char *v, const char *vend, unsigned int hash);
     String(const char *text, int length);

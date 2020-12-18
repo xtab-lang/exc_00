@@ -65,10 +65,6 @@ struct SourceFileProvider : WorkProvider<SourceFile> {
 private:
     void collectFiles(SourceFolder *folder);
 };
-
-namespace src_pass {
-bool run();
-} // namespace src_pass
 } // namespace exy
 
 #endif // SOURCE_H_

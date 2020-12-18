@@ -1,0 +1,3 @@
+private module .main
+
+const auto static private var a = 2

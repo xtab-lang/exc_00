@@ -66,11 +66,13 @@ void run(int compId);
 
 #define DeclareUserDefinedTypeKeywords(ZM) \
     /* User-Defined Types (UDTs) */ \
+    ZM(Module,       "module")      \
     ZM(Struct,       "struct")      \
     ZM(Object,       "object")      \
     ZM(Union,        "union")       \
     ZM(Enum,         "enum")        \
     ZM(Lambda,       "lambda")      \
+    /* Function Types */            \
     ZM(Extern,       "extern")      \
     ZM(Fn,           "fn")          \
     ZM(UrlHandler,   "urlhandler")  \
@@ -83,9 +85,10 @@ void run(int compId);
 
 #define DeclareKeywords(ZM)         \
     /* Namespace usage */           \
-    ZM(Module,      "module")       \
     ZM(Import,      "import")       \
     ZM(Export,      "export")       \
+    /* Alias */                     \
+    ZM(Let,         "let")          \
     /* Control */                   \
     ZM(If,          "if")           \
     ZM(Else,        "else")         \
@@ -102,8 +105,6 @@ void run(int compId);
     /* Loop */                      \
     ZM(For,         "for")          \
     ZM(In,          "in")           \
-    /* Alias */                     \
-    ZM(Let,         "let")          \
     /* Binary functions */          \
     ZM(As,          "as")           \
     ZM(To,          "to")           \
@@ -120,8 +121,9 @@ void run(int compId);
     ZM(Delete,      "delete")       \
     /* Literals */                  \
     ZM(Null,        "null")         \
-    ZM(True,        "true")         \
+    ZM(void_,       "void")         \
     ZM(False,       "false")        \
+    ZM(True,        "true")         \
     /* Variables */                 \
     ZM(This,        "this")         \
     ZM(Super,       "super")        \
@@ -140,14 +142,15 @@ void run(int compId);
     ZM(Async,       "async")        \
     ZM(Abstract,    "abstract")     \
     ZM(Override,    "override")     \
+    ZM(Synchronized,"synchronized")
 
 enum class Keyword {
     None,
-#define ZM(zName, zSize) zName,
+#define ZM(zName, zText) zName,
     DeclareKeywords(ZM)
 #undef ZM
     _begin_modifiers,
-#define ZM(zName, zSize) zName,
+#define ZM(zName, zText) zName,
     DeclareModifiers(ZM)
 #undef ZM
     _end_modifiers,
@@ -157,7 +160,7 @@ enum class Keyword {
 #undef ZM
     _end_utds,
     _begin_builtins,
-#define ZM(zName, zText) zName,
+#define ZM(zName, zSize) zName,
     DeclareBuiltinTypeKeywords(ZM)
 #undef ZM
     _end_builtins
@@ -257,6 +260,8 @@ enum class Keyword {
     ZM(Exponentiation,  "**")   \
 /* Unary operators ↓ */         \
     /* Prefix ↓ */              \
+    ZM(UnaryMinus,      "-")    \
+    ZM(UnaryPlus,       "+")    \
     ZM(Dereference,     "*")    \
     ZM(AddressOf,       "&")    \
     ZM(LogicalNot,      "!")    \
@@ -276,7 +281,7 @@ enum class Keyword {
     ZM(Octal,           "")   \
     ZM(Float,           "")
 
-enum class Tok : BYTE {
+enum class Tok {
 #define ZM(zName, zText) zName,
     DeclarePunctuationTokens(ZM)
 #undef ZM
@@ -296,7 +301,16 @@ struct SourceRange;
 struct SourceToken;
 struct SourceFile;
 struct SourceTree;
+
+struct SyntaxNode;
 struct SyntaxTree;
+
+struct AstNode;
+struct AstTree;
+
+namespace typ_pass {
+struct Typer;
+}
 //----End forward declarations
 
 //------------------------------------------------------------------------------------------------
@@ -307,6 +321,10 @@ struct SourceChar {
 
     SourceChar() = delete;
     SourceChar(const char *pos, int line, int col) : pos(pos), line(line), col(col) {}
+    bool operator>(const SourceChar &other) const { return line > other.line || (line == other.line && col > other.col); }
+    bool operator>=(const SourceChar &other) const { return line > other.line || (line == other.line && col >= other.col); }
+    bool operator<(const SourceChar &other) const { return line < other.line || (line == other.line && col < other.col); }
+    bool operator<=(const SourceChar &other) const { return line < other.line || (line == other.line && col <= other.col); }
 };
 
 struct SourceRange {
@@ -314,41 +332,78 @@ struct SourceRange {
     SourceChar end;
 
     SourceRange() = delete;
-    SourceRange(const SourceChar &start, const SourceChar &end) : start(start), end(end) {}
-
+    SourceRange(const SourceRange&) = default;
+    SourceRange(const SourceChar &start, const SourceChar &end) : start(start), end(end) {
+        Assert(start <= end);
+    }
+    bool operator>(const SourceRange &other) const { return start > other.end; }
+    bool operator>=(const SourceRange &other) const { return start >= other.end; }
+    bool operator<(const SourceRange &other) const { return end < other.start; }
+    bool operator<=(const SourceRange &other) const { return end <= other.start; }
     String value() const { return { start.pos, (int)(end.pos - start.pos), 0u }; }
 };
 
-struct SourceToken {
-    const SourceFile *file;
+struct SourceLocation {
+    const SourceFile &file;
     SourceRange       range;
-    Tok               kind;
-    Keyword           keyword;
+
+    SourceLocation() = delete;
+    SourceLocation(const SourceLocation&) = default;
+    SourceLocation(const SourceFile &file, const SourceChar &start, const SourceChar &end) 
+        : file(file), range(start, end) {}
+    String sourceValue() const { return range.value(); }
+
+    SourceLocation& operator=(const SourceLocation &other);
+};
+
+using Loc = const SourceLocation&;
+
+struct SourceToken {
+    SourceLocation loc;
+    Tok            kind;
+    Keyword        keyword;
 
     SourceToken() = delete;
     SourceToken(const SourceToken&) = default;
     SourceToken(const SourceFile &file, const SourceChar &start, const SourceChar &end, Tok kind) :
-        file(&file), range(start, end), kind(kind) {}
+        loc(file, start, end), kind(kind) {}
     String name() const;
     String value() const;
-    String sourceValue() const { return range.value(); }
-};
+    static String name(Tok);
+    static String name(Keyword);
+    static String value(Tok);
+    static String value(Keyword);
+    String sourceValue() const { return loc.sourceValue(); }
 
+    SourceToken& operator=(const SourceToken&) = default;
+};
 //------------------------------------------------------------------------------------------------
 struct Compiler {
     SourceTree *source{};
     SyntaxTree *syntax{};
+    AstTree    *ast{};
+    typ_pass::Typer *typer{};
     int         errors{};
     int         warnings{};
     int         infos{};
     struct {
-        String path{};
-        int    maxFileSize{};
-        int    defaultFilesPerThread{};
-    } options{};
+        String path;
+        int    maxFileSize;
+        int    defaultFilesPerThread;
+        struct {
+            int maxScopeDepth;
+        } typer;
+    } options;
+    struct {
+        Identifier main;
+        Identifier block;
+    } str;
 
-    void error(const SourceToken*, const char*, const char*, int, const char *fmt, ...);
-    void error(const SourceToken&, const char*, const char*, int, const char *fmt, ...);
+    void error(const char*, const SourceToken*, const char*, const char*, int, const char*, ...);
+    void error(const char*, const SourceToken&, const char*, const char*, int, const char*, ...);
+    void error(const char*, const SourceLocation&, const char*, const char*, int, const char*, ...);
+
+    void error(const char*, const SyntaxNode*, const char*, const char*, int, const char*, ...);
 private:
     void run();
 
@@ -357,8 +412,8 @@ private:
         Warning,
         Info
     };
-    void highlight(HighlightKind, const SourceToken&, const SourceToken&, const char*, const char*, int, const char*, va_list);
-    void printMessage(HighlightKind, const SourceFile&, const SourceRange&, const char*, va_list);
+    void highlight(HighlightKind, const char*, const SourceLocation&, const char*, const char*, int, const char*, va_list);
+    void printMessage(HighlightKind, const char*, const SourceLocation&, const char*, va_list);
     void printCppLocation(const char *cppFile, const char *cppFunc, int cppLine);
 
     struct Line {
@@ -369,7 +424,7 @@ private:
     static const int maxLines       = 6;
     static const int maxLinesAbove  = 2;
     static const int lineNumberSize = 6;
-    void printLines(HighlightKind, const String &source, const SourceRange&);
+    void printLines(HighlightKind, const SourceLocation&);
     void collectLines(const String &source, const SourceRange&, Line*);
     void highlightLines(HighlightKind, const SourceRange&, Line*);
     void highlightLine(HighlightKind, const SourceRange&, const Line&);
@@ -405,7 +460,11 @@ void ldispose(Dict<T*> &dict) {
     dict.dispose([](T *x) { ndispose(x); });
 }
 
-#define err(token, msg, ...) comp.error(token, __FILE__, __FUNCTION__, __LINE__, msg, __VA_ARGS__)
+#define print_error(pass, token, msg, ...) comp.error((pass), (token), __FILE__, __FUNCTION__, __LINE__, (msg), __VA_ARGS__)
+
+int signedSize(INT64 n);
+int unsignedSize(UINT64 n);
+
 } // namespace exy
 
 #endif // COMPILER_H_

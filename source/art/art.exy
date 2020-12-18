@@ -1,16 +1,8 @@
 // The main module.
-private module main.other.main
-module key module other.key.modue.other.thing.i.do.u63g4534.fother
-
-module .ext const private module .ext
+private module .main
 
 // Imports
-import std.yellow as d, o.yes from k.y.z  private import d.string.nyama.ya.paka, aio as youtube, std.fdf import other.lib
-import a from f as /* comment */ b, x import .q as ye from ya, u
-import a as b async import a from b
-import a, /* yes man */ b, c
+export std
+import .std as std2
 
-// Exports
-private export aio as other
-
-export every
+import main

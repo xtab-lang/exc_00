@@ -8,9 +8,14 @@
 #define LEXER_H_
 
 namespace exy {
-namespace tok_pass {
-bool run();
-} // namespace tok_pass
-}
+//--Begin forward declarations
+struct SourceChar;
+struct SourceFile;
+//----End forward declarations
+struct Tokenizer {
+    void next(SourceFile &file);
+    void tokenize(SourceFile &file, const List<SourceChar> &chars);
+};
+} // namespace exy
 
 #endif // LEXER_H_

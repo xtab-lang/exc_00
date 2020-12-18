@@ -4,7 +4,7 @@
 
 #include "pch.h"
 
-#include "compiler.h"
+#include "source.h"
 
 namespace exy {
 using Color = FormatStream::TextFormat;
@@ -21,10 +21,9 @@ struct Specifiers {
 };
 
 struct Colorizer {
-    const Specifiers &specs;
     FormatStream &stream;
-    bool isColored{};
-    Colorizer(const Specifiers &specs, FormatStream &stream) : specs(specs), stream(stream) {
+    bool          isColored{};
+    Colorizer(const Specifiers &specs, FormatStream &stream) : stream(stream) {
         if (specs.isColored()) {
             isColored = true;
             if (specs.fore != Color::Unknown) {
@@ -36,6 +35,21 @@ struct Colorizer {
             } if (specs.bold) {
                 stream.setTextFormat(Color::Bright);
             }
+        }
+    }
+    Colorizer(Color fore, Color back, bool underline, bool bold, FormatStream &stream) : stream(stream) {
+        if (fore != Color::Unknown) {
+            stream.setTextFormat(fore);
+            isColored = true;
+        } if (back != Color::Unknown) {
+            stream.setTextFormat(back);
+            isColored = true;
+        } if (underline) {
+            stream.setTextFormat(Color::Underline);
+            isColored = true;
+        } if (bold) {
+            stream.setTextFormat(Color::Bright);
+            isColored = true;
         }
     }
     ~Colorizer() {
@@ -77,14 +91,20 @@ private:
             case 'c': {
                 if (*pos == 'l') { // '%cl'
                     ++pos; // Past 'l'.
-                    auto specs = parseSpecifiers();
+                    auto  specs = parseSpecifiers();
                     auto    arg = __crt_va_arg(vargs, const char*);
                     auto arglen = __crt_va_arg(vargs, int);
                     Colorizer colorizer{ specs, stream };
                     stream.write(arg, arglen);
+                }  else if (*pos == 'h') { // '%ch'
+                    ++pos; // Past 'h'.
+                    auto specs = parseSpecifiers();
+                    auto   arg = __crt_va_arg(vargs, const char);
+                    Colorizer colorizer{ specs, stream };
+                    stream.write(&arg, 1);
                 } else { // '%c'
                     auto specs = parseSpecifiers();
-                    auto arg = __crt_va_arg(vargs, const char*);
+                    auto   arg = __crt_va_arg(vargs, const char*);
                     Colorizer colorizer{ specs, stream };
                     stream.write(arg);
                 }
@@ -137,7 +157,110 @@ private:
                 Colorizer colorizer{ specs, stream };
                 stream.write(numbuf, cstrlen(numbuf));
             } break;
+            case 'p': {
+                if (*pos == 'o') {
+                    ++pos; // Past 'o'.
+                    if (*pos == 's') {
+                        ++pos; // Past 's'.
+                        auto specs = parseSpecifiers();
+                        auto arg = __crt_va_arg(vargs, const SourceToken*);
+                        if (arg) {
+                            if (!specs.isColored()) {
+                                specs.fore = Color::ForeCyan;
+                                specs.underline = true;
+                            }
+                            auto     &loc = arg->loc;
+                            auto   &range = loc.range;
+                            auto     name = loc.file.dotName;
+                            auto startLn  = range.start.line;
+                            auto    endLn = range.end.line;
+                            auto startCol = range.start.col;
+                            auto   endCol = range.start.col; {
+                                Colorizer colorizer{ specs, stream };
+                                stream.write(name->text, name->length);
+                            }
+                            stream.write(S("("));
+                            if (startLn == endLn) {
+                                _itoa_s(startLn, numbuf, 10); {
+                                    Colorizer colorizer{ specs, stream };
+                                    stream.write(numbuf, cstrlen(numbuf));
+                                }
+                                stream.write(S(":")); 
+                                _itoa_s(startCol, numbuf, 10); {
+                                    Colorizer colorizer{ specs, stream };
+                                    stream.write(numbuf, cstrlen(numbuf));
+                                }
+                                stream.write(S("—"));
+                                _itoa_s(endCol, numbuf, 10); {
+                                    Colorizer colorizer{ specs, stream };
+                                    stream.write(numbuf, cstrlen(numbuf));
+                                }
+                            } else {
+                                _itoa_s(startLn, numbuf, 10); {
+                                    Colorizer colorizer{ specs, stream };
+                                    stream.write(numbuf, cstrlen(numbuf));
+                                }
+                                stream.write(S(":"));
+                                _itoa_s(startCol, numbuf, 10); {
+                                    Colorizer colorizer{ specs, stream };
+                                    stream.write(numbuf, cstrlen(numbuf));
+                                }
+                                stream.write(S("—"));
+                                _itoa_s(endLn, numbuf, 10); {
+                                    Colorizer colorizer{ specs, stream };
+                                    stream.write(numbuf, cstrlen(numbuf));
+                                }
+                                _itoa_s(endCol, numbuf, 10); {
+                                    Colorizer colorizer{ specs, stream };
+                                    stream.write(numbuf, cstrlen(numbuf));
+                                }
+                            }
+                            stream.write(S(")"));
+                        }
+                        break;
+                    }
+                }
+                Assert(0);
+            } break;
+            case 'k': {
+                if (*pos == 'w') {
+                    ++pos; // Past 'w'.
+                    auto specs = parseSpecifiers();
+                    auto   arg = __crt_va_arg(vargs, Keyword);
+                    auto value = SourceToken::value(arg);
+                    if (!specs.isColored()) {
+                        specs.fore = Color::ForeYellow;
+                    }
+                    Colorizer colorizer{ specs, stream };
+                    stream.write(value.text, value.length);
+                    break;
+                }
+                Assert(0);
+            } break;
             case 't': {
+                if (*pos == 'v') {
+                    ++pos; // Past 'v'.
+                    auto specs = parseSpecifiers();
+                    auto   arg = __crt_va_arg(vargs, Tok);
+                    auto value = SourceToken::value(arg);
+                    if (!specs.isColored()) {
+                        specs.fore = Color::ForeYellow;
+                    }
+                    Colorizer colorizer{ specs, stream };
+                    stream.write(value.text, value.length);
+                    break;
+                } if (*pos == 'n') {
+                    ++pos; // Past 'n'.
+                    auto specs = parseSpecifiers();
+                    auto   arg = __crt_va_arg(vargs, Tok);
+                    auto value = SourceToken::name(arg);
+                    if (!specs.isColored()) {
+                        specs.fore = Color::ForeYellow;
+                    }
+                    Colorizer colorizer{ specs, stream };
+                    stream.write(value.text, value.length);
+                    break;
+                }
                 auto specs = parseSpecifiers();
                 auto   arg = __crt_va_arg(vargs, const SourceToken*);
                 if (arg) {
@@ -251,7 +374,7 @@ private:
             { { S("cyan") }, Color::ForeCyan },
             { { S("white") }, Color::ForeWhite }
         }; 
-        for (auto i = 0; i < _countof(list); ++i) {
+        for (auto i = 0; i < (int)_countof(list); ++i) {
             auto item = list[i];
             if (token == item.name) {
                 return item.value;
@@ -283,7 +406,7 @@ private:
             { { S("cyan") }, Color::BackCyan },
             { { S("white") }, Color::BackWhite }
         };
-        for (auto i = 0; i < _countof(list); ++i) {
+        for (auto i = 0; i < (int)_countof(list); ++i) {
             auto item = list[i];
             if (token == item.name) {
                 return item.value;

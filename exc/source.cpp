@@ -1,9 +1,6 @@
 #include "pch.h"
 #include "source.h"
 
-#include "identifiers.h"
-#include "compiler.h"
-
 namespace exy {
 //------------------------------------------------------------------------------------------------
 void SourceFile::dispose() {
@@ -33,8 +30,8 @@ bool SourceTree::build() {
     root = build(nullptr, path, path.getFileName(), indent);
     path.dispose();
 
-    traceln("%cl#<cyan|blue> { files: %i#<magenta>, bytes: %u64#<magenta> }", S("source"),
-            files, bytes);
+    traceln("%cl#<cyan|blue> { errors: %i#<red>, files: %i#<magenta>, bytes: %u64#<magenta> }", S("source"),
+            comp.errors, files, bytes);
 
     return comp.errors == 0;
 }
@@ -191,12 +188,4 @@ void SourceFileProvider::collectFiles(SourceFolder *folder) {
         collectFiles(folder->folders.items[i]);
     }
 }
-//------------------------------------------------------------------------------------------------
-namespace src_pass {
-bool run() {
-    comp.source = memalloc<SourceTree>();
-    comp.source = new(comp.source) SourceTree{};
-    return comp.source->build();
-}
-} // namespace src_pass
 } // namespace exy

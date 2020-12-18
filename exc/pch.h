@@ -42,5 +42,7 @@ constexpr int numbufcap = 1024;
 static thread_local char numbuf[numbufcap];
 
 #include "lib.h"
+#include "compiler.h"
+#include "identifiers.h"
 
 #endif // PCH_H_

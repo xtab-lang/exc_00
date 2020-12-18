@@ -15,7 +15,7 @@ String::String(const char *text, int length) : text((char*)text), length(length)
 String::String(const char *text, int length, unsigned int hash) : text((char*)text), length(length), hash(hash) {}
 
 void String::dispose() {
-    text = memfree(text);
+    text = MemFree(text);
     length = 0;
     hash = 0u;
 }
@@ -82,7 +82,7 @@ const char* String::end() const {
 
 String& String::reserve(int size) {
     if (size > 0) {
-        text = memrealloc(text, size);
+        text = MemReAlloc(text, size);
     }
     return *this;
 }
@@ -105,7 +105,7 @@ String& String::append(const char *v) {
 String& String::append(const char *v, int vlen) {
     if (v && vlen > 0) {
         auto len = length + vlen;
-        text = memrealloc(text, len + 1);
+        text = MemReAlloc(text, len + 1);
         MemCopy(text + length, v, vlen);
         text[length = len] = '\0';
     }

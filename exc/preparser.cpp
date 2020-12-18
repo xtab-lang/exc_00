@@ -7,9 +7,10 @@
 #include "preparser.h"
 
 #include "source.h"
-#include "compiler.h"
 
 namespace exy {
+#define err(token, msg, ...) print_error("PreParser", token, msg, __VA_ARGS__)
+
 //------------------------------------------------------------------------------------------------
 static Dict<Keyword> keywords{};
 
@@ -223,7 +224,7 @@ struct TokenStream {
             j = i;
         }
         for (auto i = opens.length - 1; i >= 0; i--) {
-            auto &pos = list.items[i];
+            auto &pos = list.items[opens.items[i]];
             err(pos, "unmatched %t", &pos); // '}#' in code.
         }
     }

@@ -53,22 +53,22 @@ private:
 };
 
 template<typename T>
-T* memalloc(int count = 1) {
+T* MemAlloc(int count = 1) {
     return (T*)Heap::alloc(sizeof(T) * count);
 }
 
 template<typename T>
-T* memrealloc(T *m, int count = 1) {
+T* MemReAlloc(T *m, int count = 1) {
     return (T*)Heap::realloc(m, sizeof(T) * count);
 }
 
 template<typename T>
-T* memfree(T *m) {
+T* MemFree(T *m) {
     return (T*)Heap::free(m);
 }
 
 template<typename T>
-constexpr void memzero(T *mem, int count = 1) { 
+constexpr void MemZero(T *mem, int count = 1) { 
     ZeroMemory(mem, sizeof(T) * count); 
 }
 

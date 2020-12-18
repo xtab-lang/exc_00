@@ -51,7 +51,7 @@ struct Runner {
         }
 
         batch.dispose();
-        memfree(this);
+        MemFree(this);
 
         InterlockedDecrement(counter);
         WakeByAddressSingle(&counter);
@@ -63,7 +63,7 @@ void post(Instance *instance, FnInstance fnInstance, Provider *provider, FnProvi
     auto runners = iocp.threads.length;
     volatile long counter = runners;
     for (auto i = 0; i < runners; i++) {
-        auto runner = memalloc<_internal_::Runner>();
+        auto runner = MemAlloc<_internal_::Runner>();
         runner = new(runner) _internal_::Runner{ instance, fnInstance, provider, fnProvider };
         PostQueuedCompletionStatus(iocp.handle, 0, (ULONG_PTR)&counter, (OVERLAPPED*)runner);
     }

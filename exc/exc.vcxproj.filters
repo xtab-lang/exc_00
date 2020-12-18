@@ -24,9 +24,6 @@
     <ClCompile Include="hash.cpp">
       <Filter>lib</Filter>
     </ClCompile>
-    <ClCompile Include="source.cpp">
-      <Filter>compiler\source</Filter>
-    </ClCompile>
     <ClCompile Include="mem.cpp">
       <Filter>lib</Filter>
     </ClCompile>
@@ -40,16 +37,16 @@
       <Filter>compiler</Filter>
     </ClCompile>
     <ClCompile Include="tokenizer.cpp">
-      <Filter>compiler\source</Filter>
+      <Filter>tok_pass</Filter>
     </ClCompile>
     <ClCompile Include="syntax.cpp">
-      <Filter>compiler\syntax</Filter>
+      <Filter>syn_pass</Filter>
     </ClCompile>
     <ClCompile Include="preparser.cpp">
-      <Filter>compiler\source</Filter>
+      <Filter>tok_pass</Filter>
     </ClCompile>
     <ClCompile Include="parser.cpp">
-      <Filter>compiler\syntax</Filter>
+      <Filter>syn_pass</Filter>
     </ClCompile>
     <ClCompile Include="list.cpp">
       <Filter>lib\collections</Filter>
@@ -60,6 +57,57 @@
     <ClCompile Include="queue.cpp">
       <Filter>lib\collections</Filter>
     </ClCompile>
+    <ClCompile Include="src_pass.cpp">
+      <Filter>src_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="source.cpp">
+      <Filter>src_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="tok_pass.cpp">
+      <Filter>tok_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="src_char_stream.cpp">
+      <Filter>tok_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="src_tok_stream.cpp">
+      <Filter>tok_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="syn_pass.cpp">
+      <Filter>syn_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="syn_cursor.cpp">
+      <Filter>syn_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="parse_number.cpp">
+      <Filter>syn_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="typ_pass.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="ast.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="typer.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_import.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_modifiers.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_variable.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="astype.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_literal.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_mk.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="lib">
@@ -68,14 +116,20 @@
     <Filter Include="compiler">
       <UniqueIdentifier>{33466144-b952-4bb6-81f1-64c7281e726b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="compiler\source">
-      <UniqueIdentifier>{d50b3175-00bb-4980-b8a8-dd2ff7d1cf6d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="compiler\syntax">
-      <UniqueIdentifier>{c2b11050-3144-4c71-99e6-17e55f1ede6b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="lib\collections">
       <UniqueIdentifier>{e729598f-59c1-443f-a980-ba96cccc5c1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src_pass">
+      <UniqueIdentifier>{9070de76-80a5-458e-bd54-65d1123f33bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="syn_pass">
+      <UniqueIdentifier>{c2b11050-3144-4c71-99e6-17e55f1ede6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tok_pass">
+      <UniqueIdentifier>{d50b3175-00bb-4980-b8a8-dd2ff7d1cf6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="typ_pass">
+      <UniqueIdentifier>{438cbd1a-2639-416f-832e-fd22a3fe7333}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -104,9 +158,6 @@
     <ClInclude Include="hash.h">
       <Filter>lib</Filter>
     </ClInclude>
-    <ClInclude Include="source.h">
-      <Filter>compiler\source</Filter>
-    </ClInclude>
     <ClInclude Include="mem.h">
       <Filter>lib</Filter>
     </ClInclude>
@@ -117,16 +168,16 @@
       <Filter>compiler</Filter>
     </ClInclude>
     <ClInclude Include="tokenizer.h">
-      <Filter>compiler\source</Filter>
+      <Filter>tok_pass</Filter>
     </ClInclude>
     <ClInclude Include="syntax.h">
-      <Filter>compiler\syntax</Filter>
+      <Filter>syn_pass</Filter>
     </ClInclude>
     <ClInclude Include="preparser.h">
-      <Filter>compiler\source</Filter>
+      <Filter>tok_pass</Filter>
     </ClInclude>
     <ClInclude Include="parser.h">
-      <Filter>compiler\syntax</Filter>
+      <Filter>syn_pass</Filter>
     </ClInclude>
     <ClInclude Include="list.h">
       <Filter>lib\collections</Filter>
@@ -136,6 +187,54 @@
     </ClInclude>
     <ClInclude Include="queue.h">
       <Filter>lib\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="src_pass.h">
+      <Filter>src_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="source.h">
+      <Filter>src_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="tok_pass.h">
+      <Filter>tok_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="src_char_stream.h">
+      <Filter>tok_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="src_tok_stream.h">
+      <Filter>tok_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="syn_pass.h">
+      <Filter>syn_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="syn_cursor.h">
+      <Filter>syn_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="typ_pass.h">
+      <Filter>typ_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="ast.h">
+      <Filter>typ_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="typer.h">
+      <Filter>typ_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_import.h">
+      <Filter>typ_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_modifiers.h">
+      <Filter>typ_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_variable.h">
+      <Filter>typ_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="astype.h">
+      <Filter>typ_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_literal.h">
+      <Filter>typ_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_mk.h">
+      <Filter>typ_pass</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

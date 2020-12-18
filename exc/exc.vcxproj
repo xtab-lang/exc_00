@@ -165,6 +165,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="aio.cpp" />
+    <ClCompile Include="ast.cpp" />
+    <ClCompile Include="astype.cpp" />
     <ClCompile Include="compiler.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="date.cpp" />
@@ -174,8 +176,14 @@
     <ClCompile Include="hash.cpp" />
     <ClCompile Include="identifiers.cpp" />
     <ClCompile Include="parser.cpp" />
+    <ClCompile Include="parse_number.cpp" />
     <ClCompile Include="preparser.cpp" />
     <ClCompile Include="queue.cpp" />
+    <ClCompile Include="src_char_stream.cpp" />
+    <ClCompile Include="src_pass.cpp" />
+    <ClCompile Include="src_tok_stream.cpp" />
+    <ClCompile Include="syn_cursor.cpp" />
+    <ClCompile Include="syn_pass.cpp" />
     <ClCompile Include="tokenizer.cpp" />
     <ClCompile Include="lib.cpp" />
     <ClCompile Include="main.cpp" />
@@ -187,9 +195,19 @@
     <ClCompile Include="string.cpp" />
     <ClCompile Include="source.cpp" />
     <ClCompile Include="syntax.cpp" />
+    <ClCompile Include="tok_pass.cpp" />
+    <ClCompile Include="tp_import.cpp" />
+    <ClCompile Include="tp_literal.cpp" />
+    <ClCompile Include="tp_mk.cpp" />
+    <ClCompile Include="tp_modifiers.cpp" />
+    <ClCompile Include="tp_variable.cpp" />
+    <ClCompile Include="typer.cpp" />
+    <ClCompile Include="typ_pass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aio.h" />
+    <ClInclude Include="ast.h" />
+    <ClInclude Include="astype.h" />
     <ClInclude Include="compiler.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="date.h" />
@@ -201,6 +219,11 @@
     <ClInclude Include="parser.h" />
     <ClInclude Include="preparser.h" />
     <ClInclude Include="queue.h" />
+    <ClInclude Include="src_char_stream.h" />
+    <ClInclude Include="src_pass.h" />
+    <ClInclude Include="src_tok_stream.h" />
+    <ClInclude Include="syn_cursor.h" />
+    <ClInclude Include="syn_pass.h" />
     <ClInclude Include="tokenizer.h" />
     <ClInclude Include="lib.h" />
     <ClInclude Include="list.h" />
@@ -209,6 +232,14 @@
     <ClInclude Include="string.h" />
     <ClInclude Include="source.h" />
     <ClInclude Include="syntax.h" />
+    <ClInclude Include="tok_pass.h" />
+    <ClInclude Include="tp_import.h" />
+    <ClInclude Include="tp_literal.h" />
+    <ClInclude Include="tp_mk.h" />
+    <ClInclude Include="tp_modifiers.h" />
+    <ClInclude Include="tp_variable.h" />
+    <ClInclude Include="typer.h" />
+    <ClInclude Include="typ_pass.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

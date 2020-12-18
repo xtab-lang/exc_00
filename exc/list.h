@@ -24,7 +24,7 @@ struct List {
     List(T *items, int length, int capacity) : items(items), length(length), capacity(capacity) {}
 
     void dispose() {
-        items = memfree(items);
+        items = MemFree(items);
         length = capacity = 0;
     }
 
@@ -58,7 +58,7 @@ struct List {
                     capacity <<= 1;
                 }
             }
-            items = memrealloc(items, capacity);
+            items = MemReAlloc(items, capacity);
         }
         return *this;
     }

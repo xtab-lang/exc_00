@@ -14,14 +14,14 @@
     <header>Keyword := <b>one of</b></header>
     <article>
       <div><i>module import export</i></div>
+      <div><i>let</i></div>
       <div><i>if else switch case default</i></div>
       <div><i>break continue return</i></div>
       <div><i>yield await</i></div>
       <div><i>for in</i></div>
-      <div><i>let</i></div>
       <div><i>as to is !is !in</i></div>
       <div><i>alignof sizeof typeof nameof valueof new delete</i></div>
-      <div><i>null true false</i></div>
+      <div><i>null void false true</i></div>
       <div><i>this super</i></div>
       <div><i>defer from with</i></div>
       <div><i>private static const readonly auto var async abstract override</i></div>
@@ -117,7 +117,7 @@
     <header>ModuleDeclaration :=</header>
     <article>
       <div><i>private</i><sub>optional</sub> <i>module fullname</i></div>
-      <div><i>private</i><sub>optional</sub> <i>. module fullname</i></div>
+      <div><i>private</i><sub>optional</sub> <i>module . fullname</i></div>
     </article>
   </section>
 
@@ -139,9 +139,9 @@
   <section>
     <header>Statement :=</header>
     <article>
+      <div>LetStatement</div>
       <div>SynchronizedBlock</div>
       <div>BlockStatement</div>
-      <div>LetStatement</div>
       <div>ImportStatement</div>
       <div>ExportStatement</div>
       <div>DeferStatement</div>
@@ -162,6 +162,13 @@
   </section>
 
   <section>
+    <header>LetStatement :=</header>
+    <article>
+      <div><i>let identifier = </i> Expression</div>
+    </article>
+  </section>
+
+  <section>
     <header>SynchronizedBlock :=</header>
     <article>
       <div><i>synchronized (</i> Expression<sub>optional</sub> <i>) {</i> StatementList<sub>optional</sub> <i>}</i></div>
@@ -173,13 +180,6 @@
     <header>BlockStatement :=</header>
     <article>
       <div><i>{</i> StatementList<sub>optional</sub> <i>}</i></div>
-    </article>
-  </section>
-
-  <section>
-    <header>LetStatement :=</header>
-    <article>
-      <div><i>let identifier = </i> Expression</div>
     </article>
   </section>
 
