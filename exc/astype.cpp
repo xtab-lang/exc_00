@@ -32,4 +32,37 @@ AstType AstType::reference() const {
     tree.refs.append(hash, type);
     return type;
 }
+
+bool AstType::operator==(const AstType &other) const {
+    if (kind == other.kind) {
+        if (symbol == other.symbol) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool AstType::operator!=(const AstType &other) const {
+    return !this->operator==(other);
+}
+
+AstSymbol* AstType::isaSymbol() const {
+    return isDirect();
+}
+
+AstSymbol* AstType::isDirect() const {
+    return kind == Kind::Direct ? symbol : nullptr;;
+}
+
+bool AstType::isIndirect() const {
+    return kind != Kind::Direct;
+}
+
+AstPointerType* AstType::isaPointer() const {
+    return kind == Kind::Pointer ? ptr : nullptr;
+}
+
+AstReferenceType* AstType::isaReference() const {
+    return kind == Kind::Reference ? ref : nullptr;
+}
 } // namespace exy

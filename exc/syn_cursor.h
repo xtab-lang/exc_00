@@ -26,6 +26,8 @@ struct Cursor {
     bool skipWhiteSpace();
     void skipSingleLineComment();
     void skipMultiLineComment();
+
+    void rewind(Token _prev, Token _pos);
 };
 } // namespace exy
 

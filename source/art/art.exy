@@ -5,4 +5,5 @@ private module .main
 export std
 import .std as std2
 
-import main
+
+import caremo

@@ -10,37 +10,119 @@
 
 namespace exy {
 namespace typ_pass {
-AstNode* Variable::visit(Decl decl) {
+Variable::Node Variable::visit(Decl decl) {
+    tp.mods.validateVariableModifiers(decl->modifiers);
     if (decl->name->kind == SyntaxKind::Identifier) {
         return visit(decl, (Name)decl->name);
+    } else if (decl->name->kind == SyntaxKind::CommaList) {
+        return visit(decl, (Tuple)decl->name);
     }
     err(decl->name, "expected an identifier or a comma-separated list of identifiers");
     return nullptr;
 }
 
-AstNode* Variable::visit(Decl decl, Name name) {
+Variable::Node Variable::visit(Decl decl, Name name) {
+    auto pos = tp.mkpos(decl);
     if (decl->typeName) {
-        err(name, "visit with typename");
+        if (auto node = tp.visitExpression(decl->typeName)) {
+            if (auto tpname = tp.isa.TypeName(node)) {
+                if (auto value = decl->value) {
+                    if (auto rhs = tp.visitExpression(value)) {
+                        auto res = make(pos, decl->modifiers, name, tpname->type, rhs);
+                        tp.throwAway(tpname);
+                        return res;
+                    }
+                    return tp.throwAway(tpname);
+                }
+                auto res = make(pos, decl->modifiers, name, tpname->type);
+                tp.throwAway(tpname);
+                return res;
+            } 
+            err(decl->typeName, "expected a typename");
+            return tp.throwAway(node);
+        }
         return nullptr;
     } if (auto rhs = tp.visitExpression(decl->value)) {
-        return make(decl->modifiers, name, rhs);
+        return make(pos, decl->modifiers, name, rhs);
+    }
+    Unreachable();
+}
+
+Variable::Node Variable::visit(Decl decl, Tuple tuple) {
+    if (decl->typeName) {
+        err(tuple, "visit with typename");
+        return nullptr;
+    } if (auto rhs = tp.visitExpression(decl->value)) {
+        return make(tp.mkpos(decl), decl->modifiers, tuple, rhs);
+    }
+    Unreachable();
+}
+
+Variable::Node Variable::make(Loc loc, Mods modifiers, Name name, Node rhs) {
+    auto kind = getKind(modifiers);
+    switch (kind) {
+        case AstKind::Global: {
+            if (auto global = tp.mk.global(tp.mkpos(name), name->value, rhs)) {
+                return tp.mk.name(loc, global);
+            }
+        } return nullptr;
+        default: {
+            err(name, "make: not implemented");
+        } break;
+    }
+    return tp.throwAway(rhs);
+}
+
+Variable::Node Variable::make(Loc loc, Mods modifiers, Name name, Type type) {
+    auto kind = getKind(modifiers);
+    switch (kind) {
+        case AstKind::Global: {
+            if (auto global = tp.mk.global(tp.mkpos(name), name->value, type)) {
+                return tp.mk.name(loc, global);
+            }
+        } return nullptr;
+        default: {
+            err(name, "make: not implemented");
+        } break;
     }
     return nullptr;
 }
 
-AstNode* Variable::make(Mods modifiers, Name name, AstNode *rhs) {
-    auto scope = tp.currentScope();
-    auto  kind = getKind(modifiers);
-    auto   pos = tp.mkpos(name);
-    tp.mods.validateVariableModifiers(modifiers);
+Variable::Node Variable::make(Loc loc, Mods modifiers, Name name, Type type, Node rhs) {
+    auto kind = getKind(modifiers);
     switch (kind) {
         case AstKind::Global: {
-            if (auto global = tp.mk.global(pos, name->value, rhs->type)) {
-                return tp.mk.name(pos, global);
+            if (rhs = tp.mk.explicitCast(loc, rhs, type)) {
+                if (auto global = tp.mk.global(tp.mkpos(name), name->value, rhs)) {
+                    return tp.mk.name(loc, global);
+                }
+            }
+        } return nullptr;
+        default: {
+            err(name, "make: not implemented");
+        } break;
+    }
+    return nullptr;
+}
+
+Variable::Node Variable::make(Loc, Mods modifiers, Tuple tuple, Node rhs) {
+    auto  kind = getKind(modifiers);
+    switch (kind) {
+        case AstKind::Global: {
+            auto errors = 0;
+            for (auto i = 0; i < tuple->nodes.length; ++i) {
+                auto name = (Name)tuple->nodes.items[i];
+                if (auto global = tp.mk.global(tp.mkpos(name), name->value, rhs)) {
+                    // DO NOTHING.
+                } else {
+                    ++errors;
+                }
+            } if (!errors) {
+                return nullptr;
             }
         } break;
         default: {
-            err(name, "make: not implemented");
+            err(tuple, "make: not implemented");
         } break;
     }
     return tp.throwAway(rhs);
@@ -50,7 +132,7 @@ AstKind Variable::getKind(Mods modifiers) {
     if (Modifiers::isStatic(modifiers)) {
         return AstKind::Global;
     } if (auto owner = tp.currentScope()->owner) {
-        if (owner->isaModule()) {
+        if (tp.isa.Module(owner)) {
             return AstKind::Global;
         }
     }

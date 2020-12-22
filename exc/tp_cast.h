@@ -1,22 +1,26 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // author: exy.lang
-//   date: 2020-12-18
+//   date: 2020-12-17
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#ifndef TP_LITERAL_H_
-#define TP_LITERAL_H_
+#ifndef TP_CAST_H_
+#define TP_CAST_H_
 
 namespace exy {
 namespace typ_pass {
-struct Literal {
+//--Begin forward declarations
+//----End forward declarations
+struct Cast {
     Typer &tp;
 
-    Literal(Typer *tp) : tp(*tp) {}
+    Cast(Typer &tp) : tp(tp) {}
 
-    AstConstant* visit(SyntaxLiteral*);
+    AstNode* explicitCast(Loc, AstNode*, const AstType&);
+    AstNode* implicitCast(Loc, AstNode*, const AstType&);
+private:
 };
 } // namespace typ_pass
 } // namespace exy
 
-#endif // TP_LITERAL_H_
+#endif // TP_CAST_H_

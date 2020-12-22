@@ -7,6 +7,7 @@
 #define FORMAT_H_
 
 namespace exy {
+struct AstType;
 struct FormatStream {
     virtual void lock() = 0;
     virtual void unlock() = 0;
@@ -14,6 +15,7 @@ struct FormatStream {
     void writeln(const char *v, int vlen);
     void write(const char *v);
     void writeln(const char *v);
+    void write(const AstType*);
 
     enum class TextFormat {
         Unknown         = -1,

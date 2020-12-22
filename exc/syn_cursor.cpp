@@ -67,4 +67,9 @@ void Cursor::skipMultiLineComment() {
         ++pos;
     }
 }
+
+void Cursor::rewind(Token _prev, Token _pos) {
+    prev = _prev;
+    pos = _pos;
+}
 } // namespace exy

@@ -9,17 +9,12 @@
 
 namespace exy {
 namespace typ_pass {
-//--Begin forward declarations
-struct Typer;
-//----End forward declarations
-
 struct Importer {
-    using Decl = SyntaxImportOrExport*;
     Typer  &tp;
 
     Importer(Typer *tp) : tp(*tp) {}
 
-    void visit(Decl);
+    void visit(SyntaxImportOrExport*);
 private:
     AstModule* findSourceModule(SyntaxNode*);
 
@@ -28,8 +23,10 @@ private:
 
     AstSymbol* findSymbol(Pos, Identifier);
 
-    void createImport(Decl, AstSymbol*, Identifier);
-    void createExport(Decl, AstSymbol*, Identifier);
+    void createImport(SyntaxImportOrExport*, AstSymbol*, Identifier);
+    void createExport(SyntaxImportOrExport*, AstSymbol*, Identifier);
+
+    AstSymbol* checkForSelfImportOrExport(Pos pos, AstSymbol *symbol);
 };
 } // namespace typ_pass
 } // namespace exy

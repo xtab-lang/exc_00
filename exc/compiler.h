@@ -397,6 +397,7 @@ struct Compiler {
     struct {
         Identifier main;
         Identifier block;
+        Identifier tuple;
     } str;
 
     void error(const char*, const SourceToken*, const char*, const char*, int, const char*, ...);

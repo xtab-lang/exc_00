@@ -5,6 +5,8 @@
 #include "pch.h"
 
 #include "source.h"
+#include "syntax.h"
+#include "ast.h"
 
 namespace exy {
 using Color = FormatStream::TextFormat;
@@ -107,14 +109,6 @@ private:
                     auto   arg = __crt_va_arg(vargs, const char*);
                     Colorizer colorizer{ specs, stream };
                     stream.write(arg);
-                }
-            } break;
-            case 's': {
-                auto specs = parseSpecifiers();
-                auto arg = __crt_va_arg(vargs, const String*);
-                Colorizer colorizer{ specs, stream };
-                if (arg) {
-                    stream.write(arg->text, arg->length);
                 }
             } break;
             case 'i': {
@@ -237,6 +231,59 @@ private:
                 }
                 Assert(0);
             } break;
+            case 's': {
+                if (*pos == 'y') {
+                    ++pos; // Past 's'.
+                    if (*pos == 'n') {
+                        ++pos; // Past 't'
+                        if (*pos == 't') {
+                            ++pos; // Past 't'
+                            if (*pos == 'a') {
+                                ++pos; // Past 'a'
+                                if (*pos == 'x') {
+                                    ++pos; // Past 'x'
+                                    auto specs = parseSpecifiers();
+                                    auto   arg = __crt_va_arg(vargs, SyntaxKind);
+                                    auto value = SyntaxNode::kindName(arg);
+                                    if (!specs.isColored()) {
+                                        specs.fore = Color::ForeYellow;
+                                    }
+                                    Colorizer colorizer{ specs, stream };
+                                    stream.write(S("Syntax"));
+                                    stream.write(value.text, value.length);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    Assert(0);
+                }
+                auto specs = parseSpecifiers();
+                auto arg = __crt_va_arg(vargs, const String*);
+                Colorizer colorizer{ specs, stream };
+                if (arg) {
+                    stream.write(arg->text, arg->length);
+                }
+            } break;
+            case 'a': {
+                if (*pos == 's') {
+                    ++pos; // Past 's'.
+                    if (*pos == 't') {
+                        ++pos; // Past 't'
+                        auto specs = parseSpecifiers();
+                        auto   arg = __crt_va_arg(vargs, AstKind);
+                        auto value = AstNode::kindName(arg);
+                        if (!specs.isColored()) {
+                            specs.fore = Color::ForeYellow;
+                        }
+                        Colorizer colorizer{ specs, stream };
+                        stream.write(S("Ast"));
+                        stream.write(value.text, value.length);
+                        break;
+                    }
+                }
+                Assert(0);
+            } break;
             case 't': {
                 if (*pos == 'v') {
                     ++pos; // Past 'v'.
@@ -260,6 +307,21 @@ private:
                     Colorizer colorizer{ specs, stream };
                     stream.write(value.text, value.length);
                     break;
+                } if (*pos == 'y') {
+                    ++pos; // Past 'y'.
+                    if (*pos == 'p') {
+                        ++pos; // Past 'p'.
+                        if (*pos == 'e') {
+                            ++pos; // Past 'e'
+                            auto specs = parseSpecifiers();
+                            auto   arg = __crt_va_arg(vargs, const AstType*);
+                            if (arg) {
+                                stream.write(arg);
+                            }
+                            break;
+                        }
+                    }
+                    Assert(0);
                 }
                 auto specs = parseSpecifiers();
                 auto   arg = __crt_va_arg(vargs, const SourceToken*);
@@ -481,6 +543,59 @@ void FormatStream::writeln(const char *v) {
     lock();
     write(v, cstrlen(v));
     write("\r\n", 2);
+    unlock();
+}
+
+void FormatStream::write(const AstType *t) {
+    using Color = TextFormat;
+    lock();
+    Specifiers specs{};
+    if (auto symbol = t->isaSymbol()) {
+        switch (symbol->kind) {
+            case AstKind::Builtin: {
+                specs.fore = Color::ForeGreen;
+                Colorizer colorizer{ specs, *this };
+                write(symbol->name->text, symbol->name->length);
+            } break;
+
+            case AstKind::Module: {
+                specs.fore = Color::ForeCyan;
+                Colorizer colorizer{ specs, *this };
+                write(S("module "));
+            } {
+                specs.fore = Color::ForeGreen;
+                Colorizer colorizer{ specs, *this };
+                write(symbol->name->text, symbol->name->length);
+            } break;
+
+            default: {
+                specs.fore = Color::ForeWhite;
+                specs.back = Color::BackDarkCyan;
+                Colorizer colorizer{ specs, *this };
+                write(S("«type format not implemented»"));
+            } break;
+        }
+        return unlock();
+    }
+
+    if (auto ptr = t->isaPointer()) {
+        write(&ptr->pointee);
+        specs.fore = Color::ForeYellow;
+        Colorizer colorizer{ specs, *this };
+        write(S("*"));
+        return unlock();
+    }
+
+    if (auto ref = t->isaReference()) {
+        write(&ref->pointee);
+        specs.fore = Color::ForeYellow;
+        Colorizer colorizer{ specs, *this };
+        write(S("&"));
+        return unlock();
+    }
+    specs.fore = Color::ForeRed;
+    Colorizer colorizer{ specs, *this };
+    write(S("«error»"));
     unlock();
 }
 } // namespace exy

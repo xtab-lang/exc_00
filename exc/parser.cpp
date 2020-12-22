@@ -117,6 +117,15 @@ Node Parser::parseStatement() {
         case Keyword::Let: return parseLet(modifiers);
 
     }
+
+    switch (pos->kind) {
+        case Tok::SemiColon: {
+            auto node = mem.New<SyntaxEmpty>(*pos, modifiers);
+            cur.advance(); // Past ';'
+            return node;
+        }
+    }
+
     return parseExpression(modifiers);
 }
 //------------------------------------------------------------------------------------------------
@@ -336,16 +345,16 @@ Node Parser::parseUnaryPrefix(Node modifiers) {
 //            or   unary-suffix '--' | '++' | '*' | '&'
 Node Parser::parseUnarySuffix(Node modifiers) {
     if (auto node = parseDotExpression(modifiers)) {
-        auto   pos = cur.pos;
         auto moved = false;
         do {
             moved = false;
-            switch (pos->kind) {
+            switch (cur.pos->kind) {
                 case Tok::MinusMinus:
                 case Tok::PlusPlus:
                 case Tok::Pointer:
                 case Tok::Reference: {
-                    auto unary = mem.New<SyntaxUnarySuffix>(*pos, modifiers, node, *pos);
+                    auto unary = mem.New<SyntaxUnarySuffix>(modifiers ? modifiers->pos : node->pos, 
+                                                            modifiers, node, *cur.pos);
                     node->modifiers = nullptr;
                     node = unary;
                     cur.advance();
@@ -549,6 +558,8 @@ Node Parser::parseLiteral(Node modifiers) {
 }
 // variable := modifiers id '=' expression
 //          or modifiers id ':' expression ['=' expression]
+//          or modifiers '(' id [',' id]+ ')' '=' expression
+//          or modifiers '(' id [',' id]+ ')' ':' expression ['=' expression]
 Node Parser::parseVariable(Node modifiers) {
     if (isanIdentifier(cur.pos)) {
         auto   id = cur.pos;
@@ -572,6 +583,56 @@ Node Parser::parseVariable(Node modifiers) {
             }
             return node;
         }
+    } else if (isOpenParen(cur.pos)) {
+        auto prev = cur.prev; // For unwinding.
+        auto open = cur.pos;
+        List<SyntaxNode*> list{};
+        cur.advance(); // Past '('.
+        while (cur.pos < cur.end) {
+            if (isCloseParen(cur.pos)) { // Found ')'.
+                break;
+            } if (isanIdentifier(cur.pos)) {
+                auto   id = cur.pos;
+                auto name = mem.New<SyntaxIdentifier>(*id, nullptr, ids.get(id->value()));
+                list.append(name);
+                cur.advance(); // Past id.
+                if (isaComma(cur.pos)) {
+                    cur.advance(); // Past ','.
+                } else if (!isCloseParen(cur.pos)) {
+                    err(cur.pos, "expected ',' or ')', not %t", cur.pos);
+                }
+            } else {
+                err(cur.pos, "expected an identifier, not %t", cur.pos);
+                cur.advance(); // Past bad token.
+            }
+        } if (cur.pos == cur.end) {
+            err(open, "unmatched %t", open);
+            ldispose(list);
+            cur.rewind(prev, open);
+            return nullptr;
+        } 
+        Assert(isCloseParen(cur.pos));
+        auto close = cur.pos;
+        cur.advance(); // Past ')'.
+        if (isAssign(cur.pos)) {
+            auto name = mem.New<SyntaxCommaList>(*open, modifiers, list, *close);
+            auto node = mem.New<SyntaxNameValue>(modifiers ? modifiers->pos : *open, modifiers, name);
+            cur.advance(); // Past '='.
+            node->value = parseExpression();
+            return node;
+        } if (isaColon(cur.pos)) {
+            auto name = mem.New<SyntaxCommaList>(*open, modifiers, list, *close);
+            auto node = mem.New<SyntaxNameValue>(modifiers ? modifiers->pos : *open, modifiers, name);
+            cur.advance(); // Past ':'.
+            node->typeName = parseExpression();
+            if (isAssign(cur.pos)) {
+                cur.advance(); // Past '='.
+                node->value = parseExpression();
+            }
+            return node;
+        }
+        ldispose(list);
+        cur.rewind(prev, open);
     }
     return nullptr;
 }

@@ -9,17 +9,24 @@
 
 namespace exy {
 namespace typ_pass {
-//--Begin forward declarations
-struct Typer;
-//----End forward declarations
 struct Make {
     Typer &tp;
 
     Make(Typer *tp) : tp(*tp) {}
 
-    AstGlobal* global(Loc loc, Identifier name, const AstType &type);
+    AstAlias* importOf(Loc, Identifier name, AstSymbol*);
+    AstAlias* exportOf(Loc, Identifier name, AstSymbol*);
+    AstAlias* alias(Loc, AstAliasKind decl, Identifier name, AstSymbol *symbol);
 
-    AstName* name(Loc loc, AstSymbol *symbol);
+    AstGlobal* global(Loc, Identifier name, const AstType &type);
+    AstGlobal* global(Loc, Identifier name, AstNode* rhs);
+
+    AstNode* name(Loc, AstSymbol*);
+    AstTypeName* tpname(Loc, const AstType&);
+
+    AstNode* explicitCast(Loc, AstNode *src, const AstType &dst);
+    AstNode* implicitCast(Loc, AstNode *src, const AstType &dst);
+
 };
 } // namespace typ_pass
 } // namespace exy

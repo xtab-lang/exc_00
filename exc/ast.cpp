@@ -20,6 +20,18 @@ void AstTree::initialize(Loc loc) {
     DeclareBuiltinTypeKeywords(ZM)
 #undef ZM
     tyNull = tyVoid.pointer();
+
+    mem.New<AstTypeAlias>(loc, AstAliasKind::Let, nullptr, ids.get(S("SByte")), tyInt8);
+    mem.New<AstTypeAlias>(loc, AstAliasKind::Let, nullptr, ids.get(S("Byte")), tyUInt8);
+
+    mem.New<AstTypeAlias>(loc, AstAliasKind::Let, nullptr, ids.get(S("Short")), tyInt16);
+    mem.New<AstTypeAlias>(loc, AstAliasKind::Let, nullptr, ids.get(S("UShort")), tyUInt16);
+
+    mem.New<AstTypeAlias>(loc, AstAliasKind::Let, nullptr, ids.get(S("Int")), tyInt32);
+    mem.New<AstTypeAlias>(loc, AstAliasKind::Let, nullptr, ids.get(S("UInt")), tyUInt32);
+
+    mem.New<AstTypeAlias>(loc, AstAliasKind::Let, nullptr, ids.get(S("Long")), tyInt64);
+    mem.New<AstTypeAlias>(loc, AstAliasKind::Let, nullptr, ids.get(S("ULong")), tyUInt64);
 }
 void AstTree::dispose() {
     ldispose(symbols);
@@ -37,46 +49,24 @@ AstSymbol* AstTree::find(Identifier name) {
 }
 //------------------------------------------------------------------------------------------------
 String AstNode::kindName() const {
-    switch (kind) {
-    #define ZM(zName, zText) case AstKind::zName: return { S(#zName), 0u };
+    return kindName(kind);
+}
+
+String AstNode::kindName(Kind k) {
+    switch (k) {
+    #define ZM(zName) case AstKind::zName: return { S(#zName), 0u };
         DeclareAstNodes(ZM)
     #undef ZM
     }
     Unreachable();
-}
-
-String AstNode::kindValue() const {
-    switch (kind) {
-    #define ZM(zName, zText) case AstKind::zName: return { S(zText), 0u };
-        DeclareAstNodes(ZM)
-    #undef ZM
-    }
-    Unreachable();
-}
-
-AstSymbol* AstNode::isaSymbol() {
-    switch (kind) {
-    #define ZM(zName, zText) case AstKind::zName: return (AstSymbol*)this;
-        DeclareAstSymbols(ZM)
-    #undef ZM
-    }
-    return nullptr;
-}
-
-AstName* AstNode::isaName() {
-    switch (kind) {
-    #define ZM(zName, zText) case AstKind::zName: return (AstName*)this;
-        DeclareAstNames(ZM)
-    #undef ZM
-    }
-    return nullptr;
 }
 //------------------------------------------------------------------------------------------------
 AstScope::AstScope(AstModule *owner)
     : AstNode(owner->loc, Kind::Scope, AstType()), owner(owner) {}
 AstScope::AstScope(ScopeOwner owner, ParentScope parent) 
-    : AstNode(owner->loc, Kind::Scope, AstType()), owner(owner), parent(parent) {}
+    : AstNode(owner->loc, Kind::Scope, comp.ast->tyNull), owner(owner), parent(parent) {}
 void AstScope::dispose() {
+    ldispose(others);
     ldispose(symbols);
     ldispose(nodes);
     __super::dispose();
@@ -90,15 +80,32 @@ AstSymbol* AstScope::find(Identifier name) {
 }
 AstSymbol* AstScope::findThroughDot(Identifier name) {
     if (auto found = find(name)) {
-        if (found->kind != AstKind::Import) {
-            return found;
+        switch (found->kind) {
+            case Kind::TypeAlias:
+            case Kind::ValueAlias:
+            case Kind::ConstAlias: {
+                auto alias = (AstAlias*)found;
+                if (alias->decl == AstAliasKind::Import) {
+                    return nullptr;
+                }
+                return alias; // Export | TyParam | Let
+            }
+            default:
+                return found;
         }
+
     }
     return nullptr;
 }
 
 Identifier AstScope::name() {
     return owner ? owner->name : comp.str.block;
+}
+
+void AstScope::append(Node node) {
+    if (node) {
+        nodes.append(node);
+    }
 }
 //------------------------------------------------------------------------------------------------
 AstSymbol::AstSymbol(Loc loc, Kind kind, Type type, ParentScope parent, Identifier name)
@@ -139,6 +146,25 @@ AstModule::AstModule(Loc loc, ParentScope parent, Identifier name, Identifier do
 }
 void AstModule::dispose() {
     syntax.dispose();
+    __super::dispose();
+}
+//------------------------------------------------------------------------------------------------
+AstConstAlias::AstConstAlias(Loc loc, AstAliasKind decl, ParentScope parent, Identifier name, AstConstant *value) 
+    : AstAlias(loc, Kind::ConstAlias, decl, type, parent, name), value(value) {}
+//------------------------------------------------------------------------------------------------
+void AstGlobal::dispose() {
+    value = ndispose(value);
+    __super::dispose();
+}
+//------------------------------------------------------------------------------------------------
+void AstBinary::dispose() {
+    lhs = ndispose(lhs);
+    rhs = ndispose(rhs);
+    __super::dispose();
+}
+//------------------------------------------------------------------------------------------------
+void AstCast::dispose() {
+    value = ndispose(value);
     __super::dispose();
 }
 } // namespace exy

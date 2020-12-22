@@ -10,7 +10,7 @@
 
 namespace exy {
 namespace typ_pass {
-void Importer::visit(Decl decl) {
+void Importer::visit(SyntaxImportOrExport *decl) {
 	Modifiers::validateImportOrExportModifiers(decl->modifiers);
 
 	Identifier name{};
@@ -48,7 +48,7 @@ AstSymbol* Importer::findSymbol(SyntaxNode *node, AstScope *scope) {
 	if (node->kind == SyntaxKind::Identifier) {
 		auto name = ((SyntaxIdentifier*)node)->value;
 		if (auto found = scope->findThroughDot(name)) {
-			return found;
+			return checkForSelfImportOrExport(node->pos, found);
 		}
 		err(node, "identifier %s#<red> not found in %s#<green>", name, scope->name());
 		return nullptr;
@@ -92,32 +92,55 @@ AstSymbol* Importer::findSymbol(Pos pos, Identifier name) {
 	auto scope = tp.currentScope();
 	while (scope) {
 		if (auto found = scope->find(name)) {
-			return found;
+			return checkForSelfImportOrExport(pos, found);
 		}
 		scope = scope->parent;
 	} if (auto found = comp.ast->find(name)) {
-		return found;
+		return checkForSelfImportOrExport(pos, found);
 	}
 	err(pos, "identifier %s#<red> not found", name);
 	return nullptr;
 }
 
-void Importer::createImport(Decl decl, AstSymbol *sym, Identifier name) {
+void Importer::createImport(SyntaxImportOrExport *decl, AstSymbol *sym, Identifier name) {
 	auto scope = tp.currentScope();
 	if (auto found = scope->find(name)) {
 		err(decl, "name %s#<red> already declared in the current scope", name);
 	} else {
-		comp.ast->mem.New<AstImport>(tp.mkpos(decl), scope, name, sym);
+		tp.mk.importOf(tp.mkpos(decl), name, sym);
 	}
 }
 
-void Importer::createExport(Decl decl, AstSymbol *sym, Identifier name) {
+void Importer::createExport(SyntaxImportOrExport *decl, AstSymbol *sym, Identifier name) {
 	auto scope = tp.currentScope();
 	if (auto found = scope->find(name)) {
 		err(decl, "name %s#<red> already declared in the current scope", name);
 	} else {
-		comp.ast->mem.New<AstExport>(tp.mkpos(decl), scope, name, sym);
+		tp.mk.exportOf(tp.mkpos(decl), name, sym);
 	}
+}
+
+AstSymbol* Importer::checkForSelfImportOrExport(Pos pos, AstSymbol *symbol) {
+	auto importedModule = tp.isa.Module(symbol);
+	if (!importedModule) {
+		if (auto alias = tp.isa.TypeAlias(symbol)) {
+			return checkForSelfImportOrExport(pos, alias->type.isaSymbol());
+		}
+	} if (importedModule) {
+		auto parent = tp.currentModule();
+		while (parent) {
+			if (importedModule == parent) {
+				err(pos, "self-import/export");
+				return nullptr;
+			} if (auto scope = parent->scope->parent) {
+				parent = (AstModule*)scope->owner;
+				Assert(!parent || tp.isa.Module(parent));
+			} else {
+				break; // Top-level module.
+			}
+		}
+	}
+	return symbol;
 }
 } // namespace typ_pass
 } // namespace exy

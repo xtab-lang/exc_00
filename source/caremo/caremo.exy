@@ -1,3 +1,13 @@
 private module .main
 
 const auto static private var a = 2
+var (d, b) = 2
+static (c, x) = 330303
+
+var y:Int*;
+
+const x: Short* = main
+
+auto z: Int = 777ou32
+
+import art

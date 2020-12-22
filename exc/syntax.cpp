@@ -19,6 +19,19 @@ void SyntaxTree::dispose() {
 void SyntaxNode::dispose() {
     modifiers = ndispose(modifiers);
 }
+
+String SyntaxNode::kindName() const {
+    return kindName(kind);
+}
+
+String SyntaxNode::kindName(Kind k) {
+    switch (k) {
+    #define ZM(zName) case SyntaxKind::zName: return { S(#zName), 0u };
+        DeclareSyntaxNodes(ZM)
+    #undef ZM
+    }
+    Unreachable();
+}
 //------------------------------------------------------------------------------------------------
 void SyntaxModifiers::dispose() {
     ldispose(nodes);
@@ -122,8 +135,6 @@ Pos SyntaxCommaList::lastpos() const {
         return *close;
     } if (nodes.length) {
         return nodes.last()->lastpos();
-    } if (open) {
-        return *open;
     }
     return __super::lastpos();
 }

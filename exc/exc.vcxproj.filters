@@ -102,10 +102,25 @@
     <ClCompile Include="astype.cpp">
       <Filter>typ_pass</Filter>
     </ClCompile>
-    <ClCompile Include="tp_literal.cpp">
+    <ClCompile Include="tp_mk.cpp">
       <Filter>typ_pass</Filter>
     </ClCompile>
-    <ClCompile Include="tp_mk.cpp">
+    <ClCompile Include="tp_isa.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_cast.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_find.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_cast_explicit.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_cast_implicit.cpp">
+      <Filter>typ_pass</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_literal.cpp">
       <Filter>typ_pass</Filter>
     </ClCompile>
   </ItemGroup>
@@ -230,10 +245,19 @@
     <ClInclude Include="astype.h">
       <Filter>typ_pass</Filter>
     </ClInclude>
-    <ClInclude Include="tp_literal.h">
+    <ClInclude Include="tp_mk.h">
       <Filter>typ_pass</Filter>
     </ClInclude>
-    <ClInclude Include="tp_mk.h">
+    <ClInclude Include="tp_isa.h">
+      <Filter>typ_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_cast.h">
+      <Filter>typ_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_find.h">
+      <Filter>typ_pass</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_literal.h">
       <Filter>typ_pass</Filter>
     </ClInclude>
   </ItemGroup>

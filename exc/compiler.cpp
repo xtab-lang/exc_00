@@ -173,8 +173,9 @@ void Compiler::run() {
 
     options.typer.maxScopeDepth = MAX_TYPER_SCOPE_DEPTH;
 
-    str.main = ids.get(S("main"));
+    str.main  = ids.get(S("main"));
     str.block = ids.get(S("block"));
+    str.tuple = ids.get(S("tuple"));
 
     if (src_pass::run()) {
         if (tok_pass::run()) {
@@ -256,7 +257,7 @@ void Compiler::printMessage(HighlightKind kind, const char *pass, const SourceLo
 }
 
 void Compiler::printCppLocation(const char *cppFile, const char *cppFunc, int cppLine) {
-    traceln("\t%cl#<bold> %c#<magenta> @ %c#<underline cyan>(%i#<darkcyan>)", S("from"), cppFunc, cppFile, cppLine);
+    traceln("\t%cl#<bold> %c#<magenta> @ %c#<underline cyan>:%i#<darkcyan>", S("from"), cppFunc, cppFile, cppLine);
 }
 
 static const char* findLineStart(const char *start, const char *srcstart) {

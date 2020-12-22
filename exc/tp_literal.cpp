@@ -10,7 +10,7 @@
 
 namespace exy {
 namespace typ_pass {
-AstLiteral* Literal::visit(SyntaxLiteral *syntax) {
+AstConstant* Literal::visit(SyntaxLiteral *syntax) {
     if (auto modifiers = syntax->modifiers) {
         err(modifiers, "modifiers not allowed on literals");
     }

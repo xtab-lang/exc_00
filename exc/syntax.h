@@ -90,6 +90,8 @@ struct SyntaxNode {
     SyntaxNode(Pos pos, Kind kind, Node modifiers) : pos(pos), modifiers(modifiers), kind(kind) {}
     virtual void dispose();
     virtual Pos lastpos() const { return pos; }
+    String kindName() const;
+    static String kindName(Kind);
 };
 
 struct SyntaxEmpty : SyntaxNode {
@@ -159,7 +161,6 @@ struct SyntaxLet : SyntaxNode {
 };
 
 struct SyntaxCommaList : SyntaxNode {
-    const SourceToken *open;
     const SourceToken *close;
     Nodes              nodes;
 
@@ -167,6 +168,8 @@ struct SyntaxCommaList : SyntaxNode {
         SyntaxNode(pos, Kind::CommaList, modifiers) {}
     SyntaxCommaList(Pos pos, Node modifiers, Nodes &nodes) : 
         SyntaxNode(pos, Kind::CommaList, modifiers), nodes(nodes) {}
+    SyntaxCommaList(Pos pos, Node modifiers, Nodes &nodes, Pos close) : 
+        SyntaxNode(pos, Kind::CommaList, modifiers), nodes(nodes), close(&close) {}
     void dispose() override;
     Pos lastpos() const override;
 };

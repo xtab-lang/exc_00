@@ -9,9 +9,6 @@
 
 namespace exy {
 namespace typ_pass {
-//--Begin forward declarations
-//----End forward declarations
-
 struct Modifiers {
 #define ZM(zName, zText) static bool is##zName(SyntaxNode*);
     DeclareModifiers(ZM)

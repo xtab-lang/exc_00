@@ -10,6 +10,17 @@
 #include "ast.h"
 #include "syntax.h"
 
+namespace exy {
+namespace typ_pass {
+//--Begin forward declarations
+struct Typer;
+//----End forward declarations
+} // namespace typ_pass
+} // namespace exy
+
+#include "tp_find.h"
+#include "tp_cast.h"
+#include "tp_isa.h"
 #include "tp_mk.h"
 #include "tp_import.h"
 #include "tp_literal.h"
@@ -28,43 +39,42 @@ struct ScopeStack {
 };
 
 struct Typer {
-    using Statement = SyntaxNode*;
-    using Expression = SyntaxNode*;
-    using Statements = List<Statement>&;
-
     AstTree   &tree;
     Mem       &mem;
     Make      mk;
     Importer  imp;
-    Literal   lit;
     Variable  var;
+    Isa       isa;
+    Find      find;
     Modifiers mods{};
     ScopeStack scopeStack{};
     List<AstNode*>     _thrown{};
     List<AstName*>     _names{};
     List<AstTypeName*> _tpnames{};
 
-    Typer() : tree(*comp.ast), mem(comp.ast->mem), mk(this), imp(this), lit(this), var(this) {}
+    Typer() : tree(*comp.ast), mem(comp.ast->mem), mk(this), imp(this), var(this), isa(this), find(this) {}
     void dispose();
     void run();
 
     SourceLocation mkpos(SyntaxNode*);
     AstScope* currentScope();
+    AstModule* currentModule();
 
     bool visitMain(AstModule*);
     bool visitModule(AstModule*);
 
-    bool visitStatements(Statements);
-    bool visitStatement(Statement);
-    AstNode* visitExpression(Expression);
+    bool visitStatements(List<SyntaxNode*>&);
+    bool visitStatement(SyntaxNode*);
+    AstNode* visitExpression(SyntaxNode*);
+    AstNode* visitUnarySuffix(SyntaxUnarySuffix*);
 
     template<typename T>
     T* throwAway(T *node) {
         if (node) {
-            if (node->kind == AstKind::Name) {
-                _names.append((AstName*)node);
-            } else if (node->kind == AstKind::TypeName) {
-                _tpnames.append((AstTypeName*)node);
+            if (auto name = isa.Name(node)) {
+                _names.append(name);
+            } else if (auto tpname = isa.TypeName(node)) {
+                _tpnames.append(tpname);
             } else {
                 _thrown.append(node);
             }

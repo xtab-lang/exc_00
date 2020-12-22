@@ -1,22 +1,23 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // author: exy.lang
-//   date: 2020-12-18
+//   date: 2020-12-20
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#ifndef TP_LITERAL_H_
-#define TP_LITERAL_H_
+#ifndef TP_FIND_H_
+#define TP_FIND_H_
 
 namespace exy {
 namespace typ_pass {
-struct Literal {
+struct Find {
     Typer &tp;
 
-    Literal(Typer *tp) : tp(*tp) {}
+    Find(Typer *tp) : tp(*tp) {}
 
-    AstConstant* visit(SyntaxLiteral*);
+    AstNode* name(SyntaxIdentifier*);
+    AstNode* name(Loc, Identifier);
 };
 } // namespace typ_pass
 } // namespace exy
 
-#endif // TP_LITERAL_H_
+#endif // TP_FIND_H_

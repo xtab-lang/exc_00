@@ -4,32 +4,37 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#ifndef TP_VARIABLES_H_
-#define TP_VARIABLES_H_
+#ifndef TP_VARIABLE_H_
+#define TP_VARIABLE_H_
 
 namespace exy {
 namespace typ_pass {
-//--Begin forward declarations
-struct Typer;
-//----End forward declarations
 struct Variable {
-    using Decl = SyntaxNameValue*;
-    using Name = SyntaxIdentifier*;
-    using Mods = SyntaxNode*;
+    using  Decl = SyntaxNameValue*;
+    using  Name = SyntaxIdentifier*;
+    using Tuple = SyntaxCommaList*;
+    using  Mods = SyntaxNode*;
+    using  Type = const AstType&;
+    using  Node = AstNode*;
 
     Typer &tp;
 
     Variable(Typer *tp) : tp(*tp) {}
 
-    AstNode* visit(Decl);
+    Node visit(Decl);
 private:
-    AstNode* visit(Decl, Name);
+    Node visit(Decl, Name);
+    Node visit(Decl, Tuple);
 
-    AstNode* make(Mods, Name, AstNode*);
+    Node make(Loc, Mods, Name, Node);
+    Node make(Loc, Mods, Name, Type);
+    Node make(Loc, Mods, Name, Type, Node);
+
+    Node make(Loc, Mods, Tuple, Node);
 
     AstKind getKind(Mods modifiers);
 };
 } // namespace typ_pass
 } // namespace exy
 
-#endif // TP_VARIABLES_H_
+#endif // TP_VARIABLE_H_

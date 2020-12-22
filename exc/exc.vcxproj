@@ -196,7 +196,12 @@
     <ClCompile Include="source.cpp" />
     <ClCompile Include="syntax.cpp" />
     <ClCompile Include="tok_pass.cpp" />
+    <ClCompile Include="tp_cast.cpp" />
+    <ClCompile Include="tp_cast_explicit.cpp" />
+    <ClCompile Include="tp_cast_implicit.cpp" />
+    <ClCompile Include="tp_find.cpp" />
     <ClCompile Include="tp_import.cpp" />
+    <ClCompile Include="tp_isa.cpp" />
     <ClCompile Include="tp_literal.cpp" />
     <ClCompile Include="tp_mk.cpp" />
     <ClCompile Include="tp_modifiers.cpp" />
@@ -233,7 +238,10 @@
     <ClInclude Include="source.h" />
     <ClInclude Include="syntax.h" />
     <ClInclude Include="tok_pass.h" />
+    <ClInclude Include="tp_cast.h" />
+    <ClInclude Include="tp_find.h" />
     <ClInclude Include="tp_import.h" />
+    <ClInclude Include="tp_isa.h" />
     <ClInclude Include="tp_literal.h" />
     <ClInclude Include="tp_mk.h" />
     <ClInclude Include="tp_modifiers.h" />
