@@ -4,11 +4,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#ifndef TP_LITERAL_H_
-#define TP_LITERAL_H_
+#ifndef STX2AST_LITERAL_H_
+#define STX2AST_LITERAL_H_
 
 namespace exy {
-namespace typ_pass {
+namespace stx2ast_pass {
 struct Literal {
     Typer &tp;
 
@@ -16,7 +16,7 @@ struct Literal {
 
     AstConstant* visit(SyntaxLiteral*);
 };
-} // namespace typ_pass
+} // namespace stx2ast_pass
 } // namespace exy
 
-#endif // TP_LITERAL_H_
+#endif // STX2AST_LITERAL_H_

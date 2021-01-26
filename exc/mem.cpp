@@ -19,9 +19,10 @@ static T* heapAlloc(int count) {
 template<typename T>
 static T* heapRealloc(T *m, int newCount, int oldCount) {
 	auto newSize = sizeof(T) * newCount;
+	auto oldSize = sizeof(T) * oldCount;
 	auto       x = HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, m, newSize);
 	Heap::reallocs++;
-	Heap::used -= sizeof(T) * oldCount;
+	Heap::used -= oldSize;
 	Heap::used += newSize;
 	return (T*)x;
 }
@@ -69,6 +70,7 @@ struct Blocks {
 			length *= 2;
 			list = heapRealloc(list, length, oldLength);
 		}
+		//Assert(block->id != 72);
 		Assert(block->id < length);
 		list[block->id] = block;
 		block->size = size;

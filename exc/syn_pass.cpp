@@ -40,7 +40,7 @@ bool run() {
     traceln("\r\n%cl#<cyan|blue> { filesPerThread: %i#<magenta>, threads: %i#<magenta> }",
             S("parser"), comp.options.defaultFilesPerThread, aio::ioThreads());
 
-    comp.syntax = MemAlloc<SyntaxTree>(); 
+    comp.syntax = MemNew<SyntaxTree>(); 
     {
         SourceFileProvider provider{};
         createSyntaxFiles(provider.files);

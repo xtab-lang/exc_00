@@ -4,11 +4,12 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "pch.h"
-#include "src_tok_stream.h"
+#include "src2tok_stream.h"
 
 #include "source.h"
 
 namespace exy {
+namespace src2tok_pass {
 constexpr auto lengthOf(const SourceChar *ch) {
     auto n = (int)*ch->pos;
     if ((n & 0x80) == 0) {
@@ -154,7 +155,7 @@ constexpr auto isExponent(const SourceChar *ch) {
     return c == 'e' || c == 'E';
 }
 //------------------------------------------------------------------------------------------------
-TokenStream::TokenStream(const SourceFile &file, const List<SourceChar> &list) 
+TokenStream::TokenStream(const SourceFile &file, const List<SourceChar> &list)
     : file(file), mark(&list.first()), cur(&list.first()), end(&list.last()) {}
 
 SourceToken TokenStream::next() {
@@ -350,11 +351,11 @@ Tok TokenStream::tryDecimal() {
     // decnum := dec [dec|_]+
     for (; cur < end && isDecimalOrUnderscore(cur); ++cur);
     if (cur == end) return Tok::Decimal; // decimal := decnum
-    if (isExponent(cur)) {        
+    if (isExponent(cur)) {
         return tryExponent(nullptr); // float := decnum floatexp ...
-    } if (isIntSuffix(cur)) {        
+    } if (isIntSuffix(cur)) {
         return readSuffix(Tok::Decimal); // decimal := decnum intsfx
-    } if (isFloatSuffix(cur)) {        
+    } if (isFloatSuffix(cur)) {
         return readSuffix(Tok::Float); // float := decnum floatsfx
     } if (*cur->pos == '.') {
         return tryFloat(); // float := decnum '.' ...
@@ -420,9 +421,9 @@ Tok TokenStream::tryExponent(const SourceChar *dot) {
     }
     for (++cur; cur < end && isDecimalOrUnderscore(cur); ++cur);
     if (cur == end) return Tok::Float; // float := floatnum floatexp
-    if (isFloatSuffix(cur)) {        
+    if (isFloatSuffix(cur)) {
         return readSuffix(Tok::Float); // float := floatnum floatexp floatsfx
-    } if (isNotAlpha(cur)) {        
+    } if (isNotAlpha(cur)) {
         return Tok::Float; // float := floatnum floatexp
     }
     return Tok::Unknown;
@@ -628,4 +629,5 @@ Tok TokenStream::move(Tok kind) {
 SourceToken TokenStream::make(Tok kind) {
     return { file, *mark, *cur, kind };
 }
+} // namespace src2tok_pass
 } // namespace exy

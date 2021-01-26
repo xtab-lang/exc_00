@@ -4,14 +4,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#ifndef SRC_CHAR_STREAM_H_
-#define SRC_CHAR_STREAM_H_
+#ifndef SRC2CHAR_STREAM_H_
+#define SRC2CHAR_STREAM_H_
 
 namespace exy {
-//--Begin forward declarations
-struct SourceChar;
-struct SourceFile;
-//----End forward declarations
+namespace src2tok_pass {
 struct CharStream {
     const char *pos;
     const char *end;
@@ -22,7 +19,8 @@ struct CharStream {
 
     SourceChar next();
     bool isEOF(const SourceChar&);
-}; // struct CharStream
+};
+} // namespace src2tok_pass
 } // namespace exy
 
-#endif // SRC_CHAR_STREAM_H_
+#endif // SRC2CHAR_STREAM_H_

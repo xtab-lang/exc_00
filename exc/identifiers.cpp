@@ -1,13 +1,23 @@
-////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
 // author: exy.lang
 //   date: 2020-12-02
-////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "pch.h"
 
 namespace exy {
 void Identifiers::initialize() {
     append(S(""), Dict<Identifier>::nullHash);
+
+    main    = get(S("main"));
+    block   = get(S("block"));
+    entry   = get(S("entry"));
+    exit    = get(S("exit"));
+    dot.text    = get(S(".text"));
+    dot.data    = get(S(".data"));
+    dot.idata   = get(S(".idata"));
+    dot.edata   = get(S(".edata"));
+    dot.stack   = get(S(".stack"));
 }
 
 void Identifiers::dispose() {

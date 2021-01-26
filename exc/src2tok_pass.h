@@ -1,14 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // author: exy.lang
-//   date: 2020-12-17
+//   date: 2020-12-08
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "pch.h"
-#include "typer.h"
-
-#define err(token, msg, ...) print_error("Cast", token, msg, __VA_ARGS__)
+#pragma once
+#ifndef SRC2TOK_PASS_H_
+#define SRC2TOK_PASS_H_
 
 namespace exy {
-namespace typ_pass {
-} // namespace typ_pass
+namespace src2tok_pass {
+bool run();
+} // namespace src2tok_pass
 } // namespace exy
+
+#endif // SRC2TOK_PASS_H_

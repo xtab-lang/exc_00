@@ -4,11 +4,12 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "pch.h"
-#include "src_char_stream.h"
+#include "src2char_stream.h"
 
 #include "source.h"
 
 namespace exy {
+namespace src2tok_pass {
 CharStream::CharStream(SourceFile &file) : pos(file.source.text), end(file.source.end()) {}
 
 SourceChar CharStream::next() {
@@ -30,4 +31,5 @@ SourceChar CharStream::next() {
 bool CharStream::isEOF(const SourceChar &ch) {
     return ch.pos == end;
 }
+} // namespace src2tok_pass
 } // namespace exy

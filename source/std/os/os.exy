@@ -1,6 +1,5 @@
-let                 NULL = null
+let NULL                      = null
 let FALSE, NOT_TRUE, k, y, NO = 0hp
-let INVALID_HANDLE_VALUE = -1
-let voi = void
+let INVALID_HANDLE_VALUE      = -1
 
-let YES, NO = yes.no.maybe
+let YES, NO                   = yes.no.maybe

@@ -9,7 +9,7 @@
 int main(int, char**) {
     for (auto i = 0; i < 1; ++i) {
         lib::start();
-        exy::comp_pass::run(i);
+        exy::compiler::run(i);
         lib::stop();
     }
     return 0;

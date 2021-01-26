@@ -21,17 +21,17 @@ void SourceTree::dispose() {
 }
 
 bool SourceTree::build() {
-    traceln("\r\n%cl#<cyan|blue> { folder: %s#<underline yellow>, threads: 1 }", S("source"),
-            &comp.options.path);
+    traceln("\r\n%cl#<cyan|blue> { folder: %s#<underline yellow>, thread: %u#<green> }",
+            S("source"), &comp.options.path.sourceFolder, GetCurrentThreadId());
 
     String path{};
-    path.append(comp.options.path);
+    path.append(comp.options.path.sourceFolder);
     auto indent = 0;
     root = build(nullptr, path, path.getFileName(), indent);
     path.dispose();
 
-    traceln("%cl#<cyan|blue> { errors: %i#<red>, files: %i#<magenta>, bytes: %u64#<magenta> }", S("source"),
-            comp.errors, files, bytes);
+    traceln("%cl#<cyan|blue> { errors: %i#<red>, files: %i#<magenta>, size: %u64#<magenta> B }",
+            S("source"), comp.errors, files, bytes);
 
     return comp.errors == 0;
 }
@@ -156,7 +156,7 @@ bool SourceTree::isaBadFileName(const String &v) {
         } else if ((ch >= '0' && ch <= '9') || ch == '_') {
             // Ok.
         } else {
-            return false;
+            return true;
         }
     }
     return alphas == 0;

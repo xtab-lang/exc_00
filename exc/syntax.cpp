@@ -198,8 +198,8 @@ Pos SyntaxNameValue::lastpos() const {
     return __super::lastpos();
 }
 //------------------------------------------------------------------------------------------------
-SyntaxFileProvider::SyntaxFileProvider() : WorkProvider(comp.options.defaultFilesPerThread),
-    files(comp.syntax->files) {}
+SyntaxFileProvider::SyntaxFileProvider() 
+    : WorkProvider(comp.options.defaultFilesPerThread), files(comp.syntax->files) {}
 
 void SyntaxFileProvider::dispose() {
     pos = 0;

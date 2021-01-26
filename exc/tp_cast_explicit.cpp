@@ -6,35 +6,53 @@
 #include "pch.h"
 #include "typer.h"
 
+#include "tp_cast.h"
+
 #define err(token, msg, ...) print_error("ExplicitCast", token, msg, __VA_ARGS__)
 
 namespace exy {
-namespace typ_pass {
+namespace stx2ast_pass {
 AstNode* Cast::explicitCast(Loc loc, AstNode *value, const AstType &dst) {
 	if (!value) {
 		return nullptr;
 	}
 	auto &src = value->type;
 
-	if (src == dst) { // OK: explicit T → T
+	if (src == dst) { // OK: explicit S → D where S == D
 		return value;
 	}
 
-	if (tp.isa.Void(src)) { // OK: explicit Void → T
+	if (tp.isa.Void(src)) { // OK: explicit Void → D
 		return tp.mem.New<AstCast>(loc, value, dst);
 	} 
 	
-	if (tp.isa.Void(dst)) { // OK: explicit T → Void
+	if (tp.isa.Void(dst)) { // OK: explicit S → Void
 		return tp.mem.New<AstCast>(loc, value, dst);
 	} 
 	
-	if (auto a = tp.isa.Builtin(src)) {
-		if (auto b = tp.isa.Builtin(dst)) { // OK: explicit T → U where both T and U are builtins
+	if (auto srcbuiltin = tp.isa.Builtin(src)) {
+		if (auto dstbuiltin = tp.isa.Builtin(dst)) {
+			// OK: explicit S → D where both S and D are builtins
+			return tp.mem.New<AstCast>(loc, value, dst);
+		}
+		if (auto dstptr = tp.isa.PointerType(dst)) {
+			// OK: explicit S → D* where S isa builtin
 			return tp.mem.New<AstCast>(loc, value, dst);
 		}
 	}
+
+	else
+
+	if (auto dstbuiltin = tp.isa.Builtin(dst)) {
+		if (auto srcptr = tp.isa.PointerType(src)) {
+			// OK: explicit S* → D where D isa builtin
+			return tp.mem.New<AstCast>(loc, value, dst);
+		}
+	}
+
 	err(loc, "%type ← %type", &dst, &src);
+
 	return tp.throwAway(value);
 }
-} // namespace typ_pass
+} // namespace stx2ast_pass
 } // namespace exy

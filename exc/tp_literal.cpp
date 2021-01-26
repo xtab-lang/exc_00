@@ -6,10 +6,12 @@
 #include "pch.h"
 #include "typer.h"
 
+#include "tp_literal.h"
+
 #define err(token, msg, ...) print_error("Literal", token, msg, __VA_ARGS__)
 
 namespace exy {
-namespace typ_pass {
+namespace stx2ast_pass {
 AstConstant* Literal::visit(SyntaxLiteral *syntax) {
     if (auto modifiers = syntax->modifiers) {
         err(modifiers, "modifiers not allowed on literals");
@@ -17,41 +19,54 @@ AstConstant* Literal::visit(SyntaxLiteral *syntax) {
     auto pos = tp.mkpos(syntax);
     switch (syntax->literalKind) {
         case SyntaxLiteralKind::Void:
-            return tp.mem.New<AstVoid>(pos);
+            return tp.mk.void_(pos);
+
         case SyntaxLiteralKind::Null:
-            return tp.mem.New<AstNull>(pos);
+            return tp.mk.null_(pos);
+
         case SyntaxLiteralKind::Char:
-            return tp.mem.New<AstChar>(pos, syntax->ch);
+            return tp.mk.char_(pos, syntax->ch);
+
         case SyntaxLiteralKind::Bool:
-            return tp.mem.New<AstBool>(pos, syntax->b);
+            return tp.mk.bool_(pos, syntax->b);
+
         case SyntaxLiteralKind::WChar:
-            return tp.mem.New<AstWChar>(pos, syntax->wch);
+            return tp.mk.wchar_(pos, syntax->wch);
+
         case SyntaxLiteralKind::Utf8:
-            return tp.mem.New<AstUtf8>(pos, syntax->u32);
+            return tp.mk.utf8(pos, syntax->utf8);
 
         case SyntaxLiteralKind::Int8:
-            return tp.mem.New<AstSignedInt>(pos, tp.tree.tyInt8, syntax->i8);
+            return tp.mk.int8(pos, syntax->i8);
+
         case SyntaxLiteralKind::Int16:
-            return tp.mem.New<AstSignedInt>(pos, tp.tree.tyInt16, syntax->i16);
+            return tp.mk.int16(pos, syntax->i16);
+
         case SyntaxLiteralKind::Int32:
-            return tp.mem.New<AstSignedInt>(pos, tp.tree.tyInt32, syntax->i32);
+            return tp.mk.int32(pos, syntax->i32);
+
         case SyntaxLiteralKind::Int64:
-            return tp.mem.New<AstSignedInt>(pos, tp.tree.tyInt64, syntax->i64);
+            return tp.mk.int64(pos, syntax->i64);
 
         case SyntaxLiteralKind::UInt8:
-            return tp.mem.New<AstUnsignedInt>(pos, tp.tree.tyUInt8, syntax->u8);
+            return tp.mk.uint8(pos, syntax->u8);
+
         case SyntaxLiteralKind::UInt16:
-            return tp.mem.New<AstUnsignedInt>(pos, tp.tree.tyUInt16, syntax->u16);
+            return tp.mk.uint16(pos, syntax->u16);
+
         case SyntaxLiteralKind::UInt32:
-            return tp.mem.New<AstUnsignedInt>(pos, tp.tree.tyUInt32, syntax->u32);
+            return tp.mk.uint32(pos, syntax->u32);
+
         case SyntaxLiteralKind::UInt64:
-            return tp.mem.New<AstUnsignedInt>(pos, tp.tree.tyUInt64, syntax->u64);
+            return tp.mk.uint64(pos, syntax->u64);
 
-        case SyntaxLiteralKind::Float:  return tp.mem.New<AstFloat>(pos, syntax->f32);
+        case SyntaxLiteralKind::Float: 
+            return tp.mk.float32(pos, syntax->f32);
 
-        case SyntaxLiteralKind::Double: return tp.mem.New<AstDouble>(pos, syntax->f64);
+        case SyntaxLiteralKind::Double: 
+            return tp.mk.float64(pos, syntax->f64);
     }
     Unreachable();
 }
-} // namespace typ_pass
+} // namespace stx2ast_pass
 } // namespace exy

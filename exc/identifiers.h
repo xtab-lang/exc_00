@@ -9,6 +9,18 @@
 
 namespace exy {
 struct Identifiers {
+    Identifier main;    // 'main'
+    Identifier block;   // 'block'
+    Identifier entry;   // 'entry'
+    Identifier exit;    // 'exit'
+    struct {
+        Identifier text;    // '.text'
+        Identifier data;    // '.data'
+        Identifier idata;   // '.idata'
+        Identifier edata;   // '.edata'
+        Identifier stack;   // '.stack'
+    } dot;
+
     void initialize();
     void dispose();
 

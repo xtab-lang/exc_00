@@ -166,6 +166,8 @@
   <ItemGroup>
     <ClCompile Include="aio.cpp" />
     <ClCompile Include="ast.cpp" />
+    <ClCompile Include="ast2ir_mk.cpp" />
+    <ClCompile Include="ast2ir_symtab.cpp" />
     <ClCompile Include="astype.cpp" />
     <ClCompile Include="compiler.cpp" />
     <ClCompile Include="console.cpp" />
@@ -175,13 +177,20 @@
     <ClCompile Include="format.cpp" />
     <ClCompile Include="hash.cpp" />
     <ClCompile Include="identifiers.cpp" />
+    <ClCompile Include="ir.cpp" />
+    <ClCompile Include="ast2ir_pass.cpp" />
+    <ClCompile Include="ast2ir.cpp" />
+    <ClCompile Include="ir2pe.cpp" />
+    <ClCompile Include="ir2pe_pass.cpp" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="parse_number.cpp" />
+    <ClCompile Include="pe.cpp" />
     <ClCompile Include="preparser.cpp" />
     <ClCompile Include="queue.cpp" />
-    <ClCompile Include="src_char_stream.cpp" />
+    <ClCompile Include="register.cpp" />
+    <ClCompile Include="src2char_stream.cpp" />
     <ClCompile Include="src_pass.cpp" />
-    <ClCompile Include="src_tok_stream.cpp" />
+    <ClCompile Include="src2tok_stream.cpp" />
     <ClCompile Include="syn_cursor.cpp" />
     <ClCompile Include="syn_pass.cpp" />
     <ClCompile Include="tokenizer.cpp" />
@@ -195,8 +204,7 @@
     <ClCompile Include="string.cpp" />
     <ClCompile Include="source.cpp" />
     <ClCompile Include="syntax.cpp" />
-    <ClCompile Include="tok_pass.cpp" />
-    <ClCompile Include="tp_cast.cpp" />
+    <ClCompile Include="src2tok_pass.cpp" />
     <ClCompile Include="tp_cast_explicit.cpp" />
     <ClCompile Include="tp_cast_implicit.cpp" />
     <ClCompile Include="tp_find.cpp" />
@@ -207,11 +215,13 @@
     <ClCompile Include="tp_modifiers.cpp" />
     <ClCompile Include="tp_variable.cpp" />
     <ClCompile Include="typer.cpp" />
-    <ClCompile Include="typ_pass.cpp" />
+    <ClCompile Include="stx2ast_pass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aio.h" />
     <ClInclude Include="ast.h" />
+    <ClInclude Include="ast2ir_mk.h" />
+    <ClInclude Include="ast2ir_symtab.h" />
     <ClInclude Include="astype.h" />
     <ClInclude Include="compiler.h" />
     <ClInclude Include="console.h" />
@@ -221,12 +231,19 @@
     <ClInclude Include="format.h" />
     <ClInclude Include="hash.h" />
     <ClInclude Include="identifiers.h" />
+    <ClInclude Include="ir.h" />
+    <ClInclude Include="ast2ir_pass.h" />
+    <ClInclude Include="ast2ir.h" />
+    <ClInclude Include="ir2pe.h" />
+    <ClInclude Include="ir2pe_pass.h" />
     <ClInclude Include="parser.h" />
+    <ClInclude Include="pe.h" />
     <ClInclude Include="preparser.h" />
     <ClInclude Include="queue.h" />
-    <ClInclude Include="src_char_stream.h" />
+    <ClInclude Include="register.h" />
+    <ClInclude Include="src2char_stream.h" />
     <ClInclude Include="src_pass.h" />
-    <ClInclude Include="src_tok_stream.h" />
+    <ClInclude Include="src2tok_stream.h" />
     <ClInclude Include="syn_cursor.h" />
     <ClInclude Include="syn_pass.h" />
     <ClInclude Include="tokenizer.h" />
@@ -237,7 +254,7 @@
     <ClInclude Include="string.h" />
     <ClInclude Include="source.h" />
     <ClInclude Include="syntax.h" />
-    <ClInclude Include="tok_pass.h" />
+    <ClInclude Include="src2tok_pass.h" />
     <ClInclude Include="tp_cast.h" />
     <ClInclude Include="tp_find.h" />
     <ClInclude Include="tp_import.h" />
@@ -247,7 +264,7 @@
     <ClInclude Include="tp_modifiers.h" />
     <ClInclude Include="tp_variable.h" />
     <ClInclude Include="typer.h" />
-    <ClInclude Include="typ_pass.h" />
+    <ClInclude Include="stx2ast_pass.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

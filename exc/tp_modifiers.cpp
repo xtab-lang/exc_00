@@ -9,7 +9,7 @@
 #define err(token, msg, ...) print_error("Modifier", token, msg, __VA_ARGS__)
 
 namespace exy {
-namespace typ_pass {
+namespace stx2ast_pass {
 #define ZM(zName, zText) bool Modifiers::is##zName(SyntaxNode *syntax) { \
     if (syntax->kind == SyntaxKind::Modifier) return ((SyntaxModifier*)syntax)->value == Keyword::zName; \
     if (syntax->kind == SyntaxKind::Modifiers) return ((SyntaxModifiers*)syntax)->contains(Keyword::zName); \
@@ -56,5 +56,5 @@ bool Modifiers::validateVariableModifiers(SyntaxNode *syntax) {
     }
     return errors == comp.errors;
 }
-} // namespace typ_pass
+} // namespace stx2ast_pass
 } // namespace exy

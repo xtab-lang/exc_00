@@ -4,7 +4,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "pch.h"
-#include "typ_pass.h"
+#include "stx2ast_pass.h"
 
 #include "typer.h"
 #include "source.h"
@@ -12,7 +12,7 @@
 #define err(token, msg, ...) print_error("Module", token, msg, __VA_ARGS__)
 
 namespace exy {
-namespace typ_pass {
+namespace stx2ast_pass {
 struct Module {
     Dict<Module*>     modules;
     List<SyntaxFile*> files;
@@ -39,6 +39,13 @@ struct ModuleTree {
         auto path = getModulePath(mod->name);
         append(path, file);
         path.dispose();
+    }
+
+    void appendMain() {
+        auto     mod = MemAlloc<Module>();
+        mod->name    = ids.main;
+        mod->dotName = ids.main;
+        modules.append(ids.main, mod);
     }
 
     void append(List<Identifier> &path, SyntaxFile *file) {
@@ -74,8 +81,6 @@ struct ModuleTree {
             mod->main = file;
         }
         mod->files.append(file);
-        /*traceln("**** %s#<green> %s#<underline yellow> files: %i",
-                mod->dotName, file->sourceFile().dotName, mod->files.length);*/
     }
 
     List<Identifier> getModulePath(SyntaxNode *node) {
@@ -172,10 +177,12 @@ struct ModuleTree {
 };
 //------------------------------------------------------------------------------------------------
 static ModuleTree* discoverModuleTree() {
-    traceln("\r\n%cl#<cyan|blue> { phase: %cl#<green>, files: %i#<green> }",
-            S("typer"), S("discovering the module tree"), comp.syntax->files.length);
-    auto    tree = MemAlloc<ModuleTree>();
+    traceln("\r\n%cl#<cyan|blue> { phase: %cl#<green>, files: %i#<green>, thread: %u#<green> }",
+            S("typer"), S("discovering the module tree"), comp.syntax->files.length,
+            GetCurrentThreadId());
+    auto    tree = MemNew<ModuleTree>();
     auto &syntax = *comp.syntax;
+    tree->appendMain();
     for (auto i = 0; i < syntax.files.length; ++i) {
         tree->append(syntax.files.items[i]);
     } for (auto i = 0; i < tree->modules.length; ++i) {
@@ -263,7 +270,7 @@ static SyntaxFile* findFirstFileOf(Module *mod) {
     }
     Unreachable();
 }
-static int buildAstTree(AstModule *parent, Module *mod) {
+static int enterModule(AstModule *parent, Module *mod) {
     auto modules = 0;
     for (auto i = 0; i < mod->modules.length; ++i) {
         auto   child = mod->modules.items[i].value;
@@ -273,13 +280,14 @@ static int buildAstTree(AstModule *parent, Module *mod) {
         auto    &end = tokens.last().loc.range.end;
         SourceLocation loc{ file->pos.loc.file, start, end };
 
-        auto idx = parent->scope->symbols.indexOf(mod->name);
+        auto idx = parent->ownScope->symbols.indexOf(mod->name);
         if (idx >= 0) {
             err(loc, "identifier %s#<red> already defined", child->name);
             continue;
         }
 
-        auto  ast = comp.ast->mem.New<AstModule>(loc, parent->scope, child->name, child->dotName, child->files);
+        auto  ast = comp.ast->mem.New<AstModule>(loc, parent->ownScope, child->name, child->dotName, 
+                                                 child->files, child->main);
 
         trace("%s#<cyan> [", ast->dotName);
         for (auto j = 0; j < child->files.length; ++j) {
@@ -288,15 +296,16 @@ static int buildAstTree(AstModule *parent, Module *mod) {
         }
         traceln("]");
 
-        modules += buildAstTree(ast, child) + 1;
+        modules += enterModule(ast, child) + 1;
     }
     return modules;
 }
 static void createAstTree(ModuleTree *moduleTree) {
-    traceln("\r\n%cl#<cyan|blue> { phase: %cl#<green> }",
-            S("typer"), S("creating the ast"));
+    traceln("\r\n%cl#<cyan|blue> { phase: %cl#<green>, thread: %u#<green> }",
+            S("typer"), S("initializing the AST with modules"), GetCurrentThreadId());
     comp.ast = MemAlloc<AstTree>();
     auto modules = 0;
+    auto  global = comp.ast->global;
     for (auto i = 0; i < moduleTree->modules.length; ++i) {
         auto     mod = moduleTree->modules.items[i].value;
         auto    file = findFirstFileOf(mod);
@@ -307,14 +316,20 @@ static void createAstTree(ModuleTree *moduleTree) {
 
         if (i == 0) {
             comp.ast->initialize(loc);
+            global = comp.ast->global;
         }
-        auto idx = comp.ast->symbols.indexOf(mod->name);
+        if (global->name == mod->name) {
+            enterModule(global, mod);
+            continue;
+        }
+        auto idx = global->ownScope->symbols.indexOf(mod->name);
         if (idx >= 0) {
             err(loc, "identifier %s#<red> already defined", mod->name);
             continue;
         }
 
-        auto  ast = comp.ast->mem.New<AstModule>(loc, mod->name, mod->dotName, mod->files);
+        auto ast = comp.ast->mem.New<AstModule>(loc, global->ownScope, mod->name, mod->dotName, 
+                                                mod->files, mod->main);
 
         trace("%s#<cyan> [", ast->dotName);
         for (auto j = 0; j < mod->files.length; ++j) {
@@ -323,10 +338,20 @@ static void createAstTree(ModuleTree *moduleTree) {
         }
         traceln("]");
 
-        modules += buildAstTree(ast, mod) + 1;
+        modules += enterModule(ast, mod) + 1;
     }
-    traceln("%cl#<cyan|blue> { errors: %i#<red>, modules: %i#<green>, builtins: %i#<green> }",
-            S("typer"), comp.errors, modules, comp.ast->symbols.length - modules);
+    traceln("%cl#<cyan|blue> { errors: %i#<red>, modules: %i#<green> }",
+            S("typer"), comp.errors, modules);
+}
+//------------------------------------------------------------------------------------------------
+static void disposeSyntaxFilesOfAstModules(AstModule *parent) {
+    parent->syntax.dispose();
+    for (auto i = 0; i < parent->ownScope->symbols.length; ++i) {
+        auto symbol = parent->ownScope->symbols.items[i].value;
+        if (symbol->kind == AstKind::Module) {
+            disposeSyntaxFilesOfAstModules((AstModule*)symbol);
+        }
+    }
 }
 //------------------------------------------------------------------------------------------------
 bool run() {
@@ -335,18 +360,18 @@ bool run() {
             createAstTree(moduleTree);
 
             Typer typer{};
-            comp.typer = &typer;
-
             typer.run();
-
             typer.dispose();
-            comp.typer = nullptr;
+
+            disposeSyntaxFilesOfAstModules(comp.ast->global);
         }
         moduleTree->dispose();
         MemFree(moduleTree);
+
+        comp.syntax = MemDispose(comp.syntax);
     }
 
     return comp.errors == 0;
 }
-} // namespace syn_pass
+} // namespace stx2ast_pass
 } // namespace exy

@@ -6,10 +6,12 @@
 #include "pch.h"
 #include "typer.h"
 
+#include "tp_cast.h"
+
 #define err(token, msg, ...) print_error("ImplicitCast", token, msg, __VA_ARGS__)
 
 namespace exy {
-namespace typ_pass {
+namespace stx2ast_pass {
 AstNode* Cast::implicitCast(Loc loc, AstNode *node, const AstType &type) {
 	if (!node) {
 		return nullptr;
@@ -19,5 +21,5 @@ AstNode* Cast::implicitCast(Loc loc, AstNode *node, const AstType &type) {
 	err(loc, "%type ← %type", &type, &node->type);
 	return tp.throwAway(node);
 }
-} // namespace typ_pass
+} // namespace stx2ast_pass
 } // namespace exy

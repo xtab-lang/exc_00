@@ -1,12 +1,13 @@
 #include "pch.h"
 #include "tokenizer.h"
 
-#include "src_char_stream.h"
-#include "src_tok_stream.h"
+#include "src2char_stream.h"
+#include "src2tok_stream.h"
 
 #include "source.h"
 
 namespace exy {
+namespace src2tok_pass {
 void Tokenizer::next(SourceFile &file) {
     CharStream       stream{ file };
     List<SourceChar> list{};
@@ -17,9 +18,9 @@ void Tokenizer::next(SourceFile &file) {
             break;
         }
     }
-    traceln("%s#<underline yellow> { size: %i#<bold> B, characters: %i#<bold>, thread: %i#<green> }",
-            file.path, file.source.length, list.length, GetCurrentThreadId());
     tokenize(file, list);
+    traceln("%s#<underline yellow> { size: %i#<magenta> B, characters: %i#<magenta>, tokens: %i#<magenta>, thread: %i#<green> }",
+            file.path, file.source.length, list.length, file.tokens.length, GetCurrentThreadId());
     list.dispose();
 }
 
@@ -37,4 +38,5 @@ void Tokenizer::tokenize(SourceFile &file, const List<SourceChar> &chars) {
         }
     }
 }
+} // namespace src2tok_pass
 } // namespace exy

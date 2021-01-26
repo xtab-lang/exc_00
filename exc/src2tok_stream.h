@@ -4,16 +4,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#ifndef SRC_TOK_STREAM_H_
-#define SRC_TOK_STREAM_H_
+#ifndef SRC2TOK_STREAM_H_
+#define SRC2TOK_STREAM_H_
 
 namespace exy {
-//--Begin forward declarations
-enum class Tok;
-struct SourceChar;
-struct SourceFile;
-struct SourceToken;
-//----End forward declarations
+namespace src2tok_pass {
 struct TokenStream {
     const SourceFile &file;
     const SourceChar *mark;
@@ -44,7 +39,8 @@ struct TokenStream {
     Tok readText();
     Tok move(Tok);
     SourceToken make(Tok);
-}; // struct TokenStream
+};
+} // namespace src2tok_pass
 } // namespace exy
 
-#endif // SRC_TOK_STREAM_H_
+#endif // SRC2TOK_STREAM_H_

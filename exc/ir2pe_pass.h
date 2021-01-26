@@ -1,16 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // author: exy.lang
-//   date: 2020-12-12
+//   date: 2021-01-21
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#ifndef TYP_PASS_H_
-#define TYP_PASS_H_
+#ifndef IR2PE_PASS_H_
+#define IR2PE_PASS_H_
 
 namespace exy {
-namespace typ_pass {
+namespace ir2pe_pass {
 bool run();
-} // namespace typ_pass
+} // namespace ir2pe_pass
 } // namespace exy
 
-#endif // TYP_PASS_H_
+#endif // IR2PE_PASS_H_

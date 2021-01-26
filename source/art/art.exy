@@ -2,8 +2,10 @@
 private module .main
 
 // Imports
+// import .std as std2
 export std
-import .std as std2
+
+import string from .std
 
 
 import caremo

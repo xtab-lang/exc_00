@@ -4,11 +4,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#ifndef TP_IMPORT_H_
-#define TP_IMPORT_H_
+#ifndef STX2AST_IMPORT_H_
+#define STX2AST_IMPORT_H_
 
 namespace exy {
-namespace typ_pass {
+namespace stx2ast_pass {
 struct Importer {
     Typer  &tp;
 
@@ -28,7 +28,7 @@ private:
 
     AstSymbol* checkForSelfImportOrExport(Pos pos, AstSymbol *symbol);
 };
-} // namespace typ_pass
+} // namespace stx2ast_pass
 } // namespace exy
 
-#endif // TP_IMPORT_H_
+#endif // STX2AST_IMPORT_H_

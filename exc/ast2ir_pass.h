@@ -1,19 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // author: exy.lang
-//   date: 2020-11-27
+//   date: 2020-12-23
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#ifndef LEXER_H_
-#define LEXER_H_
+#ifndef AST2IR_PASS_H_
+#define AST2IR_PASS_H_
 
 namespace exy {
-namespace src2tok_pass {
-struct Tokenizer {
-    void next(SourceFile &file);
-    void tokenize(SourceFile &file, const List<SourceChar> &chars);
-};
-} // namespace src2tok_pass
+namespace ast2ir_pass {
+bool run();
+} // namespace ast2ir_pass
 } // namespace exy
 
-#endif // LEXER_H_
+#endif // AST2IR_PASS_H_

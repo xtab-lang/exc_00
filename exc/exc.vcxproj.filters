@@ -37,16 +37,16 @@
       <Filter>compiler</Filter>
     </ClCompile>
     <ClCompile Include="tokenizer.cpp">
-      <Filter>tok_pass</Filter>
+      <Filter>pass1-src2tok</Filter>
     </ClCompile>
     <ClCompile Include="syntax.cpp">
-      <Filter>syn_pass</Filter>
+      <Filter>pass2-tok2stx</Filter>
     </ClCompile>
     <ClCompile Include="preparser.cpp">
-      <Filter>tok_pass</Filter>
+      <Filter>pass1-src2tok</Filter>
     </ClCompile>
     <ClCompile Include="parser.cpp">
-      <Filter>syn_pass</Filter>
+      <Filter>pass2-tok2stx</Filter>
     </ClCompile>
     <ClCompile Include="list.cpp">
       <Filter>lib\collections</Filter>
@@ -58,70 +58,94 @@
       <Filter>lib\collections</Filter>
     </ClCompile>
     <ClCompile Include="src_pass.cpp">
-      <Filter>src_pass</Filter>
+      <Filter>pass0-src</Filter>
     </ClCompile>
     <ClCompile Include="source.cpp">
-      <Filter>src_pass</Filter>
-    </ClCompile>
-    <ClCompile Include="tok_pass.cpp">
-      <Filter>tok_pass</Filter>
-    </ClCompile>
-    <ClCompile Include="src_char_stream.cpp">
-      <Filter>tok_pass</Filter>
-    </ClCompile>
-    <ClCompile Include="src_tok_stream.cpp">
-      <Filter>tok_pass</Filter>
+      <Filter>pass0-src</Filter>
     </ClCompile>
     <ClCompile Include="syn_pass.cpp">
-      <Filter>syn_pass</Filter>
+      <Filter>pass2-tok2stx</Filter>
     </ClCompile>
     <ClCompile Include="syn_cursor.cpp">
-      <Filter>syn_pass</Filter>
+      <Filter>pass2-tok2stx</Filter>
     </ClCompile>
     <ClCompile Include="parse_number.cpp">
-      <Filter>syn_pass</Filter>
-    </ClCompile>
-    <ClCompile Include="typ_pass.cpp">
-      <Filter>typ_pass</Filter>
+      <Filter>pass2-tok2stx</Filter>
     </ClCompile>
     <ClCompile Include="ast.cpp">
-      <Filter>typ_pass</Filter>
+      <Filter>pass3-stx2ast</Filter>
     </ClCompile>
     <ClCompile Include="typer.cpp">
-      <Filter>typ_pass</Filter>
-    </ClCompile>
-    <ClCompile Include="tp_import.cpp">
-      <Filter>typ_pass</Filter>
-    </ClCompile>
-    <ClCompile Include="tp_modifiers.cpp">
-      <Filter>typ_pass</Filter>
-    </ClCompile>
-    <ClCompile Include="tp_variable.cpp">
-      <Filter>typ_pass</Filter>
-    </ClCompile>
-    <ClCompile Include="astype.cpp">
-      <Filter>typ_pass</Filter>
-    </ClCompile>
-    <ClCompile Include="tp_mk.cpp">
-      <Filter>typ_pass</Filter>
-    </ClCompile>
-    <ClCompile Include="tp_isa.cpp">
-      <Filter>typ_pass</Filter>
-    </ClCompile>
-    <ClCompile Include="tp_cast.cpp">
-      <Filter>typ_pass</Filter>
-    </ClCompile>
-    <ClCompile Include="tp_find.cpp">
-      <Filter>typ_pass</Filter>
+      <Filter>pass3-stx2ast</Filter>
     </ClCompile>
     <ClCompile Include="tp_cast_explicit.cpp">
-      <Filter>typ_pass</Filter>
+      <Filter>pass3-stx2ast\cast</Filter>
     </ClCompile>
     <ClCompile Include="tp_cast_implicit.cpp">
-      <Filter>typ_pass</Filter>
+      <Filter>pass3-stx2ast\cast</Filter>
+    </ClCompile>
+    <ClCompile Include="ir.cpp">
+      <Filter>pass4-ast2ir</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_find.cpp">
+      <Filter>pass3-stx2ast\find</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_import.cpp">
+      <Filter>pass3-stx2ast\import</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_isa.cpp">
+      <Filter>pass3-stx2ast\isa</Filter>
+    </ClCompile>
+    <ClCompile Include="astype.cpp">
+      <Filter>pass3-stx2ast\type</Filter>
     </ClCompile>
     <ClCompile Include="tp_literal.cpp">
-      <Filter>typ_pass</Filter>
+      <Filter>pass3-stx2ast\literal</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_mk.cpp">
+      <Filter>pass3-stx2ast\mk</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_modifiers.cpp">
+      <Filter>pass3-stx2ast\mods</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_variable.cpp">
+      <Filter>pass3-stx2ast\var</Filter>
+    </ClCompile>
+    <ClCompile Include="ast2ir.cpp">
+      <Filter>pass4-ast2ir</Filter>
+    </ClCompile>
+    <ClCompile Include="ast2ir_symtab.cpp">
+      <Filter>pass4-ast2ir</Filter>
+    </ClCompile>
+    <ClCompile Include="ast2ir_pass.cpp">
+      <Filter>pass4-ast2ir</Filter>
+    </ClCompile>
+    <ClCompile Include="ast2ir_mk.cpp">
+      <Filter>pass4-ast2ir</Filter>
+    </ClCompile>
+    <ClCompile Include="stx2ast_pass.cpp">
+      <Filter>pass3-stx2ast</Filter>
+    </ClCompile>
+    <ClCompile Include="src2tok_pass.cpp">
+      <Filter>pass1-src2tok</Filter>
+    </ClCompile>
+    <ClCompile Include="src2char_stream.cpp">
+      <Filter>pass1-src2tok</Filter>
+    </ClCompile>
+    <ClCompile Include="src2tok_stream.cpp">
+      <Filter>pass1-src2tok</Filter>
+    </ClCompile>
+    <ClCompile Include="pe.cpp">
+      <Filter>pass5-ir2pe</Filter>
+    </ClCompile>
+    <ClCompile Include="register.cpp">
+      <Filter>pass4-ast2ir</Filter>
+    </ClCompile>
+    <ClCompile Include="ir2pe_pass.cpp">
+      <Filter>pass5-ir2pe</Filter>
+    </ClCompile>
+    <ClCompile Include="ir2pe.cpp">
+      <Filter>pass5-ir2pe</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -134,17 +158,50 @@
     <Filter Include="lib\collections">
       <UniqueIdentifier>{e729598f-59c1-443f-a980-ba96cccc5c1a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src_pass">
+    <Filter Include="pass0-src">
       <UniqueIdentifier>{9070de76-80a5-458e-bd54-65d1123f33bd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="syn_pass">
-      <UniqueIdentifier>{c2b11050-3144-4c71-99e6-17e55f1ede6b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tok_pass">
+    <Filter Include="pass1-src2tok">
       <UniqueIdentifier>{d50b3175-00bb-4980-b8a8-dd2ff7d1cf6d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="typ_pass">
+    <Filter Include="pass4-ast2ir">
+      <UniqueIdentifier>{28654ceb-21e7-45fd-9f81-a3e46d5af54e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass3-stx2ast">
       <UniqueIdentifier>{438cbd1a-2639-416f-832e-fd22a3fe7333}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass3-stx2ast\cast">
+      <UniqueIdentifier>{c6c8119a-96e2-448d-b4e6-bc92bbffbb99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass3-stx2ast\find">
+      <UniqueIdentifier>{c4edda8d-fb3d-4d20-8dd3-851a51448147}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass3-stx2ast\import">
+      <UniqueIdentifier>{a49f1572-3939-456f-9fa3-a1c1fc8dd93d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass3-stx2ast\isa">
+      <UniqueIdentifier>{6ad30ba6-3bc4-4b6a-a2e8-0ce0bfa595c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass3-stx2ast\type">
+      <UniqueIdentifier>{6bd3822e-8f3c-4baf-9a77-f5c5bf229347}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass3-stx2ast\literal">
+      <UniqueIdentifier>{f3dbebb4-8782-44e7-9271-eb036732436f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass3-stx2ast\mk">
+      <UniqueIdentifier>{ee3e22ee-3695-4e6f-a74d-a9831a21c68d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass3-stx2ast\mods">
+      <UniqueIdentifier>{f9f3fbe9-1df5-47fe-885b-3758a0827fa5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass3-stx2ast\var">
+      <UniqueIdentifier>{a08bcd11-8dd2-45c0-a498-8629bddcde1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass2-tok2stx">
+      <UniqueIdentifier>{c2b11050-3144-4c71-99e6-17e55f1ede6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass5-ir2pe">
+      <UniqueIdentifier>{6de90baa-baf2-4286-8e8e-54f8404679ca}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -183,16 +240,16 @@
       <Filter>compiler</Filter>
     </ClInclude>
     <ClInclude Include="tokenizer.h">
-      <Filter>tok_pass</Filter>
+      <Filter>pass1-src2tok</Filter>
     </ClInclude>
     <ClInclude Include="syntax.h">
-      <Filter>syn_pass</Filter>
+      <Filter>pass2-tok2stx</Filter>
     </ClInclude>
     <ClInclude Include="preparser.h">
-      <Filter>tok_pass</Filter>
+      <Filter>pass1-src2tok</Filter>
     </ClInclude>
     <ClInclude Include="parser.h">
-      <Filter>syn_pass</Filter>
+      <Filter>pass2-tok2stx</Filter>
     </ClInclude>
     <ClInclude Include="list.h">
       <Filter>lib\collections</Filter>
@@ -204,61 +261,88 @@
       <Filter>lib\collections</Filter>
     </ClInclude>
     <ClInclude Include="src_pass.h">
-      <Filter>src_pass</Filter>
+      <Filter>pass0-src</Filter>
     </ClInclude>
     <ClInclude Include="source.h">
-      <Filter>src_pass</Filter>
-    </ClInclude>
-    <ClInclude Include="tok_pass.h">
-      <Filter>tok_pass</Filter>
-    </ClInclude>
-    <ClInclude Include="src_char_stream.h">
-      <Filter>tok_pass</Filter>
-    </ClInclude>
-    <ClInclude Include="src_tok_stream.h">
-      <Filter>tok_pass</Filter>
+      <Filter>pass0-src</Filter>
     </ClInclude>
     <ClInclude Include="syn_pass.h">
-      <Filter>syn_pass</Filter>
+      <Filter>pass2-tok2stx</Filter>
     </ClInclude>
     <ClInclude Include="syn_cursor.h">
-      <Filter>syn_pass</Filter>
-    </ClInclude>
-    <ClInclude Include="typ_pass.h">
-      <Filter>typ_pass</Filter>
+      <Filter>pass2-tok2stx</Filter>
     </ClInclude>
     <ClInclude Include="ast.h">
-      <Filter>typ_pass</Filter>
+      <Filter>pass3-stx2ast</Filter>
     </ClInclude>
     <ClInclude Include="typer.h">
-      <Filter>typ_pass</Filter>
-    </ClInclude>
-    <ClInclude Include="tp_import.h">
-      <Filter>typ_pass</Filter>
-    </ClInclude>
-    <ClInclude Include="tp_modifiers.h">
-      <Filter>typ_pass</Filter>
-    </ClInclude>
-    <ClInclude Include="tp_variable.h">
-      <Filter>typ_pass</Filter>
-    </ClInclude>
-    <ClInclude Include="astype.h">
-      <Filter>typ_pass</Filter>
-    </ClInclude>
-    <ClInclude Include="tp_mk.h">
-      <Filter>typ_pass</Filter>
-    </ClInclude>
-    <ClInclude Include="tp_isa.h">
-      <Filter>typ_pass</Filter>
+      <Filter>pass3-stx2ast</Filter>
     </ClInclude>
     <ClInclude Include="tp_cast.h">
-      <Filter>typ_pass</Filter>
+      <Filter>pass3-stx2ast\cast</Filter>
+    </ClInclude>
+    <ClInclude Include="ir.h">
+      <Filter>pass4-ast2ir</Filter>
     </ClInclude>
     <ClInclude Include="tp_find.h">
-      <Filter>typ_pass</Filter>
+      <Filter>pass3-stx2ast\find</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_import.h">
+      <Filter>pass3-stx2ast\import</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_isa.h">
+      <Filter>pass3-stx2ast\isa</Filter>
+    </ClInclude>
+    <ClInclude Include="astype.h">
+      <Filter>pass3-stx2ast\type</Filter>
     </ClInclude>
     <ClInclude Include="tp_literal.h">
-      <Filter>typ_pass</Filter>
+      <Filter>pass3-stx2ast\literal</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_mk.h">
+      <Filter>pass3-stx2ast\mk</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_modifiers.h">
+      <Filter>pass3-stx2ast\mods</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_variable.h">
+      <Filter>pass3-stx2ast\var</Filter>
+    </ClInclude>
+    <ClInclude Include="ast2ir.h">
+      <Filter>pass4-ast2ir</Filter>
+    </ClInclude>
+    <ClInclude Include="ast2ir_symtab.h">
+      <Filter>pass4-ast2ir</Filter>
+    </ClInclude>
+    <ClInclude Include="ast2ir_pass.h">
+      <Filter>pass4-ast2ir</Filter>
+    </ClInclude>
+    <ClInclude Include="ast2ir_mk.h">
+      <Filter>pass4-ast2ir</Filter>
+    </ClInclude>
+    <ClInclude Include="stx2ast_pass.h">
+      <Filter>pass3-stx2ast</Filter>
+    </ClInclude>
+    <ClInclude Include="src2tok_pass.h">
+      <Filter>pass1-src2tok</Filter>
+    </ClInclude>
+    <ClInclude Include="src2tok_stream.h">
+      <Filter>pass1-src2tok</Filter>
+    </ClInclude>
+    <ClInclude Include="src2char_stream.h">
+      <Filter>pass1-src2tok</Filter>
+    </ClInclude>
+    <ClInclude Include="pe.h">
+      <Filter>pass5-ir2pe</Filter>
+    </ClInclude>
+    <ClInclude Include="register.h">
+      <Filter>pass4-ast2ir</Filter>
+    </ClInclude>
+    <ClInclude Include="ir2pe_pass.h">
+      <Filter>pass5-ir2pe</Filter>
+    </ClInclude>
+    <ClInclude Include="ir2pe.h">
+      <Filter>pass5-ir2pe</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

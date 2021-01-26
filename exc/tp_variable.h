@@ -4,11 +4,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#ifndef TP_VARIABLE_H_
-#define TP_VARIABLE_H_
+#ifndef STX2AST_VARIABLE_H_
+#define STX2AST_VARIABLE_H_
 
 namespace exy {
-namespace typ_pass {
+namespace stx2ast_pass {
 struct Variable {
     using  Decl = SyntaxNameValue*;
     using  Name = SyntaxIdentifier*;
@@ -34,7 +34,7 @@ private:
 
     AstKind getKind(Mods modifiers);
 };
-} // namespace typ_pass
+} // namespace stx2ast_pass
 } // namespace exy
 
-#endif // TP_VARIABLE_H_
+#endif // STX2AST_VARIABLE_H_

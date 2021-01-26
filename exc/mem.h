@@ -82,6 +82,21 @@ constexpr void MemMove(T *dst, U *src, int count = 1) {
     MoveMemory(dst, src, sizeof(T) * count); 
 }
 
+template<typename T, typename ...TArgs>
+T* MemNew(TArgs&&...args) {
+    auto m = MemAlloc<T>();
+    return new(m) T{ meta::fwd<TArgs>(args)... };
+}
+
+template<typename T>
+T* MemDispose(T *mem) {
+    if (mem) {
+        mem->dispose();
+        MemFree(mem);
+    }
+    return (T*)nullptr;
+}
+
 } // namespace exy
 
 #endif // MEM_H_

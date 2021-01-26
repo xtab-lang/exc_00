@@ -8,9 +8,9 @@
 #define COMPILER_H_
 
 namespace exy {
-namespace comp_pass {
+namespace compiler {
 void run(int compId);
-} // namespace comp_pass
+} // namespace compiler
 
 #define DeclareBuiltinTypeKeywords(ZM)   \
 /* Type declaration keywords. */         \
@@ -302,13 +302,18 @@ struct SourceToken;
 struct SourceFile;
 struct SourceTree;
 
-struct SyntaxNode;
 struct SyntaxTree;
+struct SyntaxNode;
 
-struct AstNode;
 struct AstTree;
+struct AstNode;
 
-namespace typ_pass {
+struct IrTree;
+struct IrNode;
+
+struct PeTree;
+
+namespace stx2ast_pass {
 struct Typer;
 }
 //----End forward declarations
@@ -382,31 +387,36 @@ struct Compiler {
     SourceTree *source{};
     SyntaxTree *syntax{};
     AstTree    *ast{};
-    typ_pass::Typer *typer{};
+    IrTree     *ir{};
+    stx2ast_pass::Typer *typer{};
+    PeTree     *pe;
     int         errors{};
     int         warnings{};
     int         infos{};
     struct {
-        String path;
+        struct {
+            String sourceFolder;
+            String outputFolder;
+        } path;
         int    maxFileSize;
         int    defaultFilesPerThread;
+        int    defaultModulesPerThread;
+        int    defaultSymbolsPerThread;
         struct {
             int maxScopeDepth;
         } typer;
     } options;
-    struct {
-        Identifier main;
-        Identifier block;
-        Identifier tuple;
-    } str;
 
     void error(const char*, const SourceToken*, const char*, const char*, int, const char*, ...);
     void error(const char*, const SourceToken&, const char*, const char*, int, const char*, ...);
     void error(const char*, const SourceLocation&, const char*, const char*, int, const char*, ...);
 
     void error(const char*, const SyntaxNode*, const char*, const char*, int, const char*, ...);
+    void error(const char*, const AstNode*, const char*, const char*, int, const char*, ...);
+    void error(const char*, const IrNode*, const char*, const char*, int, const char*, ...);
 private:
-    void run();
+    void compile();
+    void runBinaries();
 
     enum class HighlightKind {
         Error,
@@ -430,7 +440,7 @@ private:
     void highlightLines(HighlightKind, const SourceRange&, Line*);
     void highlightLine(HighlightKind, const SourceRange&, const Line&);
 
-    friend void comp_pass::run(int);
+    friend void compiler::run(int);
     friend static Line makeLineFrom(const String&, const char*, int);
     friend static Line makePreviousLine(const String&, const char*, int);
     friend static Line makeNextLine(const String&, const char*, int);
@@ -465,6 +475,20 @@ void ldispose(Dict<T*> &dict) {
 
 int signedSize(INT64 n);
 int unsignedSize(UINT64 n);
+
+struct Status {
+    enum Value { None, Busy, Done };
+    Value value;
+
+    bool isIdle() const { return value == None; }
+    bool isBusy() const { return value == Busy; }
+    bool isDone() const { return value == Done; }
+    bool isNotDone() const { return value != Done; }
+    bool isNotBusy() const { return value != Busy; }
+
+    void begin() { Assert(isIdle()); value = Busy; }
+    void end()   { Assert(isBusy()); value = Done; }
+};
 
 } // namespace exy
 

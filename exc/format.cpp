@@ -7,6 +7,7 @@
 #include "source.h"
 #include "syntax.h"
 #include "ast.h"
+#include "ir.h"
 
 namespace exy {
 using Color = FormatStream::TextFormat;
@@ -14,6 +15,7 @@ using Color = FormatStream::TextFormat;
 struct Specifiers {
     Color fore = Color::Unknown;
     Color back = Color::Unknown;
+    int  width{};
     bool underline{};
     bool bold{};
 
@@ -112,15 +114,26 @@ private:
                 }
             } break;
             case 'i': {
-                if (*pos == '6') {
+                if (*pos == 'r') {
+                    ++pos; // Past 'r'
+                    auto specs = parseSpecifiers();
+                    auto   arg = __crt_va_arg(vargs, IrKind);
+                    auto value = IrNode::kindName(arg);
+                    if (!specs.isColored()) {
+                        specs.fore = Color::ForeYellow;
+                    }
+                    Colorizer colorizer{ specs, stream };
+                    stream.write(S("Ir"));
+                    stream.write(value.text, value.length);
+                    break;
+                } else if (*pos == '6') {
                     ++pos; // Past '6'.
                     if (*pos == '4') { // '%i64'
                         ++pos; // Past '4'.
                         auto specs = parseSpecifiers();
-                        auto arg = __crt_va_arg(vargs, __int64);
+                        auto   arg = __crt_va_arg(vargs, __int64);
                         _i64toa_s(arg, numbuf, numbufcap, 10);
-                        Colorizer colorizer{ specs, stream };
-                        stream.write(numbuf, cstrlen(numbuf));
+                        writeNumBuf(specs);
                         break;
                     }
                     --pos; // Back to '6'.
@@ -128,8 +141,7 @@ private:
                 auto specs = parseSpecifiers();
                 auto arg = __crt_va_arg(vargs, int);
                 _itoa_s(arg, numbuf, numbufcap, 10);
-                Colorizer colorizer{ specs, stream };
-                stream.write(numbuf, cstrlen(numbuf));
+                writeNumBuf(specs);
             } break;
             case 'u': {
                 if (*pos == '6') {
@@ -137,19 +149,17 @@ private:
                     if (*pos == '4') { // '%u64'
                         ++pos; // Past '4'.
                         auto specs = parseSpecifiers();
-                        auto arg = __crt_va_arg(vargs, __int64);
+                        auto   arg = __crt_va_arg(vargs, __int64);
                         _ui64toa_s(arg, numbuf, numbufcap, 10);
-                        Colorizer colorizer{ specs, stream };
-                        stream.write(numbuf, cstrlen(numbuf));
+                        writeNumBuf(specs);
                         break;
                     }
                     --pos; // Back to '6'.
                 }
                 auto specs = parseSpecifiers();
-                auto arg = __crt_va_arg(vargs, unsigned long);
+                auto   arg = __crt_va_arg(vargs, unsigned long);
                 _ultoa_s(arg, numbuf, numbufcap, 10);
-                Colorizer colorizer{ specs, stream };
-                stream.write(numbuf, cstrlen(numbuf));
+                writeNumBuf(specs);
             } break;
             case 'p': {
                 if (*pos == 'o') {
@@ -334,6 +344,41 @@ private:
                     stream.write(value.text, value.length);
                 }
             } break;
+            case 'l': {
+                if (*pos == 'o') {
+                    ++pos; // Past 'o'.
+                    if (*pos == 'c') {
+                        ++pos; // Past 'c'
+                        auto specs = parseSpecifiers();
+                        auto   arg = __crt_va_arg(vargs, const SourceLocation*);
+                        if (!specs.isColored()) {
+                            specs.fore = Color::ForeYellow;
+                        }
+                        auto  &file = arg->file;
+                        auto &start = arg->range.start;
+                        auto   &end = arg->range.end;
+                        Colorizer colorizer{ specs, stream };
+                        stream.write(file.dotName);
+                        stream.write(S("("));
+                        _itoa_s(start.line, numbuf, 10);
+                        stream.write(numbuf, cstrlen(numbuf));
+                        stream.write(S(":"));
+                        _itoa_s(start.col, numbuf, 10);
+                        stream.write(numbuf, cstrlen(numbuf));
+                        stream.write(S("-"));
+                        if (start.line != end.line) {
+                            _itoa_s(end.line, numbuf, 10);
+                            stream.write(numbuf, cstrlen(numbuf));
+                            stream.write(S(":"));
+                        }
+                        _itoa_s(end.col, numbuf, 10);
+                        stream.write(numbuf, cstrlen(numbuf));
+                        stream.write(S(")"));
+                        break;
+                    }
+                }
+                Assert(0);
+            } break;
             default: { // '%' not followed by a format specifier.
                 Assert(0);
                 //stream.write(S("%"));
@@ -361,10 +406,27 @@ private:
             case '<': {
                 parseTextFormat(specs);
             } break;
-            default:
-                return false;
+            case 'w': {
+                parseWidthFormat(specs);
+            } break;
+            default: {
+                Assert(0);
+            } return false;
         }
         return true;
+    }
+
+    void parseWidthFormat(Specifiers &specs) {
+        auto start = pos;
+        while (*pos && isdigit(*pos)) ++pos;
+        if (start < pos) {
+            char *endptr{};
+            _set_errno(0);
+            specs.width = strtol(start, &endptr, 10);
+            Assert(!errno);
+        } else {
+            Assert(0);
+        }
     }
 
     /*  Syntax        := '<' [ Content ] '>'
@@ -427,6 +489,8 @@ private:
             { { S("darkmagenta") }, Color::ForeDarkMagenta },
             { { S("darkcyan") }, Color::ForeDarkCyan },
             { { S("darkwhite") }, Color::ForeDarkWhite },
+            { { S("gray") }, Color::ForeDarkWhite },
+            { { S("grey") }, Color::ForeDarkWhite },
             { { S("black") }, Color::ForeBlack },
             { { S("red") }, Color::ForeRed },
             { { S("green") }, Color::ForeGreen },
@@ -459,6 +523,8 @@ private:
             { { S("darkmagenta") }, Color::BackDarkMagenta },
             { { S("darkcyan") }, Color::BackDarkCyan },
             { { S("darkwhite") }, Color::BackDarkWhite },
+            { { S("gray") }, Color::BackDarkWhite },
+            { { S("grey") }, Color::BackDarkWhite },
             { { S("black") }, Color::BackBlack },
             { { S("red") }, Color::BackRed },
             { { S("green") }, Color::BackGreen },
@@ -485,6 +551,22 @@ private:
             Assert(length == 0);
         }
         mark = pos;
+    }
+
+    void writeNumBuf(Specifiers &specs) {
+        Colorizer colorizer{ specs, stream };
+        auto len = cstrlen(numbuf);
+        if (specs.width > 0) {
+            if (len > specs.width) {
+                stream.write(numbuf, specs.width);
+                stream.write(S(".."));
+            } else {
+                stream.write(numbuf, len);
+                for (auto i = len; i < specs.width; ++i) stream.write(S(" "));
+            }
+        } else {
+            stream.write(numbuf, len);
+        }
     }
 };
 
@@ -563,9 +645,10 @@ void FormatStream::write(const AstType *t) {
                 Colorizer colorizer{ specs, *this };
                 write(S("module "));
             } {
+                auto mod = (AstModule*)symbol;
                 specs.fore = Color::ForeGreen;
                 Colorizer colorizer{ specs, *this };
-                write(symbol->name->text, symbol->name->length);
+                write(mod->dotName->text, mod->dotName->length);
             } break;
 
             default: {
@@ -597,5 +680,15 @@ void FormatStream::write(const AstType *t) {
     Colorizer colorizer{ specs, *this };
     write(S("«error»"));
     unlock();
+}
+
+void FormatStream::write(const String &s) {
+    write(s.text, s.length);
+}
+
+void FormatStream::write(const String *s) {
+    if (s) {
+        write(s->text, s->length);
+    }
 }
 } // namespace exy

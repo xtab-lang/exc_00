@@ -4,11 +4,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#ifndef TP_FIND_H_
-#define TP_FIND_H_
+#ifndef STX2AST_FIND_H_
+#define STX2AST_FIND_H_
 
 namespace exy {
-namespace typ_pass {
+namespace stx2ast_pass {
 struct Find {
     Typer &tp;
 
@@ -17,7 +17,7 @@ struct Find {
     AstNode* name(SyntaxIdentifier*);
     AstNode* name(Loc, Identifier);
 };
-} // namespace typ_pass
+} // namespace stx2ast_pass
 } // namespace exy
 
-#endif // TP_FIND_H_
+#endif // STX2AST_FIND_H_

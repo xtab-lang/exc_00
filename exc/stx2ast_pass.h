@@ -1,19 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // author: exy.lang
-//   date: 2020-12-19
+//   date: 2020-12-12
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "pch.h"
-#include "typer.h"
+#pragma once
+#ifndef STX2AST_PASS_H_
+#define STX2AST_PASS_H_
 
 namespace exy {
 namespace stx2ast_pass {
-AstPointerType* Isa::PointerType(const AstType &type) {
-	return type.isaPointer();
-}
-
-AstReferenceType* Isa::ReferenceType(const AstType &type) {
-	return type.isaReference();
-}
+bool run();
 } // namespace stx2ast_pass
 } // namespace exy
+
+#endif // STX2AST_PASS_H_

@@ -6,18 +6,26 @@
 #include "pch.h"
 
 #include "src_pass.h"
-#include "tok_pass.h"
+#include "src2tok_pass.h"
 #include "syn_pass.h"
-#include "typ_pass.h"
+#include "stx2ast_pass.h"
+#include "ast2ir_pass.h"
+#include "ir2pe_pass.h"
 
 #include "source.h"
-#include "syntax.h"
-#include "ast.h"
+#include "typer.h" // Includes "ast.h"
+#include "ir.h"
+#include "pe.h"
 
 #define ROOT_FOLDER                 "D:\\c\\exc\\source"
 #define MAX_FILE_SIZE               0x10000
 #define DEFAULT_FILES_PER_THREAD    1
+#define DEFAULT_MODULES_PER_THREAD  1
+#define DEFAULT_SYMBOLS_PER_THREAD  0x10
 #define MAX_TYPER_SCOPE_DEPTH       0x100
+
+#define MAX_NAME_FOR_HIGHLIGHT     0xC
+#define DOTS                       2
 
 namespace exy {
 //------------------------------------------------------------------------------------------------
@@ -164,42 +172,66 @@ void Compiler::error(const char *pass, const SyntaxNode *node,
     __crt_va_end(ap);
 }
 
+void Compiler::error(const char *pass, const AstNode *node,
+                     const char *cppFile, const char *cppFunc, int cppLine,
+                     const char *fmt, ...) {
+    va_list ap{};
+    __crt_va_start(ap, fmt);
+    if (node) {
+        highlight(HighlightKind::Error, pass, node->loc, cppFile, cppFunc, cppLine, fmt, ap);
+    }
+    __crt_va_end(ap);
+}
+
+void Compiler::error(const char *pass, const IrNode *node,
+                     const char *cppFile, const char *cppFunc, int cppLine,
+                     const char *fmt, ...) {
+    va_list ap{};
+    __crt_va_start(ap, fmt);
+    if (node) {
+        highlight(HighlightKind::Error, pass, node->loc, cppFile, cppFunc, cppLine, fmt, ap);
+    }
+    __crt_va_end(ap);
+}
+
 //------------------------------------------------------------------------------------------------
-void Compiler::run() {
-    options.path = {};
-    options.path.append(ROOT_FOLDER);
-    options.maxFileSize           = MAX_FILE_SIZE;
-    options.defaultFilesPerThread = DEFAULT_FILES_PER_THREAD;
+void Compiler::compile() {
+    options.path.sourceFolder = {};
+    options.path.sourceFolder.append(ROOT_FOLDER);
+    options.path.outputFolder = {};
+    options.path.outputFolder.append(ROOT_FOLDER).append(S("\\.bin"));
+    options.maxFileSize             = MAX_FILE_SIZE;
+    options.defaultFilesPerThread   = DEFAULT_FILES_PER_THREAD;
+    options.defaultModulesPerThread = DEFAULT_MODULES_PER_THREAD;
+    options.defaultSymbolsPerThread = DEFAULT_SYMBOLS_PER_THREAD;
 
-    options.typer.maxScopeDepth = MAX_TYPER_SCOPE_DEPTH;
-
-    str.main  = ids.get(S("main"));
-    str.block = ids.get(S("block"));
-    str.tuple = ids.get(S("tuple"));
+    options.typer.maxScopeDepth  = MAX_TYPER_SCOPE_DEPTH;
 
     if (src_pass::run()) {
-        if (tok_pass::run()) {
+        if (src2tok_pass::run()) {
             if (syn_pass::run()) {
-                if (typ_pass::run()) {
+                if (stx2ast_pass::run()) {
+                    if (ast2ir_pass::run()) {
+                        if (ir2pe_pass::run()) {
 
+                        }
+                    }
                 }
             }
         }
     }
-    if (ast) {
-        ast->dispose();
-        ast = MemFree(ast);
-    }
-    if (syntax) {
-        syntax->dispose();
-        syntax = MemFree(syntax);
-    }
-    if (source) {
-        source->dispose();
-        source = MemFree(source);
-    }
+    pe  = MemDispose(pe);
+    ir  = MemDispose(ir);
+    ast = MemDispose(ast);
+    syntax = MemDispose(syntax);
+    source = MemDispose(source);
 
-    options.path.dispose();
+    options.path.sourceFolder.dispose();
+    options.path.outputFolder.dispose();
+}
+
+void Compiler::runBinaries() {
+
 }
 
 void Compiler::highlight(HighlightKind kind, const char *pass, const SourceLocation &loc,
@@ -406,9 +438,9 @@ static void makeHotSpots(const char *hotStart, const char *hotEnd,
         hot[0] = { lineStart, lineEnd, false };
         return;
     }
-    hot[0] = { lineStart, max(hotStart, lineStart), false };
-    hot[1] = { hotStart, min(hotEnd, lineEnd), true };
-    hot[2] = { min(hotEnd, lineEnd), lineEnd, false };
+    hot[0] = { lineStart,  max(hotStart, lineStart), false };
+    hot[1] = { hot[0].end, min(hotEnd, lineEnd),     true };
+    hot[2] = { hot[1].end, lineEnd,                  false };
 }
 
 void Compiler::highlightLine(HighlightKind kind, const SourceRange &hotRange, const Line &line) {
@@ -438,7 +470,11 @@ void Compiler::highlightLine(HighlightKind kind, const SourceRange &hotRange, co
             length = (int)(spot.end - spot.start);
             Assert(length >= 0);
             if (length == 0) {
-                trace("%cl#<underline red>", S("←"));
+                if (i) {
+                    trace("%cl#<red>", S("←"));
+                } else {
+                    trace("%cl#<red>", S("→"));
+                }
             } else if (spot.isHot) {
                 trace("%cl#<underline red>", spot.start, length);
             } else {
@@ -537,18 +573,21 @@ int unsignedSize(UINT64 n) {
     return sizeof(__int64);
 }
 
-namespace comp_pass {
+namespace compiler {
 void run(int compId) {
-    traceln("%cl#<underline yellow> is the %cl#<underline red> language compiler", S("exc"), S("exy"));
+    traceln("%cl#<underline yellow> is the %cl#<underline red> language compiler", 
+            S("exc"), S("exy"));
     traceln("Compid: %i#<magenta>", compId);
+    traceln("Thread: %u#<magenta>", GetCurrentThreadId());
 
     ids = Identifiers{};
     ids.initialize();
 
     comp = Compiler{};
-    comp.run();
+    comp.compile();
+    comp.runBinaries();
 
     ids.dispose();
 }
-} // namespace comp_pass
+} // namespace compiler
 } // namespace exy

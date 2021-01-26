@@ -15,7 +15,7 @@ struct WorkProvider {
     int     perBatch;
     SRWLOCK srw{};
 
-    WorkProvider(int perBatch) : perBatch(perBatch) {}
+    WorkProvider(int perBatch = 1) : perBatch(perBatch) {}
 };
 
 namespace aio {

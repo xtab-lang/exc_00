@@ -6,10 +6,12 @@
 #include "pch.h"
 #include "typer.h"
 
+#include "tp_import.h"
+
 #define err(loc, msg, ...) print_error("Import", loc, msg, __VA_ARGS__)
 
 namespace exy {
-namespace typ_pass {
+namespace stx2ast_pass {
 void Importer::visit(SyntaxImportOrExport *decl) {
 	Modifiers::validateImportOrExportModifiers(decl->modifiers);
 
@@ -21,7 +23,7 @@ void Importer::visit(SyntaxImportOrExport *decl) {
 	AstSymbol *importedSymbol{};
 	if (auto from = decl->from) {
 		if (auto sourceModule = findSourceModule(from)) {
-			importedSymbol = findSymbol(decl->name, sourceModule->scope);
+			importedSymbol = findSymbol(decl->name, sourceModule->ownScope);
 		}
 	} else {
 		importedSymbol = findSymbol(decl->name);
@@ -50,16 +52,16 @@ AstSymbol* Importer::findSymbol(SyntaxNode *node, AstScope *scope) {
 		if (auto found = scope->findThroughDot(name)) {
 			return checkForSelfImportOrExport(node->pos, found);
 		}
-		err(node, "identifier %s#<red> not found in %s#<green>", name, scope->name());
+		err(node, "identifier %s#<red> not found in %s#<green>", name, scope->owner->name);
 		return nullptr;
 	} if (node->kind == SyntaxKind::DotExpression) {
 		auto dotExpression = (SyntaxDotExpression*)node;
 		if (auto lhs = dotExpression->lhs) {
 			if (auto found = findSymbol(lhs)) {
-				if (scope = found->scope) {
+				if (scope = found->ownScope) {
 					return findSymbol(dotExpression->rhs, scope);
 				}
-				err(lhs, "name does not evaluate to a module in %s#<green>", scope->name());
+				err(lhs, "name does not evaluate to a module in %s#<green>", scope->owner->name);
 			}
 		}
 		err(dotExpression, "invalid lhs");
@@ -75,7 +77,7 @@ AstSymbol* Importer::findSymbol(SyntaxNode *node) {
 		auto dotExpression = (SyntaxDotExpression*)node;
 		if (auto lhs = dotExpression->lhs) {
 			if (auto found = findSymbol(lhs)) {
-				if (auto scope = found->scope) {
+				if (auto scope = found->ownScope) {
 					return findSymbol(dotExpression->rhs, scope);
 				}
 				err(lhs, "name does not evaluate to a module");
@@ -95,8 +97,6 @@ AstSymbol* Importer::findSymbol(Pos pos, Identifier name) {
 			return checkForSelfImportOrExport(pos, found);
 		}
 		scope = scope->parent;
-	} if (auto found = comp.ast->find(name)) {
-		return checkForSelfImportOrExport(pos, found);
 	}
 	err(pos, "identifier %s#<red> not found", name);
 	return nullptr;
@@ -132,7 +132,7 @@ AstSymbol* Importer::checkForSelfImportOrExport(Pos pos, AstSymbol *symbol) {
 			if (importedModule == parent) {
 				err(pos, "self-import/export");
 				return nullptr;
-			} if (auto scope = parent->scope->parent) {
+			} if (auto scope = parent->ownScope->parent) {
 				parent = (AstModule*)scope->owner;
 				Assert(!parent || tp.isa.Module(parent));
 			} else {
@@ -142,5 +142,5 @@ AstSymbol* Importer::checkForSelfImportOrExport(Pos pos, AstSymbol *symbol) {
 	}
 	return symbol;
 }
-} // namespace typ_pass
+} // namespace stx2ast_pass
 } // namespace exy

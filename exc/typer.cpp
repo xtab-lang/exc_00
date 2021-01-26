@@ -6,12 +6,14 @@
 #include "pch.h"
 #include "typer.h"
 
-#include "tp_cast.h"
+#include "tp_literal.h"
+#include "tp_import.h"
+#include "tp_variable.h"
 
 #define err(loc, msg, ...) print_error("Typer", loc, msg, __VA_ARGS__)
 
 namespace exy {
-namespace typ_pass {
+namespace stx2ast_pass {
 void ScopeStack::dispose() {
     list.dispose();
 }
@@ -28,19 +30,26 @@ void ScopeStack::pop(AstScope *scope) {
     Assert(last == scope);
 }
 //------------------------------------------------------------------------------------------------
+Typer::Typer() : tree(*comp.ast), mem(comp.ast->mem), mk(this), find(this) {
+    comp.typer = this;
+}
+
 void Typer::dispose() {
+    Assert(scopeStack.list.isEmpty());
     scopeStack.dispose();
     ldispose(_thrown);
     ldispose(_names);
     ldispose(_tpnames);
+    ldispose(_constants);
+    comp.typer = nullptr;
 }
 
 void Typer::run() {
-    for (auto i = 0; i < tree.symbols.length; ++i) {
-        if (auto sym = isa.Module(tree.symbols.items[i].value)) {
-            visitMain(sym);
-        }
-    }
+    traceln("\r\n%cl#<cyan|blue> { phase: %cl#<green>, thread: %u#<green> }",
+            S("typer"), S("building the AST"), GetCurrentThreadId());
+    visitMain(tree.global);
+    traceln("%cl#<cyan|blue> { errors: %i#<red>, modulesVisited: %i#<green> }",
+            S("typer"), comp.errors, stats.modulesVisited);
 }
 
 SourceLocation Typer::mkpos(SyntaxNode *node) {
@@ -62,12 +71,28 @@ AstModule* Typer::currentModule() {
     Unreachable();
 }
 
+AstModule* Typer::moduleOf(AstSymbol *symbol) {
+    if (!symbol) {
+        return nullptr;
+    } 
+    auto scope = symbol->ownScope ? symbol->ownScope : symbol->parentScope;
+    while (scope) {
+        if (auto mod = isa.Module(scope->owner)) {
+            return mod;
+        }
+        scope = scope->parent;
+    }
+    return nullptr;
+}
+
 bool Typer::visitMain(AstModule *sym) {
     auto errors = comp.errors;
-    if (sym->name == comp.str.main) {
+    if (sym->name == ids.main) {
         visitModule(sym);
-    } for (auto i = 0; i < sym->scope->symbols.length; ++i) {
-        if (auto child = isa.Module(sym->scope->symbols.items[i].value)) {
+    } 
+    auto &symbols = sym->ownScope->symbols;
+    for (auto i = 0; i < symbols.length; ++i) {
+        if (auto child = isa.Module(symbols.items[i].value)) {
             visitMain(child);
         }
     }
@@ -76,17 +101,19 @@ bool Typer::visitMain(AstModule *sym) {
 
 bool Typer::visitModule(AstModule *sym) {
     auto errors = comp.errors;
-    if (sym->status.isIdle()) {
-        if (scopeStack.push(sym->scope)) {
+    auto  scope = sym->ownScope;
+    if (scope->status.isIdle()) {
+        if (scopeStack.push(scope)) {
             traceln("enter %cl#<cyan> %s#<green>", S("module"), sym->dotName);
-            sym->status.begin();
+            scope->status.begin();
             for (auto i = 0; i < sym->syntax.length; ++i) {
                 auto file = sym->syntax.items[i];
                 visitStatements(file->nodes);
             }
-            sym->status.end();
-            scopeStack.pop(sym->scope);
-            traceln("exit %cl#<cyan> %s#<green>", S("module"), sym->dotName);
+            scope->status.end();
+            scopeStack.pop(scope);
+            //traceln("exit %cl#<cyan> %s#<green>", S("module"), sym->dotName);
+            ++stats.modulesVisited;
         }
     }
     return errors == comp.errors;
@@ -115,7 +142,7 @@ bool Typer::visitStatement(SyntaxNode *syntax) {
 
         case SyntaxKind::Import:
         case SyntaxKind::Export: {
-            imp.visit((SyntaxImportOrExport*)syntax);
+            Importer(this).visit((SyntaxImportOrExport*)syntax);
         } break;
 
         case SyntaxKind::CommaList: {
@@ -131,9 +158,11 @@ bool Typer::visitStatement(SyntaxNode *syntax) {
                 }
             }
         } break;
-        default: if (auto expr = visitExpression(syntax)) {
-            if (isa.Name(expr) || isa.TypeName(expr)) {
-                throwAway(expr);
+        default: if (auto node = visitExpression(syntax)) {
+            if (isa.Name(node) || isa.TypeName(node) || isa.Constant(node)) {
+                throwAway(node);
+            } else {
+                currentScope()->nodes.append(node);
             }
         } break;
     }
@@ -150,7 +179,7 @@ AstNode* Typer::visitExpression(SyntaxNode *syntax) {
         } break;
 
         case SyntaxKind::NameValue: if (syntax->modifiers) {
-            return var.visit((SyntaxNameValue*)syntax);
+            return Variable(this).visit((SyntaxNameValue*)syntax);
         } else {
             Assert(0);
         } break;
@@ -194,5 +223,5 @@ AstNode* Typer::visitUnarySuffix(SyntaxUnarySuffix *syntax) {
     }
     return throwAway(value);
 }
-} // namespace typ_pass
+} // namespace stx2ast_pass
 } // namespace exy

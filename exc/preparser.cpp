@@ -8,9 +8,10 @@
 
 #include "source.h"
 
-namespace exy {
 #define err(token, msg, ...) print_error("PreParser", token, msg, __VA_ARGS__)
 
+namespace exy {
+namespace src2tok_pass {
 //------------------------------------------------------------------------------------------------
 static Dict<Keyword> keywords{};
 
@@ -427,7 +428,7 @@ struct PreParser {
         }*/
     }
 };
-namespace tok_pass {
+
 void preparse() {
     initializeKeywords();
     SourceFileProvider provider{};

@@ -6,10 +6,12 @@
 #include "pch.h"
 #include "typer.h"
 
+#include "tp_variable.h"
+
 #define err(token, msg, ...) print_error("Variable", token, msg, __VA_ARGS__)
 
 namespace exy {
-namespace typ_pass {
+namespace stx2ast_pass {
 Variable::Node Variable::visit(Decl decl) {
     tp.mods.validateVariableModifiers(decl->modifiers);
     if (decl->name->kind == SyntaxKind::Identifier) {
@@ -62,10 +64,10 @@ Variable::Node Variable::make(Loc loc, Mods modifiers, Name name, Node rhs) {
     auto kind = getKind(modifiers);
     switch (kind) {
         case AstKind::Global: {
-            if (auto global = tp.mk.global(tp.mkpos(name), name->value, rhs)) {
-                return tp.mk.name(loc, global);
+            if (auto  global = tp.mk.global(tp.mkpos(name), name->value, rhs->type)) {
+                return tp.mk.definition(loc, global, rhs);
             }
-        } return nullptr;
+        } break;
         default: {
             err(name, "make: not implemented");
         } break;
@@ -92,37 +94,34 @@ Variable::Node Variable::make(Loc loc, Mods modifiers, Name name, Type type, Nod
     auto kind = getKind(modifiers);
     switch (kind) {
         case AstKind::Global: {
-            if (rhs = tp.mk.explicitCast(loc, rhs, type)) {
-                if (auto global = tp.mk.global(tp.mkpos(name), name->value, rhs)) {
-                    return tp.mk.name(loc, global);
-                }
+            if (auto  global = tp.mk.global(tp.mkpos(name), name->value, type)) {
+                return tp.mk.definition(loc, global, rhs);
             }
-        } return nullptr;
+        } break;
         default: {
             err(name, "make: not implemented");
         } break;
     }
-    return nullptr;
+    return tp.throwAway(rhs);
 }
 
-Variable::Node Variable::make(Loc, Mods modifiers, Tuple tuple, Node rhs) {
+Variable::Node Variable::make(Loc loc, Mods modifiers, Tuple tuple, Node rhs) {
     auto  kind = getKind(modifiers);
     switch (kind) {
         case AstKind::Global: {
             auto errors = 0;
             for (auto i = 0; i < tuple->nodes.length; ++i) {
                 auto name = (Name)tuple->nodes.items[i];
-                if (auto global = tp.mk.global(tp.mkpos(name), name->value, rhs)) {
-                    // DO NOTHING.
-                } else {
-                    ++errors;
+                if (auto global = tp.mk.global(tp.mkpos(name), name->value, rhs->type)) {
+                    return tp.mk.definition(loc, global, rhs);
                 }
+                ++errors;
             } if (!errors) {
                 return nullptr;
             }
         } break;
         default: {
-            err(tuple, "make: not implemented");
+            err(tuple, "not implemented");
         } break;
     }
     return tp.throwAway(rhs);
@@ -136,7 +135,8 @@ AstKind Variable::getKind(Mods modifiers) {
             return AstKind::Global;
         }
     }
-    return AstKind::Local;
+    Assert(0);
+    return AstKind::Global;
 }
-} // namespace typ_pass
+} // namespace stx2ast_pass
 } // namespace exy

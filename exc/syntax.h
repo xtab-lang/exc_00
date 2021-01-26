@@ -272,7 +272,7 @@ struct SyntaxLiteral : SyntaxNode {
         BYTE   utf8[4];
         INT8   i8;
         UINT8  u8;
-        INT32  i16;
+        INT16  i16;
         UINT16 u16;
         INT32  i32;
         UINT32 u32;

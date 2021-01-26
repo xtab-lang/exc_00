@@ -17,36 +17,37 @@ struct AstNode;
 
 #define DeclareAstTypeSymbols(ZM)   \
     ZM(Builtin)                     \
-    ZM(Module)                      \
-    /* Aliases */                   \
-    ZM(TypeAlias)
+    ZM(Module)
+
+#define DeclareAstAliasSymbols(ZM)  \
+    ZM(TypeAlias)                   \
+    ZM(ValueAlias)                  \
+    ZM(ConstAlias)
+struct AstAlias;
 
 #define DeclareAstValueSymbols(ZM)  \
-    /* Aliases */                   \
-    ZM(ValueAlias)                  \
-    ZM(ConstAlias)                  \
-    /* Variables */                 \
-    ZM(Global)                      \
-    ZM(Local)                       \
-    ZM(FnParam)                     \
-    ZM(Field)
+    ZM(Global)
 
 #define DeclareAstSymbols(ZM)   \
     DeclareAstTypeSymbols(ZM)   \
+    DeclareAstAliasSymbols(ZM)  \
     DeclareAstValueSymbols(ZM)
 
 #define DeclareAstNames(ZM)     \
     ZM(Name)                    \
     ZM(TypeName)
-struct AstName;
 
 #define DeclareAstNodes(ZM)     \
-    ZM(Scope)                   \
-    ZM(Binary)                  \
-    ZM(Cast)                    \
-    ZM(Constant)                \
     /* Symbols */               \
     DeclareAstSymbols(ZM)       \
+    /* Scope */                 \
+    ZM(Scope)                   \
+    /* Operations */            \
+    ZM(Definition)              \
+    ZM(Binary)                  \
+    ZM(Cast)                    \
+    /* Constants */             \
+    ZM(Constant)                \
     /* Names */                 \
     DeclareAstNames(ZM)
 
@@ -57,14 +58,14 @@ enum class AstKind {
 };
 
 #define ZM(zName) struct Ast##zName;
- DeclareAstNodes(ZM)
+    DeclareAstNodes(ZM)
 #undef ZM
 //----End forward declarations
 
 //------------------------------------------------------------------------------------------------
 struct AstTree {
     Mem                   mem;
-    Dict<AstSymbol*>      symbols;
+    AstModule            *global;
     Dict<AstType, UINT64> ptrs;
     Dict<AstType, UINT64> refs;
 
@@ -75,7 +76,6 @@ struct AstTree {
 
     void initialize(Loc);
     void dispose();
-    AstSymbol* find(Identifier);
 };
 
 struct AstNode {
@@ -99,59 +99,50 @@ struct AstScope : AstNode {
     using ParentScope = AstScope*;
     using ScopeOwner  = Symbol;
 
+    SourceLocation   open;
+    SourceLocation   close;
     Dict<AstSymbol*> symbols;
     List<AstSymbol*> others;
     Nodes            nodes;
     ScopeOwner       owner;
     ParentScope      parent;
+    Status           status;
 
-    AstScope(AstModule *owner);
-    AstScope(ScopeOwner owner, ParentScope parent);
+    AstScope(Loc open, Loc close, ScopeOwner owner, ParentScope parent);
     void dispose() override;
     AstSymbol* find(Identifier);
     AstSymbol* findThroughDot(Identifier);
-    Identifier name();
     void append(Node);
+    bool isEmpty() { return nodes.isEmpty(); }
+    bool isNotEmpty() { return nodes.isNotEmpty(); }
 };
 //------------------------------------------------------------------------------------------------
 // Symbols
 struct AstSymbol : AstNode {
-    struct Status {
-        enum Value { None, Busy, Done };
-        Value value;
-
-        bool isIdle() const { return value == None; }
-        bool isBusy() const { return value == Busy; }
-        bool isDone() const { return value == Done; }
-
-        void begin() { Assert(isIdle()); value = Busy; }
-        void end()   { Assert(isBusy()); value = Done; }
-    };
     using ParentScope = AstScope*;
     using OwnScope    = AstScope*;
 
-    ParentScope  parent; // The scope containing this symbol.
-    OwnScope     scope;  // The scope created by this symbol.
+    ParentScope  parentScope; // The scope containing this symbol.
+    OwnScope     ownScope;    // The scope created by this symbol.
     Identifier   name;
-    Status       status;
-    int          padding; // Padding after symbol in scope.
 
-    AstSymbol(Loc loc, Kind kind, Type type, ParentScope parent, Identifier name);
+    AstSymbol(Loc loc, Kind kind, Type type, ParentScope parentScope, Identifier name);
     void dispose() override;
 };
 
 struct AstBuiltin : AstSymbol {
     Keyword keyword;
 
-    AstBuiltin(Loc loc, Identifier name, Keyword keyword);
+    AstBuiltin(Loc loc, ParentScope parent, Identifier name, Keyword keyword)
+        : AstSymbol(loc, Kind::Builtin, AstType(this), parent, name), keyword(keyword) {}
 };
 
 struct AstModule : AstSymbol {
     Identifier        dotName;
     List<SyntaxFile*> syntax;
 
-    AstModule(Loc loc, Identifier name, Identifier dotName, List<SyntaxFile*>&);
-    AstModule(Loc loc, ParentScope parent, Identifier name, Identifier dotName, List<SyntaxFile*>&);
+    AstModule(Loc loc, ParentScope parent, Identifier name, Identifier dotName, 
+              List<SyntaxFile*>&, SyntaxFile *main);
     void dispose() override;
 };
 //------------------------------------------------------------------------------------------------
@@ -159,6 +150,7 @@ struct AstModule : AstSymbol {
 enum class AstAliasKind {
     Import, Export, TyParam, Let
 };
+
 struct AstAlias : AstSymbol {
     AstAliasKind decl;
 
@@ -181,7 +173,8 @@ struct AstValueAlias : AstAlias {
 struct AstConstAlias : AstAlias {
     AstConstant *value;
 
-    AstConstAlias(Loc loc, AstAliasKind decl, ParentScope parent, Identifier name, AstConstant *value);
+    AstConstAlias(Loc loc, AstAliasKind decl, ParentScope parent, Identifier name, AstConstant *value) 
+        : AstAlias(loc, Kind::ConstAlias, decl, type, parent, name), value(value) {}
 };
 //------------------------------------------------------------------------------------------------
 // Variables
@@ -191,30 +184,20 @@ struct AstVariable : AstSymbol {
 };
 
 struct AstGlobal : AstVariable {
-    Node value;
     AstGlobal(Loc loc, Type type, ParentScope parent, Identifier name) 
         : AstVariable(loc, Kind::Global, type, parent, name) {}
-    AstGlobal(Loc loc, ParentScope parent, Identifier name, Node value) 
-        : AstVariable(loc, Kind::Global, value->type, parent, name), value(value) {}
-    void dispose() override;
-};
-
-struct AstLocal : AstVariable {
-    AstLocal(Loc loc, Type type, ParentScope parent, Identifier name) 
-        : AstVariable(loc, Kind::Local, type, parent, name) {}
-};
-
-struct AstFnParam : AstVariable {
-    AstFnParam(Loc loc, Type type, ParentScope parent, Identifier name) 
-        : AstVariable(loc, Kind::FnParam, type, parent, name) {}
-};
-
-struct AstField : AstVariable {
-    AstField(Loc loc, Type type, ParentScope parent, Identifier name) 
-        : AstVariable(loc, Kind::Field, type, parent, name) {}
 };
 //------------------------------------------------------------------------------------------------
-// Binary operations.
+// Definition.
+struct AstDefinition : AstNode {
+    AstName *lhs;
+    Node     rhs;
+
+    AstDefinition(Loc loc, AstName *lhs, Node rhs);
+    void dispose() override;
+};
+//------------------------------------------------------------------------------------------------
+// Non-definition binary operations.
 struct AstBinary : AstNode {
     Node lhs;
     Node rhs;
@@ -260,56 +243,6 @@ struct AstConstant : AstNode {
     }; 
     AstConstant(Loc loc, Type type, UINT64 u64) 
         : AstNode(loc, Kind::Constant, type), u64(u64) {}
-};
-
-struct AstVoid : AstConstant {
-    AstVoid(Loc loc) 
-        : AstConstant(loc, AstType(comp.ast->tyVoid), 0ui64) {}
-};
-
-struct AstNull : AstConstant {
-    AstNull(Loc loc) 
-        : AstConstant(loc, comp.ast->tyNull, 0ui64) {}
-};
-
-struct AstChar : AstConstant {
-    AstChar(Loc loc, char ch) 
-        : AstConstant(loc, comp.ast->tyChar, UINT64(UINT8(ch))) {}
-};
-
-struct AstBool : AstConstant {
-    AstBool(Loc loc, bool b) 
-        : AstConstant(loc, comp.ast->tyBool, UINT64(UINT8(b))) {}
-};
-
-struct AstWChar : AstConstant {
-    AstWChar(Loc loc, wchar_t ch) 
-        : AstConstant(loc, comp.ast->tyWChar, UINT64(UINT16(ch))) {}
-};
-
-struct AstUtf8 : AstConstant {
-    AstUtf8(Loc loc, UINT32 u32) 
-        : AstConstant(loc, comp.ast->tyUtf8, UINT64(u32)) {}
-};
-
-struct AstSignedInt : AstConstant {
-    AstSignedInt(Loc loc, Type type, INT64 i64) 
-        : AstConstant(loc, type, UINT64(i64)) {}
-};
-
-struct AstUnsignedInt : AstConstant {
-    AstUnsignedInt(Loc loc, Type type, UINT64 u64) 
-        : AstConstant(loc, type, u64) {}
-};
-
-struct AstFloat : AstConstant {
-    AstFloat(Loc loc, float f32) 
-        : AstConstant(loc, comp.ast->tyFloat, UINT64(meta::reinterpret<UINT32>(f32))) {}
-};
-
-struct AstDouble : AstConstant {
-    AstDouble(Loc loc, double f64) 
-        : AstConstant(loc, comp.ast->tyDouble, meta::reinterpret<UINT64>(f64)) {}
 };
 //------------------------------------------------------------------------------------------------
 // Names

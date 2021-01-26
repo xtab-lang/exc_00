@@ -8,7 +8,7 @@
 #define PREPARSER_H_
 
 namespace exy {
-namespace tok_pass {
+namespace src2tok_pass {
 void preparse();
 } // namespace tok_pass
 } // namespace exy

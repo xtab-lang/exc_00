@@ -1,16 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // author: exy.lang
-//   date: 2020-12-08
+//   date: 2021-01-19
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-#ifndef TOK_PASS_H_
-#define TOK_PASS_H_
+#include "pch.h"
+#include "register.h"
 
 namespace exy {
-namespace tok_pass {
-bool run();
-} // namespace tok_pass
+constexpr int sz = sizeof(Register);
 } // namespace exy
-
-#endif // TOK_PASS_H_

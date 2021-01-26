@@ -18,7 +18,7 @@
 #include <windef.h>
 #include <WinBase.h>
 #include <stdlib.h>
-#include <new.h>
+#include <new>
 
 #pragma warning(disable: 26495)
 
@@ -34,12 +34,39 @@
 /* warning 4706: assignment within conditional expression */
 //#pragma warning(disable: 26495)
 
+/* unscoped enum blah! blah! blah! */
+#pragma warning(disable: 26812)
+
 #define S(text) (text), ((int)__crt_countof(text) - 1)
 
 constexpr auto cstrlen(const char *text) { return text ? (int)strlen(text) : 0; }
 
 constexpr int numbufcap = 1024;
 static thread_local char numbuf[numbufcap];
+
+constexpr int SizeOfPointer = sizeof(void*);
+
+template<typename T>
+struct Atomic {
+    SRWLOCK srw{};
+    T       value{};
+
+    T operator++() {
+        auto result = value;
+        AcquireSRWLockExclusive(&srw);
+        result = value++;
+        ReleaseSRWLockExclusive(&srw);
+        return result;
+    }
+
+    T operator--() {
+        auto result = value;
+        AcquireSRWLockExclusive(&srw);
+        result = value--;
+        ReleaseSRWLockExclusive(&srw);
+        return result;
+    }
+};
 
 #include "lib.h"
 #include "compiler.h"
