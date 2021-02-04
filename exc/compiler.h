@@ -12,6 +12,21 @@ namespace compiler {
 void run(int compId);
 } // namespace compiler
 
+#define DeclareBinaryKinds(ZM) \
+    ZM(Console, "console") \
+    ZM(Windows, "windows") \
+    ZM(Service, "service") \
+    ZM(Dll,     "dll")
+
+enum class BinaryKind {
+    None,
+#define ZM(zName, zText) zName,
+    DeclareBinaryKinds(ZM)
+#undef ZM
+};
+
+String binaryKind2Text(BinaryKind);
+
 #define DeclareBuiltinTypeKeywords(ZM)   \
 /* Type declaration keywords. */         \
     /* Non-SIMD types. */                \
@@ -311,8 +326,6 @@ struct AstNode;
 struct IrTree;
 struct IrNode;
 
-struct PeTree;
-
 namespace stx2ast_pass {
 struct Typer;
 }
@@ -389,7 +402,6 @@ struct Compiler {
     AstTree    *ast{};
     IrTree     *ir{};
     stx2ast_pass::Typer *typer{};
-    PeTree     *pe;
     int         errors{};
     int         warnings{};
     int         infos{};
@@ -397,6 +409,13 @@ struct Compiler {
         struct {
             String sourceFolder;
             String outputFolder;
+            String dumpFolder;
+            struct {
+                String ast;
+                String ir;
+                String ssa;
+                String regalloc;
+            } dump;
         } path;
         int    maxFileSize;
         int    defaultFilesPerThread;
@@ -406,6 +425,8 @@ struct Compiler {
             int maxScopeDepth;
         } typer;
     } options;
+
+    void error(const char*, const char*, const char*, int, const char*, ...);
 
     void error(const char*, const SourceToken*, const char*, const char*, int, const char*, ...);
     void error(const char*, const SourceToken&, const char*, const char*, int, const char*, ...);
@@ -423,6 +444,9 @@ private:
         Warning,
         Info
     };
+    void highlight(HighlightKind, const char*, const char*, const char*, int, const char*, va_list);
+    void printMessage(HighlightKind, const char*, const char*, va_list);
+    
     void highlight(HighlightKind, const char*, const SourceLocation&, const char*, const char*, int, const char*, va_list);
     void printMessage(HighlightKind, const char*, const SourceLocation&, const char*, va_list);
     void printCppLocation(const char *cppFile, const char *cppFunc, int cppLine);
@@ -472,6 +496,7 @@ void ldispose(Dict<T*> &dict) {
 }
 
 #define print_error(pass, token, msg, ...) comp.error((pass), (token), __FILE__, __FUNCTION__, __LINE__, (msg), __VA_ARGS__)
+#define print_error_noloc(pass, msg, ...) comp.error((pass), __FILE__, __FUNCTION__, __LINE__, (msg), __VA_ARGS__)
 
 int signedSize(INT64 n);
 int unsignedSize(UINT64 n);

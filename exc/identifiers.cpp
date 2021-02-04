@@ -17,6 +17,7 @@ void Identifiers::initialize() {
     dot.data    = get(S(".data"));
     dot.idata   = get(S(".idata"));
     dot.edata   = get(S(".edata"));
+    dot.string  = get(S(".string"));
     dot.stack   = get(S(".stack"));
 }
 

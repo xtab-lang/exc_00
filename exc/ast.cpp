@@ -18,7 +18,7 @@ AstType AstTree::tyNull{};
 //------------------------------------------------------------------------------------------------
 void AstTree::initialize(Loc loc) {
     List<SyntaxFile*> noFiles{};
-    global = mem.New<AstModule>(loc, nullptr, ids.main, ids.main, noFiles, nullptr);
+    global = mem.New<AstModule>(loc, nullptr, ids.main, ids.main, noFiles, nullptr, BinaryKind::Console);
     auto scope = global->ownScope;
 #define ZM(zName, zSize) ty##zName = mem.New<AstBuiltin>(loc, scope, ids.get(S(#zName)), Keyword::zName );
     DeclareBuiltinTypeKeywords(ZM)
@@ -112,8 +112,8 @@ void AstSymbol::dispose() {
 }
 //------------------------------------------------------------------------------------------------
 AstModule::AstModule(Loc loc, ParentScope parent, Identifier name, Identifier dotName,
-                     List<SyntaxFile*> &files, SyntaxFile *main) 
-    : AstSymbol(loc, Kind::Module, AstType(this), parent, name), dotName(dotName) {
+                     List<SyntaxFile*> &files, SyntaxFile *main, BinaryKind binaryKind) 
+    : AstSymbol(loc, Kind::Module, AstType(this), parent, name), dotName(dotName), binaryKind(binaryKind) {
     auto &mem = comp.ast->mem;
     if (files.isNotEmpty()) {
         if (!main) {

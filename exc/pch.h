@@ -44,7 +44,15 @@ constexpr auto cstrlen(const char *text) { return text ? (int)strlen(text) : 0; 
 constexpr int numbufcap = 1024;
 static thread_local char numbuf[numbufcap];
 
+constexpr int SizeOfZmm     = 0x40;
+constexpr int SizeOfYmm     = 0x20;
+constexpr int SizeOfXmm     = 0x10;
+constexpr int SizeOfDouble  = sizeof(double);
+constexpr int SizeOfFloat   = sizeof(float);
 constexpr int SizeOfPointer = sizeof(void*);
+constexpr int SizeOfInt     = sizeof(INT32);
+constexpr int SizeOfWord    = sizeof(INT16);
+constexpr int SizeOfByte    = sizeof(INT8);
 
 template<typename T>
 struct Atomic {

@@ -44,6 +44,9 @@ struct String {
     String getFullFileName() const;
     String getFileName() const;
     String getFileExtension() const;
+
+    bool ensureFolderExists() const;
+    bool ensureFileExistsAndTruncate() const;
 };
 
 using Identifier = const String*;

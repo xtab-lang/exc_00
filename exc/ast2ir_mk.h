@@ -22,8 +22,10 @@ struct Make {
     IrSymbol* symbolOf(AstSymbol*);
     IrType typeOf(const AstType&);
     IrBlock* block(Loc, Identifier = ids.block);
-    IrConstant* constant(Loc, Type, UINT64 u64);
-    IrPath* path(Loc, IrNode *base, IrNode *index);
+
+    IrNode* exit(Loc);
+    IrNode* constant(Loc, Type, UINT64 u64);
+    IrNode* path(Loc, IrNode *base, IrNode *index);
     IrNode* assign(Loc, IrNode *lhs, IrNode *rhs);
     IrNode* cast(Loc, Type dst, IrNode *src);
 };

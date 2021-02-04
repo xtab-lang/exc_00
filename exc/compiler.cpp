@@ -10,12 +10,14 @@
 #include "syn_pass.h"
 #include "stx2ast_pass.h"
 #include "ast2ir_pass.h"
-#include "ir2pe_pass.h"
+#include "opt_pass.h"
+#include "regalloc_pass.h"
+#include "codegen_pass.h"
+#include "linker_pass.h"
 
 #include "source.h"
 #include "typer.h" // Includes "ast.h"
 #include "ir.h"
-#include "pe.h"
 
 #define ROOT_FOLDER                 "D:\\c\\exc\\source"
 #define MAX_FILE_SIZE               0x10000
@@ -28,6 +30,14 @@
 #define DOTS                       2
 
 namespace exy {
+String binaryKind2Text(BinaryKind binaryKind) {
+    switch (binaryKind) {
+    #define ZM(zName, zText) case BinaryKind::zName: return { S(zText) };
+        DeclareBinaryKinds(ZM)
+    #undef ZM
+    default: Unreachable();
+    }
+}
 //------------------------------------------------------------------------------------------------
 SourceLocation& SourceLocation::operator=(const SourceLocation &other)  {
     struct Dummy { SourceFile *file; SourceRange range; };
@@ -129,6 +139,15 @@ String SourceToken::value(Keyword k) {
     return {};
 }
 //------------------------------------------------------------------------------------------------
+void Compiler::error(const char *pass,
+                     const char *cppFile, const char *cppFunc, int cppLine,
+                     const char *fmt, ...) {
+    va_list ap{};
+    __crt_va_start(ap, fmt);
+    highlight(HighlightKind::Error, pass, cppFile, cppFunc, cppLine, fmt, ap);
+    __crt_va_end(ap);
+}
+
 void Compiler::error(const char *pass, const SourceToken *pos,
                      const char *cppFile, const char *cppFunc, int cppLine,
                      const char *fmt, ...) {
@@ -200,6 +219,16 @@ void Compiler::compile() {
     options.path.sourceFolder.append(ROOT_FOLDER);
     options.path.outputFolder = {};
     options.path.outputFolder.append(ROOT_FOLDER).append(S("\\.bin"));
+    options.path.dumpFolder = {};
+    options.path.dumpFolder.append(ROOT_FOLDER).append(S("\\.dump"));
+    options.path.dump.ast = {};
+    options.path.dump.ast.append(ROOT_FOLDER).append(S("\\.ast"));
+    options.path.dump.ir = {};
+    options.path.dump.ir.append(ROOT_FOLDER).append(S("\\.ir"));
+    options.path.dump.ssa = {};
+    options.path.dump.ssa.append(ROOT_FOLDER).append(S("\\.ssa"));
+    options.path.dump.regalloc = {};
+    options.path.dump.regalloc.append(ROOT_FOLDER).append(S("\\.regalloc"));
     options.maxFileSize             = MAX_FILE_SIZE;
     options.defaultFilesPerThread   = DEFAULT_FILES_PER_THREAD;
     options.defaultModulesPerThread = DEFAULT_MODULES_PER_THREAD;
@@ -207,20 +236,30 @@ void Compiler::compile() {
 
     options.typer.maxScopeDepth  = MAX_TYPER_SCOPE_DEPTH;
 
-    if (src_pass::run()) {
-        if (src2tok_pass::run()) {
-            if (syn_pass::run()) {
-                if (stx2ast_pass::run()) {
-                    if (ast2ir_pass::run()) {
-                        if (ir2pe_pass::run()) {
-
+    // Ensure that folders exist.
+    if (!options.path.outputFolder.ensureFolderExists()) {
+        traceln("cannot create or open %s#<yellow|underline>", &options.path.outputFolder);
+        ++comp.errors;
+    } if (!comp.errors) {
+        if (src_pass::run()) {
+            if (src2tok_pass::run()) {
+                if (syn_pass::run()) {
+                    if (stx2ast_pass::run()) {
+                        if (ast2ir_pass::run()) {
+                            if (opt_pass::run()) {
+                                if (regalloc_pass::run()) {
+                                    if (codegen_pass::run()) {
+                                        if (linker_pass::run()) {
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
     }
-    pe  = MemDispose(pe);
     ir  = MemDispose(ir);
     ast = MemDispose(ast);
     syntax = MemDispose(syntax);
@@ -228,10 +267,44 @@ void Compiler::compile() {
 
     options.path.sourceFolder.dispose();
     options.path.outputFolder.dispose();
+    options.path.dumpFolder.dispose();
+    options.path.dump.ast.dispose();
+    options.path.dump.ir.dispose();
+    options.path.dump.ssa.dispose();
+    options.path.dump.regalloc.dispose();
 }
 
 void Compiler::runBinaries() {
 
+}
+
+void Compiler::highlight(HighlightKind kind, const char *pass,
+                         const char *cppFile, const char *cppFunc, int cppLine,
+                         const char *fmt, va_list vargs) {
+    auto stream = getConsoleFormatStream();
+    stream.lock();
+    printMessage(kind, pass, fmt, vargs);
+    printCppLocation(cppFile, cppFunc, cppLine);
+    stream.unlock();
+}
+
+void Compiler::printMessage(HighlightKind kind, const char *pass, const char *fmt, va_list vargs) {
+    switch (kind) {
+    case HighlightKind::Error: {
+        trace("%c#<red>%cl#<red>: ", pass, S("Error"));
+        ++errors;
+    } break;
+    case HighlightKind::Warning: {
+        trace("%c#<yellow>%cl#<yellow>: ", pass, S("Warning"));
+        ++warnings;
+    } break;
+    case HighlightKind::Info: {
+        trace("%c#<green>%cl#<green>: ", pass, S("Info"));
+        ++infos;
+    } break;
+    default: Assert(0);  break;
+    }
+    vprintln(nullptr, fmt, vargs);
 }
 
 void Compiler::highlight(HighlightKind kind, const char *pass, const SourceLocation &loc,

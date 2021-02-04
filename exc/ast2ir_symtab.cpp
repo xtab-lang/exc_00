@@ -17,16 +17,14 @@ void SymbolTable::dispose() {
 IrBuiltin* SymbolTable::append(IrModule *parent, AstBuiltin *ast) {
 	auto name = fullNameOf(ast);
 	auto &mem = comp.ir->mem;
-	auto   ir = mem.New<IrBuiltin>(ast->loc, name, ast->keyword);
-	parent->symbols.append(ir);
+	auto   ir = mem.New<IrBuiltin>(ast->loc, parent->data, name, ast->keyword);
 	list.append(UINT64(ast), { parent, ast, ir });
 	return ir;
 }
 
 IrModule* SymbolTable::append(AstModule *ast) {
 	auto &mem = comp.ir->mem;
-	auto   ir = mem.New<IrModule>(ast->loc, ast->dotName);
-	comp.ir->modules.append(ir);
+	auto   ir = mem.New<IrModule>(ast->loc, ast->dotName, ast->binaryKind);
 	list.append(UINT64(ast), { nullptr, ast, ir });
 	return ir;
 }
@@ -34,8 +32,7 @@ IrModule* SymbolTable::append(AstModule *ast) {
 IrGlobal* SymbolTable::append(IrModule *parent, AstGlobal *ast, const IrType &type) {
 	auto name = fullNameOf(ast);
 	auto &mem = comp.ir->mem;
-	auto   ir = mem.New<IrGlobal>(ast->loc, type, name);
-	parent->symbols.append(ir);
+	auto   ir = mem.New<IrGlobal>(ast->loc, parent->data, type, name);
 	list.append(UINT64(ast), { parent, ast, ir });
 	return ir;
 }
@@ -145,8 +142,7 @@ IrBuiltin* SymbolTableBuilder::visitBuiltin(AstBuiltin *ast) {
 
 IrModule* SymbolTableBuilder::visitModule(AstModule *ast) {
 	auto ir = symtab.append(ast);
-	ir->entry = mem.New<IrFunction>(ast->loc, ast->name, typeOf(comp.ast->tyVoid));
-	ir->symbols.append(ir->entry);
+	ir->entry = mem.New<IrFunction>(ast->loc, ir->code, ast->name, typeOf(comp.ast->tyVoid));
 	visitScope(ast->ownScope);
 	return ir;
 }

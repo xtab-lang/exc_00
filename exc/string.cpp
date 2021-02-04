@@ -156,4 +156,26 @@ String String::getFileExtension() const {
     return {};
 }
 
+bool String::ensureFolderExists() const {
+    if (text && length > 0) {
+        if (CreateDirectory(text, nullptr)) {
+            return true;
+        }
+        return GetLastError() == ERROR_ALREADY_EXISTS;
+    }
+    return false;
+}
+
+bool String::ensureFileExistsAndTruncate() const {
+    auto handle = CreateFile(text, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (handle != INVALID_HANDLE_VALUE) {
+        auto res = SetFilePointer(handle, 0, nullptr, FILE_BEGIN);
+        if (!CloseHandle(handle)) {
+            return false;
+        }
+        return res != INVALID_SET_FILE_POINTER;
+    }
+    return false;
+}
+
 } // namespace exy

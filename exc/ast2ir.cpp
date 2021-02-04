@@ -37,13 +37,13 @@ struct SymbolConsumer {
     auto next(Symbol &symbol) {
         switch (symbol.ast->kind) {
         case AstKind::Builtin: {
-            BuiltinTranslator tp{ symtab, symbol };
+            Builtin tp{ symtab, symbol };
             tp.translate();
             tp.dispose();
         } break;
 
         case AstKind::Module: {
-            ModuleTranslator tp{ symtab, symbol };
+            Module tp{ symtab, symbol };
             tp.translate();
             tp.dispose();
         } break;
@@ -52,26 +52,29 @@ struct SymbolConsumer {
             break; // Do nothing.
 
         default: {
-            err(symbol.ast, "%ast not implemented", symbol.ast->kind);
+            err(symbol.ast, "ast → ir for %ast not implemented", symbol.ast->kind);
         } break;
         }
     }
 };
 //------------------------------------------------------------------------------------------------
-void ModuleTranslator::dispose() {
+void Module::dispose() {
     ldispose(freeBlocks);
 }
 
-void ModuleTranslator::translate() {
+void Module::translate() {
     traceln("ast → ir %type @thread(%i#<bold>)", &symbol.ast->type, GetCurrentThreadId());
     auto ast = (AstModule*)symbol.ast;
     auto  ir = (IrModule*)symbol.ir;
-    FunctionTranslator tp{ this, ir->entry, ast->ownScope };
+    Function tp{ this, ir->entry, ast->ownScope };
     tp.translate();
     tp.dispose();
 }
 //------------------------------------------------------------------------------------------------
-void FunctionTranslator::translate() {
+void Function::dispose() {
+}
+
+void Function::translate() {
     Scope sc{ this };
     exit = sc.mk.block(scope->close, ids.exit);
     sc.block = sc.mk.block(scope->open, ids.entry);
@@ -80,12 +83,15 @@ void FunctionTranslator::translate() {
 }
 //------------------------------------------------------------------------------------------------
 void Scope::dispose() {
-    if (fn.body.isEmpty()) {
-        fn.body.append(block);
-        fn.parent.freeBlocks.append(fn.exit);
-    }
-    else {
-        Assert(0);
+    if (isRoot()) {
+        if (fn.body.isEmpty()) {
+            mk.exit(fn.scope->close);
+            fn.parent.freeBlocks.append(fn.exit);
+        } else {
+            Assert(0);
+        }
+    } else {
+        parent->block = block;
     }
 }
 
@@ -116,10 +122,18 @@ IrNode* Scope::visit(AstNode *ast) {
 }
 
 IrNode* Scope::visitScope(AstScope *ast) {
-    for (auto i = 0; i < ast->nodes.length; ++i) {
-        visit(ast->nodes.items[i]);
+    Scope sc{ this };
+    auto last = sc.visitStatements(ast->nodes);
+    sc.dispose();
+    return last;
+}
+
+IrNode* Scope::visitStatements(List<AstNode*> &nodes) {
+    IrNode *last{};
+    for (auto i = 0; i < nodes.length; ++i) {
+        last = visit(nodes.items[i]);
     }
-    return nullptr;
+    return last;
 }
 
 IrNode* Scope::visitDefinition(AstDefinition *ast) {
@@ -149,10 +163,10 @@ IrNode* Scope::visitConstant(AstConstant *ast) {
 }
 
 IrNode* Scope::visitName(AstName *ast) {
-    // base[index]
     auto symbol = ast->symbol;
     switch (symbol->kind) {
     case AstKind::Global: {
+        // module.data[global]
         auto  base = mk.moduleOf(symbol);
         auto index = mk.symbolOf(symbol);
         return mk.path(ast->loc, base, index);
@@ -164,46 +178,49 @@ IrNode* Scope::visitName(AstName *ast) {
     }
     return nullptr;
 }
+
+bool Scope::isRoot() {
+    return parent == nullptr;
+}
 //------------------------------------------------------------------------------------------------
 static bool buildSymbolTable(SymTab symtab) {
-	traceln("\r\n%cl#<cyan|blue> { phase: %cl#<green>, thread: %u#<green> }",
-			S("ast2ir"), S("building the ast → ir symbol table"), GetCurrentThreadId());
+    traceln("\r\n%cl#<cyan|blue> { phase: %cl#<green>, thread: %u#<green> }",
+            S("ast2ir"), S("building the ast → ir symbol table"), GetCurrentThreadId());
 
-	SymbolTableBuilder builder{ symtab };
-	builder.visitTree();
+    SymbolTableBuilder builder{ symtab };
+    builder.visitTree();
 
-	auto &ir = *comp.ir;
-	traceln("%cl#<cyan|blue> { errors: %i#<red>, symbols: %i#<green>, modules: %i#<green> }",
-			S("ast2ir"), comp.errors, symtab.list.length, ir.modules.length);
+    auto &ir = *comp.ir;
+    traceln("%cl#<cyan|blue> { errors: %i#<red>, symbols: %i#<green>, modules: %i#<green> }",
+            S("ast2ir"), comp.errors, symtab.list.length, ir.modules.length);
 
-	return comp.errors == 0;
+    return comp.errors == 0;
 }
 
 static bool visitSymbolTable(SymTab symtab) {
-	traceln("\r\n%cl#<cyan|blue> { phase: %cl#<green>, threads: %u#<green> }",
-			S("ast2ir"), S("ast → ir"), aio::ioThreads());
+    traceln("\r\n%cl#<cyan|blue> { phase: %cl#<green>, threads: %u#<green> }",
+            S("ast2ir"), S("ast → ir"), aio::ioThreads());
 
     SymbolProvider provider{ symtab };
     SymbolConsumer consumer{ symtab };
     aio::run(consumer, provider);
 
-	auto &ir = *comp.ir;
-	traceln("%cl#<cyan|blue> { errors: %i#<red>, modules: %i#<green> }",
-			S("ast2ir"), comp.errors, ir.modules.length);
+    traceln("%cl#<cyan|blue> { errors: %i#<red> }",
+            S("ast2ir"), comp.errors);
 
-	return comp.errors == 0;
+    return comp.errors == 0;
 }
 
 void translateAstTree() {
-	SymbolTable symtab{};
+    SymbolTable symtab{};
 
-	if (buildSymbolTable(symtab)) {
-		if (visitSymbolTable(symtab)) {
+    if (buildSymbolTable(symtab)) {
+        if (visitSymbolTable(symtab)) {
 
-		}
-	}
+        }
+    }
 
-	symtab.dispose();
+    symtab.dispose();
 }
 } // namespace irg_pass
 } // namespace exy

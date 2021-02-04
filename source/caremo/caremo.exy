@@ -1,6 +1,6 @@
 private module .main
 
-const auto static private var a = 2
+/*const auto static private var a = 2
 var (d, b) = 2
 static (c, x) = 330303
 
@@ -8,7 +8,7 @@ var y:Int* = void;
 
 auto z: Int = 777ou32
 
-var f: Byte = y
+var f: Byte = y*/
 
 import art
 import std

@@ -84,9 +84,6 @@
     <ClCompile Include="tp_cast_implicit.cpp">
       <Filter>pass3-stx2ast\cast</Filter>
     </ClCompile>
-    <ClCompile Include="ir.cpp">
-      <Filter>pass4-ast2ir</Filter>
-    </ClCompile>
     <ClCompile Include="tp_find.cpp">
       <Filter>pass3-stx2ast\find</Filter>
     </ClCompile>
@@ -135,17 +132,31 @@
     <ClCompile Include="src2tok_stream.cpp">
       <Filter>pass1-src2tok</Filter>
     </ClCompile>
-    <ClCompile Include="pe.cpp">
-      <Filter>pass5-ir2pe</Filter>
-    </ClCompile>
     <ClCompile Include="register.cpp">
-      <Filter>pass4-ast2ir</Filter>
+      <Filter>pass6-regalloc</Filter>
     </ClCompile>
-    <ClCompile Include="ir2pe_pass.cpp">
-      <Filter>pass5-ir2pe</Filter>
+    <ClCompile Include="ir.cpp" />
+    <ClCompile Include="opt_pass.cpp">
+      <Filter>pass5-opt</Filter>
+    </ClCompile>
+    <ClCompile Include="regalloc_pass.cpp">
+      <Filter>pass6-regalloc</Filter>
+    </ClCompile>
+    <ClCompile Include="codegen_pass.cpp">
+      <Filter>pass7-codegen</Filter>
+    </ClCompile>
+    <ClCompile Include="linker_pass.cpp">
+      <Filter>pass8-linker</Filter>
+    </ClCompile>
+    <ClCompile Include="buffer.cpp" />
+    <ClCompile Include="binary.cpp">
+      <Filter>pass8-linker</Filter>
     </ClCompile>
     <ClCompile Include="ir2pe.cpp">
-      <Filter>pass5-ir2pe</Filter>
+      <Filter>pass7-codegen</Filter>
+    </ClCompile>
+    <ClCompile Include="emitter.cpp">
+      <Filter>pass7-codegen</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -200,8 +211,17 @@
     <Filter Include="pass2-tok2stx">
       <UniqueIdentifier>{c2b11050-3144-4c71-99e6-17e55f1ede6b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="pass5-ir2pe">
-      <UniqueIdentifier>{6de90baa-baf2-4286-8e8e-54f8404679ca}</UniqueIdentifier>
+    <Filter Include="pass5-opt">
+      <UniqueIdentifier>{57bcb60f-a528-465e-9bfb-b255a4794ca8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass6-regalloc">
+      <UniqueIdentifier>{763fbefe-9f1e-477f-9fe3-1715cad7b4a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass7-codegen">
+      <UniqueIdentifier>{731611ef-3620-4ef4-9be0-0190b804c9f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pass8-linker">
+      <UniqueIdentifier>{e8baab33-647e-4252-a6ce-ae680ffe3311}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -281,9 +301,6 @@
     <ClInclude Include="tp_cast.h">
       <Filter>pass3-stx2ast\cast</Filter>
     </ClInclude>
-    <ClInclude Include="ir.h">
-      <Filter>pass4-ast2ir</Filter>
-    </ClInclude>
     <ClInclude Include="tp_find.h">
       <Filter>pass3-stx2ast\find</Filter>
     </ClInclude>
@@ -332,17 +349,31 @@
     <ClInclude Include="src2char_stream.h">
       <Filter>pass1-src2tok</Filter>
     </ClInclude>
-    <ClInclude Include="pe.h">
-      <Filter>pass5-ir2pe</Filter>
-    </ClInclude>
     <ClInclude Include="register.h">
-      <Filter>pass4-ast2ir</Filter>
+      <Filter>pass6-regalloc</Filter>
     </ClInclude>
-    <ClInclude Include="ir2pe_pass.h">
-      <Filter>pass5-ir2pe</Filter>
+    <ClInclude Include="ir.h" />
+    <ClInclude Include="opt_pass.h">
+      <Filter>pass5-opt</Filter>
+    </ClInclude>
+    <ClInclude Include="regalloc_pass.h">
+      <Filter>pass6-regalloc</Filter>
+    </ClInclude>
+    <ClInclude Include="codegen_pass.h">
+      <Filter>pass7-codegen</Filter>
+    </ClInclude>
+    <ClInclude Include="linker_pass.h">
+      <Filter>pass8-linker</Filter>
+    </ClInclude>
+    <ClInclude Include="buffer.h" />
+    <ClInclude Include="binary.h">
+      <Filter>pass8-linker</Filter>
     </ClInclude>
     <ClInclude Include="ir2pe.h">
-      <Filter>pass5-ir2pe</Filter>
+      <Filter>pass7-codegen</Filter>
+    </ClInclude>
+    <ClInclude Include="emitter.h">
+      <Filter>pass7-codegen</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

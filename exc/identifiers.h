@@ -18,6 +18,7 @@ struct Identifiers {
         Identifier data;    // '.data'
         Identifier idata;   // '.idata'
         Identifier edata;   // '.edata'
+        Identifier string;  // '.string'
         Identifier stack;   // '.stack'
     } dot;
 

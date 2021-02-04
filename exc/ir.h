@@ -7,16 +7,29 @@
 #ifndef IR_H
 #define IR_H
 
+#include "register.h"
+#include "buffer.h"
+
 namespace exy {
 //--Begin forward declarations
 struct IrNode;
 
+struct IrSection;
+#define DeclarePeSections(ZM)   \
+    ZM(CodeSection)             \
+    ZM(DataSection)             \
+    ZM(ImportSection)           \
+    ZM(ExportSection)           \
+    ZM(StringTable)
+
+struct IrTypeSymbol;
 #define DeclareIrTypeSymbols(ZM)    \
+    DeclarePeSections(ZM)           \
     ZM(Builtin)                     \
     ZM(Module)                      \
     ZM(Function)                    \
+    ZM(StackFrame)                  \
     ZM(Block)
-struct IrTypeSymbol;
 
 #define DeclareIrValueSymbols(ZM)   \
     ZM(Global)
@@ -29,9 +42,10 @@ struct IrSymbol;
 
 struct IrUse;
 #define DeclareIrOperations(ZM) \
+    ZM(Exit)                    \
+    ZM(Constant)                \
     ZM(Condition)               \
     ZM(Jump)                    \
-    ZM(Constant)                \
     ZM(Path)                    \
     ZM(Assign)                  \
     ZM(Cast)
@@ -50,7 +64,7 @@ enum class IrKind {
 };
 
 #define ZM(zName) struct Ir##zName;
-    DeclareIrNodes(ZM)
+DeclareIrNodes(ZM)
 #undef ZM
 
 //----End forward declarations
@@ -79,9 +93,10 @@ struct IrTree {
 
 #define ZM(zName, zSize) static IrType ty##zName;
     DeclareBuiltinTypeKeywords(ZM)
- #undef ZM
-    IrTree();
+    #undef ZM
+        IrTree();
     void dispose();
+    Loc loc() const;
 };
 
 struct IrNode {
@@ -92,8 +107,10 @@ struct IrNode {
     IrType           type;
     Kind             kind;
     List<IrUse*>     uses;
+    Register         reg;
+    int              idx;
 
-    IrNode(Loc loc, Kind kind, Type type) 
+    IrNode(Loc loc, Kind kind, Type type)
         : loc(loc), kind(kind), type(type) {}
     virtual void dispose();
     String kindName();
@@ -103,7 +120,7 @@ struct IrNode {
 struct IrSymbol : IrNode {
     Identifier name;
 
-    IrSymbol(Loc loc, Kind kind, Type type, Identifier name) 
+    IrSymbol(Loc loc, Kind kind, Type type, Identifier name)
         : IrNode(loc, kind, type), name(name) {}
 };
 //------------------------------------------------------------------------------------------------
@@ -112,30 +129,85 @@ struct IrTypeSymbol : IrSymbol {
     IrTypeSymbol(Loc loc, Kind kind, Identifier name) : IrSymbol(loc, kind, IrType(this), name) {}
 };
 
+struct IrSection : IrTypeSymbol {
+    IrModule *parentModule;
+    Buffer    peBuffer;
+    Buffer    txtBuffer;
+
+    IrSection(IrModule *parentModule, Kind kind, Identifier name);
+    void dispose() override;
+};
+
+struct IrCodeSection : IrSection {
+    List<IrFunction*> functions;
+
+    IrCodeSection(IrModule *parentModule)
+        : IrSection(parentModule, Kind::CodeSection, ids.dot.text) {}
+    void dispose() override;
+};
+
+struct IrDataSection : IrSection {
+    List<IrBuiltin*> builtins;
+    List<IrGlobal*>  globals;
+
+    IrDataSection(IrModule *parentModule)
+        : IrSection(parentModule, Kind::DataSection, ids.dot.data) {}
+    void dispose() override;
+};
+
+struct IrImportSection : IrSection {
+    IrImportSection(IrModule *parentModule)
+        : IrSection(parentModule, Kind::ImportSection, ids.dot.idata) {}
+};
+
+struct IrExportSection : IrSection {
+    IrExportSection(IrModule *parentModule)
+        : IrSection(parentModule, Kind::ExportSection, ids.dot.edata) {}
+};
+
+struct IrStringTable : IrSection {
+    IrStringTable(IrModule *parentModule)
+        : IrSection(parentModule, Kind::StringTable, ids.dot.string) {}
+};
+
 struct IrBuiltin : IrTypeSymbol {
     Keyword keyword;
 
-    IrBuiltin(Loc loc, Identifier name, Keyword keyword)
-        : IrTypeSymbol(loc, Kind::Builtin, name), keyword(keyword) {}
+    IrBuiltin(Loc loc, IrDataSection *parentSection, Identifier name, Keyword keyword)
+        : IrTypeSymbol(loc, Kind::Builtin, name), keyword(keyword) {
+        parentSection->builtins.append(this);
+    }
 };
 
 struct IrModule : IrTypeSymbol {
-    List<IrSymbol*> symbols;
-    IrFunction     *entry;
+    IrCodeSection   *code;
+    IrDataSection   *data;
+    IrImportSection *imports;
+    IrExportSection *exports;
+    IrStringTable   *strings;
+    IrFunction      *entry;
+    BinaryKind       binaryKind;
 
-    IrModule(Loc loc, Identifier name)
-        : IrTypeSymbol(loc, Kind::Module, name) {
-    }
+    IrModule(Loc loc, Identifier name, BinaryKind binaryKind);
     void dispose() override;
+
+    bool isaDll();
+    bool isExecutable();
 };
 
 struct IrFunction : IrTypeSymbol {
+    IrCodeSection  *parentSection;
+    IrStackFrame   *stack;
     IrType          retype;
     Queue<IrBlock>  body;
 
-    IrFunction(Loc loc, Identifier name, Type retype) 
-        : IrTypeSymbol(loc, Kind::Function, name), retype(retype) {}
+    IrFunction(Loc loc, IrCodeSection *parentSection, Identifier name, Type retype);
     void dispose() override;
+};
+
+struct IrStackFrame : IrTypeSymbol {
+    IrStackFrame(IrFunction *parentFunction)
+        : IrTypeSymbol(parentFunction->loc, Kind::StackFrame, ids.dot.stack) {}
 };
 
 struct IrBlock : IrTypeSymbol {
@@ -143,7 +215,7 @@ struct IrBlock : IrTypeSymbol {
     IrBlock           *qprev;
     Queue<IrOperation> body;
 
-    IrBlock(Loc loc, Identifier name) 
+    IrBlock(Loc loc, Identifier name)
         : IrTypeSymbol(loc, Kind::Block, name) {}
     void dispose() override;
 
@@ -159,17 +231,22 @@ struct IrValueSymbol : IrSymbol {
 };
 
 struct IrGlobal : IrValueSymbol {
-    IrGlobal(Loc loc, Type type, Identifier name)
-        : IrValueSymbol(loc, Kind::Global, type, name) {}
+    IrDataSection *parentSection;
+
+    IrGlobal(Loc loc, IrDataSection *parentSection, Type type, Identifier name)
+        : IrValueSymbol(loc, Kind::Global, type, name), parentSection(parentSection) {
+        parentSection->globals.append(this);
+    }
 };
 //------------------------------------------------------------------------------------------------
 enum class IrUseKind {
-    Read, Write, Both
+    Read, Write
 };
 struct IrUse {
     IrOperation *user;
     IrNode      *value;
     IrUseKind    useKind;
+    Register     reg;
 
     IrUse(IrOperation *user, IrNode *value, IrUseKind useKind);
 };
@@ -179,44 +256,12 @@ struct IrOperation : IrNode {
     IrOperation *qprev;
     int          index;
 
-    IrOperation(Loc loc, Kind kind, Type type) 
+    IrOperation(Loc loc, Kind kind, Type type)
         : IrNode(loc, kind, type) {}
 };
 
-#define DeclareIrConditionOps(ZM)   \
-    ZM(Equal,   "==")               \
-    ZM(NotEqual, "!=")
-
-struct IrCondition : IrOperation {
-    enum class Op {
-    #define ZM(zName, zText) zName,
-        DeclareIrConditionOps(ZM)
-    #undef ZM
-    };
-
-    IrUse lhs;
-    IrUse rhs;
-    Op       op;
-
-    IrCondition(Loc loc, IrNode *lhs, Op op, IrNode *rhs) 
-        : IrOperation(loc, Kind::Condition, comp.ir->tyBool), lhs(this, lhs, IrUseKind::Read), op(op), 
-        rhs(this, rhs, IrUseKind::Read) {}
-};
-
-struct IrJump : IrOperation {
-    IrUse condition;
-    IrUse iftrue;
-
-    IrJump(Loc loc, IrNode *iftrue) 
-        : IrOperation(loc, Kind::Jump, comp.ir->tyVoid), condition(this, nullptr, IrUseKind::Read), 
-        iftrue(this, iftrue, IrUseKind::Read) {}
-
-    IrJump(Loc loc, IrCondition *condition, IrNode *iftrue) 
-        : IrOperation(loc, Kind::Jump, comp.ir->tyVoid), condition(this, condition, IrUseKind::Read), 
-        iftrue(this, iftrue, IrUseKind::Read) {}
-
-    bool isConditional()   { return condition.value != nullptr; }
-    bool isUnconditional() { return condition.value == nullptr; }
+struct IrExit : IrOperation {
+    IrExit(Loc loc) : IrOperation(loc, Kind::Exit, comp.ir->tyVoid) {}
 };
 
 struct IrConstant : IrOperation {
@@ -234,17 +279,63 @@ struct IrConstant : IrOperation {
         BYTE   utf8[4];
         float  f32;
         double f64;
-    }; 
-    IrConstant(Loc loc, Type type, UINT64 u64) 
+    };
+    IrConstant(Loc loc, Type type, UINT64 u64)
         : IrOperation(loc, Kind::Constant, type), u64(u64) {}
 };
 
+#define DeclareIrConditionOps(ZM)   \
+    ZM(Equal,    "==")              \
+    ZM(NotEqual, "!=")
+/*
+    flag ← lhs OP rhs
+*/
+struct IrCondition : IrOperation {
+    enum class Op {
+    #define ZM(zName, zText) zName,
+        DeclareIrConditionOps(ZM)
+    #undef ZM
+    };
+
+    IrUse lhs;
+    IrUse rhs;
+    Op    op;
+
+    IrCondition(Loc loc, IrNode *lhs, Op op, IrNode *rhs)
+        : IrOperation(loc, Kind::Condition, comp.ir->tyBool), lhs(this, lhs, IrUseKind::Read), op(op),
+        rhs(this, rhs, IrUseKind::Read) {}
+};
+/*
+        flag ← lhs OP rhs
+        goto iftrue if flag
+    or
+        goto iftrue
+*/
+struct IrJump : IrOperation {
+    IrUse condition;
+    IrUse iftrue;
+
+    IrJump(Loc loc, IrNode *iftrue)
+        : IrOperation(loc, Kind::Jump, comp.ir->tyVoid), condition(this, nullptr, IrUseKind::Read),
+        iftrue(this, iftrue, IrUseKind::Read) {}
+
+    IrJump(Loc loc, IrCondition *condition, IrNode *iftrue)
+        : IrOperation(loc, Kind::Jump, comp.ir->tyVoid), condition(this, condition, IrUseKind::Read),
+        iftrue(this, iftrue, IrUseKind::Read) {}
+
+    bool isConditional() { return condition.value != nullptr; }
+    bool isUnconditional() { return condition.value == nullptr; }
+};
+
+/*
+    [base + index × scale + disp]
+*/
 struct IrPath : IrOperation {
     IrUse base;
     IrUse index;
 
-    IrPath(Loc loc, IrNode *base, IrNode *index) 
-        : IrOperation(loc, Kind::Cast, index->type), base(this, base, IrUseKind::Read), 
+    IrPath(Loc loc, IrNode *base, IrNode *index)
+        : IrOperation(loc, Kind::Cast, index->type), base(this, base, IrUseKind::Read),
         index(this, index, IrUseKind::Read) {}
 };
 
@@ -256,28 +347,34 @@ struct IrPath : IrOperation {
 
     xmm ← gpr
     xmm ← xmm
+    xmm ← gpr ← imm
     xmm ← [mem]
 
     [mem] ← gpr
     [mem] ← xmm
-
+    [mem] ← imm
 */
 struct IrAssign : IrOperation {
     IrUse lhs;
     IrUse rhs;
 
-    IrAssign(Loc loc, IrNode *lhs, IrNode *rhs) 
-        : IrOperation(loc, Kind::Assign, lhs->type), lhs(this, lhs, IrUseKind::Write), 
+    IrAssign(Loc loc, IrNode *lhs, IrNode *rhs)
+        : IrOperation(loc, Kind::Assign, lhs->type), lhs(this, lhs, IrUseKind::Write),
         rhs(this, rhs, IrUseKind::Read) {}
 };
 
 struct IrCast : IrOperation {
     IrUse src;
 
-    IrCast(Loc loc, Type type, IrNode *src) 
+    IrCast(Loc loc, Type type, IrNode *src)
         : IrOperation(loc, Kind::Cast, type), src(this, src, IrUseKind::Read) {}
 };
 
+struct ModuleProvider : WorkProvider<IrModule> {
+    int pos{};
+
+    bool next(List<IrModule*> &batch);
+};
 } // namespace exy
 
 #endif // IR_H

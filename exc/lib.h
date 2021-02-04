@@ -44,6 +44,11 @@ U reinterpret(T t) {
 } // namespace meta
 } // namespace exy
 
+#define ComputePadding(zOffset, zAlignment)   (-(zOffset) & ((zAlignment) - 1))
+#define ComputeAlignment(zOffset, zAlignment) (((zOffset) + ((zAlignment) - 1)) & -(zAlignment))
+
+#define IsAPowerOf2(zValue) (((zValue) & 3) == 2)
+
 #include "hash.h"
 #include "format.h"
 #include "err.h"

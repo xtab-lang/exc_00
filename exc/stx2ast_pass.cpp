@@ -14,7 +14,7 @@
 namespace exy {
 namespace stx2ast_pass {
 struct Module {
-    Dict<Module*>     modules;
+    Dict<Module*>     children;
     List<SyntaxFile*> files;
     Module           *parent;
     Identifier        name;
@@ -22,8 +22,20 @@ struct Module {
     SyntaxFile       *main;
 
     void dispose() {
-        modules.dispose([](auto x) { x->dispose(); MemFree(x); });
+        children.dispose([](auto x) { x->dispose(); MemFree(x); });
         files.dispose();
+    }
+
+    bool hasFilesOrAtLeastOneChildHasFiles() {
+        if (files.length) {
+            return true;
+        } for (auto i = 0; i < children.length; ++i) {
+            auto child = children.items[i].value;
+            if (child->hasFilesOrAtLeastOneChildHasFiles()) {
+                return true;
+            }
+        }
+        return false;
     }
 };
 
@@ -54,15 +66,15 @@ struct ModuleTree {
             auto name = path.items[i];
             if (mod) {
                 if (mod->name != name) {
-                    auto idx = mod->modules.indexOf(name);
+                    auto idx = mod->children.indexOf(name);
                     if (idx >= 0) {
-                        mod = mod->modules.items[idx].value;
+                        mod = mod->children.items[idx].value;
                     } else {
                         auto child = MemAlloc<Module>();
                         child->name = name;
                         child->dotName = makeDotName(path, i);
                         child->parent = mod;
-                        mod->modules.append(name, child);
+                        mod->children.append(name, child);
                         mod = child;
                     }
                 }
@@ -170,8 +182,8 @@ struct ModuleTree {
             } else {
                 traceln("%s#<underline yellow>", source.path);
             }
-        } for (auto i = 0; i < mod->modules.length; ++i) {
-            print(mod->modules.items[i].value, indent + 1);
+        } for (auto i = 0; i < mod->children.length; ++i) {
+            print(mod->children.items[i].value, indent + 1);
         }
     }
 };
@@ -245,10 +257,10 @@ static void validateModule(Module *mod) {
                 // OK. Subsequent file. No modifiers still.
             }
         } else {
-            Assert(0); // All files must have a 'module' statement.
+            Assert(0); // All files must have either an explicit or implicit 'module' statement.
         }
-    } for (auto i = 0; i < mod->modules.length; ++i) {
-        validateModule(mod->modules.items[i].value);
+    } for (auto i = 0; i < mod->children.length; ++i) {
+        validateModule(mod->children.items[i].value);
     }
 }
 static bool validateModuleTree(ModuleTree *tree) {
@@ -263,8 +275,8 @@ static SyntaxFile* findFirstFileOf(Module *mod) {
         return found;
     } if (mod->files.length) {
         return mod->files.first();
-    } for (auto i = 0; i < mod->modules.length; ++i) {
-        if (auto found = findFirstFileOf(mod->modules.items[i].value)) {
+    } for (auto i = 0; i < mod->children.length; ++i) {
+        if (auto found = findFirstFileOf(mod->children.items[i].value)) {
             return found;
         }
     }
@@ -272,8 +284,8 @@ static SyntaxFile* findFirstFileOf(Module *mod) {
 }
 static int enterModule(AstModule *parent, Module *mod) {
     auto modules = 0;
-    for (auto i = 0; i < mod->modules.length; ++i) {
-        auto   child = mod->modules.items[i].value;
+    for (auto i = 0; i < mod->children.length; ++i) {
+        auto   child = mod->children.items[i].value;
         auto    file = findFirstFileOf(child);
         auto &tokens = file->sourceFile().tokens;
         auto  &start = tokens.first().loc.range.start;
@@ -286,8 +298,9 @@ static int enterModule(AstModule *parent, Module *mod) {
             continue;
         }
 
+        auto binaryKind = child->name == ids.main ? BinaryKind::Console : BinaryKind::Dll;
         auto  ast = comp.ast->mem.New<AstModule>(loc, parent->ownScope, child->name, child->dotName, 
-                                                 child->files, child->main);
+                                                 child->files, child->main, binaryKind);
 
         trace("%s#<cyan> [", ast->dotName);
         for (auto j = 0; j < child->files.length; ++j) {
@@ -328,8 +341,9 @@ static void createAstTree(ModuleTree *moduleTree) {
             continue;
         }
 
+        auto binaryKind = mod->name == ids.main ? BinaryKind::Console : BinaryKind::Dll;
         auto ast = comp.ast->mem.New<AstModule>(loc, global->ownScope, mod->name, mod->dotName, 
-                                                mod->files, mod->main);
+                                                mod->files, mod->main, binaryKind);
 
         trace("%s#<cyan> [", ast->dotName);
         for (auto j = 0; j < mod->files.length; ++j) {

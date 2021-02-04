@@ -46,13 +46,22 @@ IrBlock* Make::block(Loc loc, Identifier name) {
     return mem.New<IrBlock>(loc, name);
 }
 
-IrConstant* Make::constant(Loc loc, Type type, UINT64 u64) {
+IrNode* Make::exit(Loc loc) {
+    sc.block->name = ids.exit;
+    auto ir = mem.New<IrExit>(loc);
+    sc.block->append(ir);
+    sc.fn.body.append(sc.block);
+    sc.block = nullptr;
+    return ir;
+}
+
+IrNode* Make::constant(Loc loc, Type type, UINT64 u64) {
     auto ir = mem.New<IrConstant>(loc, type, u64);
     sc.block->append(ir);
     return ir;
 }
 
-IrPath* Make::path(Loc loc, IrNode *base, IrNode *index) {
+IrNode* Make::path(Loc loc, IrNode *base, IrNode *index) {
     auto ir = mem.New<IrPath>(loc, base, index);
     sc.block->append(ir);
     return ir;

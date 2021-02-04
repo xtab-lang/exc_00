@@ -1,33 +1,43 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // author: exy.lang
-//   date: 2021-01-21
+//   date: 2021-02-02
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#ifndef IR2PE_H_
-#define IR2PE_H_
+#ifndef IR2PE_H
+#define IR2PE_H
 
 #include "ir.h"
-#include "pe.h"
+#include "emitter.h"
 
 namespace exy {
-namespace ir2pe_pass {
-void translateIrTree();
+namespace codegen_pass {
+struct Module {
+    IrModule *mod;
 
-struct Symbol {
-    IrSymbol *ir;
-    PeSymbol *pe;
+    Module(IrModule *mod) : mod(mod) {}
+    void dispose() {}
+    void visit();
 };
 
-struct SymbolTable {
-    Dict<Symbol, UINT64> list{};
+struct CodeSection {
+    Module        &parent;
+    IrCodeSection *section;
+    Emitter        emit;
 
-    void dispose();
+    CodeSection(Module *parent) : parent(*parent), section(parent->mod->code), 
+        emit(parent->mod->code->peBuffer) {}
+    void dispose() {}
+    void visit();
+private:
+    void visitFunction(IrFunction*, int idx);
+    void visitBlock(IrBlock*, int idx);
+    void visitOperation(IrOperation*, int idx);
 
-    void build();
+    void visitExit(IrExit*);
 };
-using SymTab = SymbolTable&;
-} // namespace ir2pe_pass
+
+} // namespace codegen_pass
 } // namespace exy
 
-#endif // IR2PE_H_
+#endif // IR2PE_H

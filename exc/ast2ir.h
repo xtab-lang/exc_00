@@ -28,49 +28,55 @@ struct SymbolTranslator {
     virtual void translate() = 0;
 };
 
-struct BuiltinTranslator : SymbolTranslator {
-    BuiltinTranslator(SymTab symtab, Symbol &symbol) : SymbolTranslator(symtab, symbol) {}
+struct Builtin : SymbolTranslator {
+    Builtin(SymTab symtab, Symbol &symbol) : SymbolTranslator(symtab, symbol) {}
 
     void translate() override {}
 };
 
-struct ModuleTranslator : SymbolTranslator {
+struct Module : SymbolTranslator {
     List<IrBlock*> freeBlocks{};
 
-    ModuleTranslator(SymTab symtab, Symbol &symbol) : SymbolTranslator(symtab, symbol) {}
+    Module(SymTab symtab, Symbol &symbol) : SymbolTranslator(symtab, symbol) {}
     void dispose() override;
     void translate() override;
 };
 
-struct FunctionTranslator : SymbolTranslator {
-    ModuleTranslator &parent;
-    IrFunction       *fn;
-    Queue<IrBlock>   &body;
-    AstScope         *scope;
-    IrBlock          *exit;
+struct Function : SymbolTranslator {
+    Module          &parent;
+    IrFunction      *fn;
+    Queue<IrBlock>  &body;
+    AstScope        *scope;
+    IrBlock         *exit;
 
-    FunctionTranslator(ModuleTranslator *parent, IrFunction *fn, AstScope *scope)
+    Function(Module *parent, IrFunction *fn, AstScope *scope)
         : SymbolTranslator((*parent).symtab, (*parent).symbol), parent(*parent), fn(fn),
         body(fn->body), scope(scope) {
     }
+    void dispose() override;
     void translate();
 };
 
 struct Scope {
-    FunctionTranslator &fn;
-    Make                mk;
-    IrBlock            *block{};
+    Scope    *parent{};
+    Function &fn;
+    Make      mk;
+    IrBlock  *block{};
 
-    Scope(FunctionTranslator *fn) : fn(*fn), mk(this) {}
+    Scope(Function *fn) : fn(*fn), mk(this) {}
+    Scope(Scope *parent) : parent(parent), fn(parent->fn), mk(this), block(parent->block) {}
     void dispose();
 
     IrNode* visit(AstNode*);
 private:
     IrNode* visitScope(AstScope*);
+    IrNode* visitStatements(List<AstNode*>&);
     IrNode* visitDefinition(AstDefinition*);
     IrNode* visitCast(AstCast*);
     IrNode* visitConstant(AstConstant*);
     IrNode* visitName(AstName*);
+
+    bool isRoot();
 };
 } // namespace ast2ir_pass
 } // namespace exy

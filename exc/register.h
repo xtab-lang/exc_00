@@ -9,43 +9,46 @@
 
 namespace exy {
 //--Begin forward declarations
-
 //----End forward declarations
 
 /*
                         1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 5 5 5 5 5 5 5 5 5 5 6 6 6 6
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
     | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | | 0 x x x x x x x x ― unsigned imm8 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | | 1 x x x x x x x x ― signed imm8 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | | 0 x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x ― unsigned off56/imm56
+    | | | | | | | 1 x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x ― signed off56/imm56
     | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | | 0 x x x x x x x x x x x x x x x x ― unsigned imm16| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | | 1 x x x x x x x x x x x x x x x x ― signed imm16  | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | | 0 x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x ― unsigned off32/imm32  | | | | | | | | | | | |
+    | | | | | | | 1 x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x ― signed off32/imm32  | | | | | | | | | | | | |
     | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | | 0 x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x ― unsigned imm32| | | | | | | | | | | | | | | | |
-    | | | | | | 1 x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x ― signed imm32  | | | | | | | | | | | | | | | | |
+    | | | | | | | 0 x x x x x x x x x x x x x x x x ― unsigned off16/imm16  | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | | 1 x x x x x x x x x x x x x x x x ― signed off16/imm16  | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
     | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | | x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x ― unsigned offset (58 bits)
+    | | | | | | | 0 x x x x x x x x ― unsigned off8/imm8  | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | | 1 x x x x x x x x ― signed imm8/off8  | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
     | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | | 0 x x x x x x x x ― unsigned off8 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | | 1 x x x x x x x x ― signed off8 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | | 0 0 0 0 0 0 0 0 ― no base/register| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | | 0 1 x x x x x x ― base/register | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | | 1 0 0 0 0 0 0 0 ― rip-relative  | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | | 1 1 0 0 0 0 0 0 ― rsp-relative  | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | |                 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | |                 0 x x x x x x ― no index  | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | |                 1 x x x x x x ― index register| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | |                               | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | |                               0 0 ― index × 1 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | |                               0 1 ― index × 2 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | |                               1 0 ― index × 4 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | |                               1 1 ― index × 8 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | |                                   | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | |                                   0 0 ― no disp | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | |                                   0 1 x x x x x x x x ― disp8 | | | | | | | | | | | | | | | | | | | | | | | | | | |
-    | | | | | |                                   1 0 x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x ― disp32| | |
+    | | | | | | | 0 0 0 0 0 0 0 0 ― no base/register| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | | 0 1 x x x x x x ― base/register | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | | 1 0 0 0 0 0 0 0 ― rip-relative  | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | | 1 1 0 0 0 0 0 0 ― rsp-relative  | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | |                 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | |                 0 0 0 0 0 0 0 ― no index  | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | |                 1 x x x x x x ― index register| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | |                               | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | |                               0 0 ― index × 1 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | |                               0 1 ― index × 2 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | |                               1 0 ― index × 4 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | |                               1 1 ― index × 8 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | |                                   | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | |                                   0 0 ― no disp | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | |                                   1 0 x x x x x x x x ― unsigned disp8| | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | |                                   0 1 x x x x x x x x ― signed disp8| | | | | | | | | | | | | | | | | | | | | | |
+    | | | | | | |                                   1 1 x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x ― disp32| |
+    | | | | | | |
+    | | | | | | | isa patch site
+    | | | | | | +⸻⸻⸻⸻⸻
+    | | | | | | 0 - is not a patch site
+    | | | | | | 1 - isa patch site
     | | | | | |
     | | | | | | size
     | | | | | +⸻⸻
@@ -257,55 +260,76 @@ namespace exy {
     ZM(zmm30, 64, false)         \
     ZM(zmm31, 64, false)
 
-enum class RegisterKind {
+enum class RegKind {
     Invalid, Immediate, Gpr, Xmm, Mem, Offset
 };
 
-enum class BaseRegisterKind {
+enum class BaseRegKind {
     Invalid, Register, Rip, Rsp
 };
 
-enum class Gpr {
+enum class GprName {
 #define ZM(zName, zSize, zVolatile) zName,
     Declare64BitGprs(ZM)
 #undef ZM
 };
 
-enum class Xmm {
+enum class XmmName {
 #define ZM(zName, zSize, zVolatile) zName,
     Declare64BitXmms(ZM)
 #undef ZM
 };
 
+enum class YmmName {
+#define ZM(zName, zSize, zVolatile) zName,
+    DeclareYmms(ZM)
+#undef ZM
+};
+
+enum class ZmmName {
+#define ZM(zName, zSize, zVolatile) zName,
+    DeclareZmms(ZM)
+#undef ZM
+};
+
 struct Register {
-    using Base  = Gpr;
-    using Index = Gpr;
+    using Base = GprName;
+    using Index = GprName;
 
-    using Imm8   = INT8;
-    using UImm8  = UINT8;
-    using Imm16  = INT16;
-    using UImm16 = UINT16;
-    using Imm32  = INT32;
-    using UImm32 = UINT32;
+    using Disp8 = INT8;
+    using Disp32 = INT32;
 
-    using Disp8  = __int8;
-    using Disp32 = __int32;
+    static Register mkImm8(INT8);
+    static Register mkUImm8(UINT8);
+    static Register mkImm16(INT16);
+    static Register mkUImm16(UINT16);
+    static Register mkImm32(INT32);
+    static Register mkUImm32(UINT32);
+    static Register mkImm56(INT64);
+    static Register mkUImm56(UINT64);
 
-    static Register mkImm8(Imm8);
-    static Register mkUImm8(UImm8);
-    static Register mkImm16(Imm16);
-    static Register mkUImm16(UImm16);
-    static Register mkImm32(Imm32);
-    static Register mkUImm32(UImm32);
+    static Register mkOff8(INT8);
+    static Register mkUOff8(UINT8);
+    static Register mkOff16(INT16);
+    static Register mkUOff16(UINT16);
+    static Register mkOff32(INT32);
+    static Register mkUOff32(UINT32);
+    static Register mkOff56(INT64);
+    static Register mkUOff56(UINT64);
 
-    static Register mkGpr(Gpr, int size);
-    static Register mkXmm(Xmm, int size);
+    static Register mkGpr(GprName, int size = SizeOfPointer);
+    static Register mkXmm(GprName, int size = SizeOfPointer);
+
+    static Register mkGpr8(GprName n) { return mkGpr(n, SizeOfByte); }
+    static Register mkGpr16(GprName);
+    static Register mkGpr32(GprName);
+    static Register mkGpr64(GprName);
 
     static Register mkRip(Disp8);                           // [rip + disp8]
     static Register mkRsp(Disp8);                           // [rsp + disp8]
 
-    static Register mkRipRelative(Disp32);                  // [rip + disp32]
-    static Register mkRspRelative(Disp32);                  // [rsp + disp32]
+    static Register mkRip(Disp32);                          // [rip + disp32]
+    static Register mkRsp(Disp32);                          // [rsp + disp32]
 
     static Register mkMem(Base);                            // [base]
     static Register mkMem(Base, Index index);               // [base + index × scale]
@@ -317,37 +341,71 @@ struct Register {
     static Register mkMem(Base, Index index, Disp32);       // [base + index × scale + disp32]
 
     static Register mkMem(Disp32);                          // [disp32]
+
+    bool isValid() const;
+    bool isNotValid() const;
+
+    bool isImmediate() const;
+    INT8  imm8()  const;
+    INT16 imm16() const;
+    INT32 imm32() const;
+    INT64 imm64() const;
+
+    UINT8  uimm8()  const;
+    UINT16 uimm16() const;
+    UINT32 uimm32() const;
+    UINT64 uimm64() const;
+
+    bool isOffset() const;
+    INT8  off8()  const;
+    INT16 off16() const;
+    INT32 off32() const;
+    INT64 off64() const;
+
+    UINT8  uoff8()  const;
+    UINT16 uoff16() const;
+    UINT32 uoff32() const;
+    UINT64 uoff64() const;
+
+    bool isSigned() const;
+    bool isUnsigned() const;
+
+    int size() const;
 private:
-    UINT8 _kind : 3 = 0u;
-    UINT8 _size : 3 = 0u;
-    union {
-        struct {
-            UINT8 _sign : 1;
-            union {
-                UINT8  _imm8  :  8;
-                UINT16 _imm16 : 16;
-                UINT32 _imm32 : 32;
-            };
-        } _imm;
-        UINT64 _off58 : 58 = 0u;
-        struct {
-            struct {
-                UINT8 _has  : 2;
-                UINT8 _name : 6;
-            } _base;
-            struct {
-                UINT8 _has   : 1;
-                UINT8 _name  : 6;
-            } _index;
-            UINT8 _scale : 2;
-            struct {
-                UINT8 _has : 2;
-                union {
-                    UINT8  _disp8  : 8;
-                    UINT32 _disp32 : 32;
-                };
-            } _disp;
-        } _mem;
+    UINT64 value{};
+
+    static const auto zero = 0ui64;
+
+    enum Off : UINT64 {
+        Off_Size = 0x3ui64,
+        Off_IsaPatch = 0x6ui64,
+        Off_Sign = 0x7ui64,
+        Off_Imm = 0x8ui64
+    };
+
+    enum Size : UINT64 {
+        Size8 = 0b001ui64,
+        Size16 = 0b010ui64,
+        Size32 = 0b011ui64,
+        Size64 = 0b100ui64,
+        Size128 = 0b101ui64,
+        Size256 = 0b110ui64,
+        Size512 = 0b111ui64,
+    };
+
+    enum Mask : UINT64 {
+        Mask_Kind = 0b111ui64,
+        Mask_Size = 0b111ui64 << Off_Size,
+        Mask_IsaPatch = 0x1ui64 << Off_IsaPatch,
+        Mask_Sign = 0x1ui64 << Off_Sign,
+
+        Mask_Imm8 = 0xFFui64 << Off_Imm,
+        Mask_Imm16 = 0xFFFFui64 << Off_Imm,
+        Mask_Imm32 = 0xFFFFFFFFui64 << Off_Imm,
+        Mask_Imm56 = 0xFFFFFFFFFFFFFFui64 << Off_Imm,
+
+        Mask_Imm56_Low  = 0xFFFFFFFFFFFFFFui64,
+        Mask_Imm56_High = 0xFFui64 << 56
     };
 };
 } // namespace exy

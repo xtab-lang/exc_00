@@ -19,11 +19,9 @@ AstNode* Find::name(Loc loc, Identifier id) {
     auto scope = tp.currentScope();
     while (scope) {
         if (found = scope->find(id)) {
-            break;
+            return tp.mk.name(loc, found);
         }
         scope = scope->parent;
-    } if (found) {
-        return tp.mk.name(loc, found);
     }
     err(loc, "identifier %s#<red> not found", id);
     return nullptr;

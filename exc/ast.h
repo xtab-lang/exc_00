@@ -140,9 +140,10 @@ struct AstBuiltin : AstSymbol {
 struct AstModule : AstSymbol {
     Identifier        dotName;
     List<SyntaxFile*> syntax;
+    BinaryKind        binaryKind;
 
     AstModule(Loc loc, ParentScope parent, Identifier name, Identifier dotName, 
-              List<SyntaxFile*>&, SyntaxFile *main);
+              List<SyntaxFile*>&, SyntaxFile *main, BinaryKind binaryKind);
     void dispose() override;
 };
 //------------------------------------------------------------------------------------------------
