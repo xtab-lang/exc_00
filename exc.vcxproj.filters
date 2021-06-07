@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="exc.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="compiler.cpp">
+      <Filter>compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="mem.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="string.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="console.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="aio.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="exc.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="compiler.h">
+      <Filter>compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="mem.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="string.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="console.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="aio.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="list.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="lib">
+      <UniqueIdentifier>{4566c201-3cc7-4b65-9e87-8133d3127e14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="compiler">
+      <UniqueIdentifier>{f44f3932-2ee2-44a6-bc09-1bc57c27c7d9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
