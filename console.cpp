@@ -56,6 +56,7 @@ struct ConsoleFormatStream : FormatStream {
 		Assert(locks > 0);
 		if (--locks == 0) {
 			ReleaseSRWLockExclusive(&srw);
+
 		}
 	}
 	void doWrite(const CHAR *v, INT vlen) override {
