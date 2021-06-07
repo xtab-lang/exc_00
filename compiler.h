@@ -1,12 +1,17 @@
 #pragma once
+#include "identifiers.h"
+#include "config.h"
+
 namespace exy {
 struct Compiler {
-    void start();
+    Configuration config{};
+    int           errors{};
 
-    void run();
+    static void run();
 
-    void stop();
+private:
+    void dispose();
 };
 
-static Compiler *compiler;
+__declspec(selectany) Compiler *compiler = nullptr;
 } // namespace exy

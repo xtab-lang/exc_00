@@ -151,33 +151,42 @@
       <EnableModules>false</EnableModules>
       <CallingConvention>StdCall</CallingConvention>
       <CompileAs>CompileAsCpp</CompileAs>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;libcmt.lib;libucrt.lib;libvcruntime.lib;Synchronization.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;libvcruntime.lib;libucrt.lib;libcmt.lib;Synchronization.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <CETCompat>false</CETCompat>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="aio.cpp" />
     <ClCompile Include="compiler.cpp" />
     <ClCompile Include="console.cpp" />
+    <ClCompile Include="dict.cpp" />
     <ClCompile Include="exc.cpp" />
+    <ClCompile Include="identifiers.cpp" />
     <ClCompile Include="mem.cpp" />
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="config.cpp" />
     <ClCompile Include="string.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aio.h" />
     <ClInclude Include="compiler.h" />
     <ClInclude Include="console.h" />
+    <ClInclude Include="dict.h" />
     <ClInclude Include="exc.h" />
+    <ClInclude Include="identifiers.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="mem.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="config.h" />
     <ClInclude Include="string.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

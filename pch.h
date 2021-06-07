@@ -55,8 +55,9 @@ U reinterpret(T t) {
 constexpr auto cstrlen(const CHAR *v) { return v ? (INT)strlen(v) : 0; }
 
 #include "mem.h"
-#include "list.h"
 #include "string.h"
+#include "list.h"
+#include "dict.h"
 #include "console.h"
 #include "aio.h"
 #include "compiler.h"

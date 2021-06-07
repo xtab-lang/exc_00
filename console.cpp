@@ -56,7 +56,6 @@ struct ConsoleFormatStream : FormatStream {
 		Assert(locks > 0);
 		if (--locks == 0) {
 			ReleaseSRWLockExclusive(&srw);
-
 		}
 	}
 	void doWrite(const CHAR *v, INT vlen) override {
@@ -256,7 +255,7 @@ struct Formatter {
 		writeBuf(specs, arg, len);
 	}
 
-	void fmtInt(Specifiers &specs, INT64 arg, INT size) {
+	void fmtInt(Specifiers &specs, INT64 arg, INT) {
 		auto buf = fmtbuf;
 		auto cap = fmtbufcap;
 		switch (specs.numFmt) {

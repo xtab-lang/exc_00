@@ -18,6 +18,15 @@
     <ClCompile Include="aio.cpp">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="config.cpp">
+      <Filter>compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="identifiers.cpp">
+      <Filter>compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="dict.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="exc.h" />
@@ -40,6 +49,15 @@
     <ClInclude Include="list.h">
       <Filter>lib</Filter>
     </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="identifiers.h">
+      <Filter>compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="dict.h">
+      <Filter>lib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="lib">
@@ -47,6 +65,9 @@
     </Filter>
     <Filter Include="compiler">
       <UniqueIdentifier>{f44f3932-2ee2-44a6-bc09-1bc57c27c7d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{9fead3a0-70c9-435e-812e-b3ad11559cd9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
