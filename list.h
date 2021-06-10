@@ -61,6 +61,21 @@ struct List {
         items[length] = item;
         return items[length++];
     }
+
+    template<typename ...TArgs>
+    T& place(TArgs&&...args) {
+        reserve(1);
+        new(&items[length]) T{ meta::fwd<TArgs>(args)... };
+        return items[length++];
+    }
+
+    auto isEmpty() const {
+        return length == 0;
+    }
+
+    auto isNotEmpty() const {
+        return length > 0;
+    }
 };
 
 } // namespace exy

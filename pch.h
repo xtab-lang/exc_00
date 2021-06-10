@@ -50,14 +50,25 @@ U reinterpret(T t) {
 #define Assert(expr) do { if (!(expr)) DebugBreak(); } while (0)
 #define OsError(function, msg, ...) Assert(0)
 
+#define EXY_EXTENSION ".exy"
+
 #define S(text) (text), ((INT)__crt_countof(text) - 1)
 
 constexpr auto cstrlen(const CHAR *v) { return v ? (INT)strlen(v) : 0; }
+constexpr auto tmpbufcap = 0x1000;
+static thread_local CHAR tmpbuf[tmpbufcap]{};
 
+#include "hash.h"
 #include "mem.h"
 #include "string.h"
 #include "list.h"
 #include "dict.h"
 #include "console.h"
 #include "aio.h"
+
+#include "identifiers.h"
+#include "config.h"
+#include "token_kind.h"
+#include "keywords.h"
+#include "token.h"
 #include "compiler.h"

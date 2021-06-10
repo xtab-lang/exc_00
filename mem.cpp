@@ -42,6 +42,7 @@ struct Blocks {
 
     auto set(Block *block) {
         if (block->id < length) {
+            //Assert(block->id != 5);
             if (list != nullptr) {
                 list[block->id] = block;
             } else {
@@ -83,7 +84,7 @@ struct Blocks {
 
 static Blocks blocks{};
 
-struct Ids {
+struct BlockIds {
     UINT64 *list;
     INT     length;
     INT     capacity;
@@ -123,18 +124,18 @@ struct Ids {
     }
 };
 
-static Ids ids{};
+static BlockIds blockIds{};
 
 constexpr auto sizeOfBlock = sizeof(Block);
 
 void initialize() {
     blocks.initialize();
-    ids.initialize();
+    blockIds.initialize();
 }
 
 void dispose() {
     blocks.dispose();
-    ids.dispose();
+    blockIds.dispose();
     Assert(allocs == frees);
     Assert(used == 0);
     allocs = 0;
@@ -143,7 +144,7 @@ void dispose() {
     maxUsed = 0;
 }
 
-auto updateMaxUsed() {
+static auto updateMaxUsed() {
     if (used >= maxUsed) {
         maxUsed = used;
     }
@@ -156,8 +157,8 @@ void* alloc(INT size) {
     auto block = (Block*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeOfBlock + SIZE_T(size));
     if (block != nullptr) {
         AcquireSRWLockExclusive(&srw);
-        if (ids.length > 0) {
-            block->id = ids.pop();
+        if (blockIds.length > 0) {
+            block->id = blockIds.pop();
         } else 	{
             block->id = allocs;
         }
@@ -167,7 +168,7 @@ void* alloc(INT size) {
         ++allocs;
         updateMaxUsed();
         ReleaseSRWLockExclusive(&srw);
-    } else 	{
+    } else {
         Assert(0);
     }
     return (CHAR*)block + sizeOfBlock;
@@ -205,7 +206,7 @@ void* free(void *m) {
     AcquireSRWLockExclusive(&srw);
     Assert(used >= block->size);
     blocks.remove(block);
-    ids.push(block->id);
+    blockIds.push(block->id);
     used -= block->size;
     ++frees;
     ReleaseSRWLockExclusive(&srw);
@@ -236,7 +237,7 @@ void* Mem::doAlloc(INT size) {
     Assert(size > 0);
     Slab *slab   = nullptr;
     AcquireSRWLockExclusive(&srw);
-    for (auto i = length; --length >= 0; ) {
+    for (auto i = length; --i >= 0; ) {
         auto tmp    = slabs[i];
         auto unused = tmp->unused();
         if (unused >= size) {

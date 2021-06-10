@@ -1,10 +1,11 @@
 #pragma once
-#include "identifiers.h"
-#include "config.h"
 
 namespace exy {
+struct SourceTree;
+//----------------------------------------------------------
 struct Compiler {
     Configuration config{};
+    SourceTree   *source{};
     int           errors{};
 
     static void run();
@@ -12,6 +13,6 @@ struct Compiler {
 private:
     void dispose();
 };
-
-__declspec(selectany) Compiler *compiler = nullptr;
+//----------------------------------------------------------
+__declspec(selectany) Compiler compiler{};
 } // namespace exy

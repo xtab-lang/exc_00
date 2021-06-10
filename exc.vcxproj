@@ -170,10 +170,12 @@
     <ClCompile Include="console.cpp" />
     <ClCompile Include="dict.cpp" />
     <ClCompile Include="exc.cpp" />
+    <ClCompile Include="hash.cpp" />
     <ClCompile Include="identifiers.cpp" />
     <ClCompile Include="mem.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="config.cpp" />
+    <ClCompile Include="src.cpp" />
     <ClCompile Include="string.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -182,12 +184,17 @@
     <ClInclude Include="console.h" />
     <ClInclude Include="dict.h" />
     <ClInclude Include="exc.h" />
+    <ClInclude Include="hash.h" />
     <ClInclude Include="identifiers.h" />
+    <ClInclude Include="keywords.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="mem.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="src.h" />
     <ClInclude Include="string.h" />
+    <ClInclude Include="token.h" />
+    <ClInclude Include="token_kind.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

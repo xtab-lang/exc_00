@@ -204,6 +204,11 @@ struct Formatter {
 				auto   len = cstrlen(arg);
 				fmtCstr(specs, arg, len);
 			} break;
+			case 's': {
+				auto specs = parseSpecifiers();
+				auto   arg = __crt_va_arg(vargs, String*);
+				fmtStr(specs, arg);
+			} break;
 			case 'i': { // '%i'
 				if (*pos == '6') {
 					++pos; // Past '6'.
@@ -253,6 +258,12 @@ struct Formatter {
 
 	void fmtCstr(Specifiers &specs, const CHAR *arg, INT len) {
 		writeBuf(specs, arg, len);
+	}
+
+	void fmtStr(Specifiers &specs, const String *arg) {
+		if (arg != nullptr) {
+			writeBuf(specs, arg->text, arg->length);
+		}
 	}
 
 	void fmtInt(Specifiers &specs, INT64 arg, INT) {
@@ -334,9 +345,11 @@ struct Formatter {
 					case 'x': {
 						specs.numFmt = NumFmt::Hexadecimal;
 					} break;
+					case 'B':
 					case 'b': {
 						specs.numFmt = NumFmt::Binary;
 					} break;
+					case 'O':
 					case 'o': {
 						specs.numFmt = NumFmt::Octal;
 					} break;
@@ -352,9 +365,11 @@ struct Formatter {
 			case 'x': {
 				specs.numFmt = NumFmt::Hexadecimal;
 			} break;
+			case 'B':
 			case 'b': {
 				specs.numFmt = NumFmt::Binary;
 			} break;
+			case 'O':
 			case 'o': {
 				specs.numFmt = NumFmt::Octal;
 			} break;

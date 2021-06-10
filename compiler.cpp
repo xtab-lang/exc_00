@@ -1,21 +1,28 @@
 #include "pch.h"
+#include "src.h"
 
 namespace exy {
 
 void Compiler::run() {
-    Assert(compiler == nullptr);
     traceln("Starting compiler");
-    compiler = MemNew<Compiler>();
-    if (compiler->config.initialize()) {
+    ids.initialize();
+    if (compiler.config.initialize()) {
+        compiler.source = MemNew<SourceTree>();
+        if (compiler.source->initialize()) {
 
+        }
     }
-    compiler->dispose();
+    compiler.dispose();
 }
 
 void Compiler::dispose() {
     traceln("Stopping compiler");
+    if (source != nullptr) {
+        source->dispose();
+        source = MemFree(source);
+    }
     config.dispose();
-    compiler = MemFree(compiler);
+    ids.dispose();
 }
 
 } // namespace exy
