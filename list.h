@@ -76,6 +76,15 @@ struct List {
     auto isNotEmpty() const {
         return length > 0;
     }
+
+    T* start() const {
+        return items;
+    }
+
+    T* end() const {
+        Assert(length > 0);
+        return items + length - 1;
+    }
 };
 
 } // namespace exy

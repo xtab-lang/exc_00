@@ -7,20 +7,20 @@ namespace exy {
     ZM(EndOfFile,               "EOF")      \
     ZM(Space,                   "SP")       \
     ZM(NewLine,                 "NL")       \
-    ZM(Hash,                    "#")        \
-    ZM(HashHash,                "##")       \
-    ZM(At,                      "@")        \
-    ZM(AtAt,                    "@@")       \
-    ZM(Ellipsis,                "...")      \
-    ZM(DotDot,                  "..")       \
-    ZM(Dot,                     ".")        \
     ZM(Comma,                   ",")        \
-    ZM(Colon,                   ":")        \
-    ZM(ColonColon,              "::")       \
     ZM(SemiColon,               ";")        \
     ZM(BackSlash,               "\\")       \
     ZM(SingleQuote,             "'")        \
     ZM(DoubleQuote,             "\"")       \
+    ZM(Hash,                    "#")        \
+    ZM(HashHash,                "##")       \
+    ZM(At,                      "@")        \
+    ZM(AtAt,                    "@@")       \
+    ZM(Dot,                     ".")        \
+    ZM(DotDot,                  "..")       \
+    ZM(Ellipsis,                "...")      \
+    ZM(Colon,                   ":")        \
+    ZM(ColonColon,              "::")       \
     ZM(WideSingleQuote,         "w'")       \
     ZM(WideDoubleQuote,         "w\"")      \
     ZM(RawSingleQuote,          "r'")       \
@@ -55,13 +55,15 @@ namespace exy {
     ZM(MinusAssign,     "-=")   \
     ZM(PlusAssign,      "+=")   \
     ZM(MultiplyAssign,  "*=")   \
-    ZM(ExponentiationAssign,  "**=")   \
     ZM(DivideAssign,    "/=")   \
     ZM(RemainderAssign, "%=")   \
     ZM(DivRemAssign,    "%%=")  \
     ZM(BitwiseNotAssign,"~=")   \
+    ZM(ExponentiationAssign,  "**=")   \
+    ZM(QuestionQuestionAssign,"??=")   \
     /* Assignment */            \
     ZM(Assign,          "=")    \
+    ZM(ColonAssign,     ":=")   \
     /* Ternary ↓ */             \
     ZM(Question,        "?")    \
     /* Logical ↓ */             \
@@ -78,8 +80,8 @@ namespace exy {
     ZM(Equivalent,      "===")  \
     ZM(Equal,           "==")   \
     ZM(Less,            "<")    \
-    ZM(LessOrEqual,     ">=")   \
-    ZM(Greater,         "<")    \
+    ZM(LessOrEqual,     "<=")   \
+    ZM(Greater,         ">")    \
     ZM(GreaterOrEqual,  ">=")   \
     /* Shift ↓ */               \
     ZM(LeftShift,       "<<")   \

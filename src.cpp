@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "src.h"
 
+#include "tokenizer.h"
+
 namespace exy {
 static Identifier makeName(Identifier path, const CHAR *start, const CHAR *end, bool isaFile) {
     auto     alphas = 0;
@@ -54,6 +56,8 @@ bool SourceTree::initialize() {
     for (auto i = 0; i < list.length; i++) {
         visitSourceFolder(list.items[i]);
     }
+    folders.compact();
+    tokenize();
     if (compiler.errors == 0) {
         printTree();
     }
@@ -85,7 +89,12 @@ void SourceTree::printFolder(SourceFolder *folder, INT indent) {
     traceln("%s#<yellow>", folder->name);
     for (auto i = 0; i < folder->files.length; i++) {
         for (auto j = 0; j < indent + 1; j++) trace("  ");
-        traceln("%s#<yellow underline>", folder->files.items[i].name);
+        auto &file = folder->files.items[i];
+        traceln("%s#<yellow underline> (%i#<darkyellow> B, %i#<darkyellow> characte%c, %i#<darkyellow> lin%c, %i#<darkyellow> toke%c)", file.name, 
+                file.source.length,
+                file.characters, file.characters == 1 ? "r" : "rs",
+                file.lines, file.lines == 1 ? "e" : "es",
+                file.tokens.length, file.tokens.length == 1 ? "n" : "ns");
     }
     for (auto i = 0; i < folder->folders.length; i++) {
         printFolder(folder->folders.items[i], indent + 1);
@@ -100,7 +109,7 @@ void SourceTree::tokenize() {
 
 void SourceTree::tokenize(SourceFolder *folder) {
     for (auto i = 0; i < folder->folders.length; i++) {
-        tokenize(folders.items[i]);
+        tokenize(folder->folders.items[i]);
     }
     for (auto i = 0; i < folder->files.length; i++) {
         tokenize(folder->files.items[i]);
@@ -108,7 +117,8 @@ void SourceTree::tokenize(SourceFolder *folder) {
 }
 
 void SourceTree::tokenize(SourceFile &file) {
-
+    Tokenizer lexer{ file };
+    lexer.run();
 }
 //----------------------------------------------------------
 void SourceFolder::initialize() {
@@ -143,7 +153,7 @@ void SourceFolder::initialize() {
                 filePath.append(path).append(S("\\")).append(itemName);
                 auto   filePathId = ids.get(filePath);
                 if (auto fileName = getNameFromPath(filePathId, /* isaFile = */ true)) {
-                    auto &file = files.place(this, filePathId, fileName);
+                    auto    &file = files.place(this, filePathId, fileName);
                     file.initialize();
                 }
                 filePath.dispose();
@@ -156,6 +166,8 @@ void SourceFolder::initialize() {
         FindClose(handle);
     }
     tmp.dispose();
+    folders.compact();
+    files.compact();
 }
 
 void SourceFolder::dispose() {
@@ -176,8 +188,10 @@ void SourceFile::initialize() {
             OsError("GetFileSizeEx", nullptr);
             ++compiler.errors;
         } else if (li.QuadPart > MAX_FILE_SIZE) {
-            traceln("file too large: %s#<yellow> %i64#<red>", path, li.QuadPart);
+            traceln("file too large: %s#<yellow> %i64#<red> B", path, li.QuadPart);
             ++compiler.errors;
+        } else if (li.QuadPart == 0) {
+            source.reserve(1);
         } else {
             DWORD b{};
             source.reserve(INT(li.QuadPart));
@@ -193,6 +207,7 @@ void SourceFile::initialize() {
 }
 
 void SourceFile::dispose() {
+    tokens.dispose();
     source.dispose();
 }
 } // namespace exy

@@ -101,13 +101,12 @@ namespace exy {
     ZM(NotIs,       "!is")          \
     ZM(NotIn,       "!in")          \
     /* Unary functions */           \
+    ZM(New,         "new")          \
+    ZM(Delete,      "delete")       \
     ZM(AlignOf,     "alignof")      \
     ZM(SizeOf,      "sizeof")       \
     ZM(TypeOf,      "typeof")       \
     ZM(NameOf,      "nameof")       \
-    ZM(ValueOf,     "valueof")      \
-    ZM(New,         "new")          \
-    ZM(Delete,      "delete")       \
     /* Literals */                  \
     ZM(Null,        "null")         \
     ZM(void_,       "void")         \

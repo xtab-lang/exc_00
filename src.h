@@ -37,10 +37,13 @@ struct SourceFolder {
 };
 //----------------------------------------------------------
 struct SourceFile {
-    String           source;
-    SourceFolder    *parent;
-    Identifier       path;
-    Identifier       name;
+    List<SourceToken> tokens;
+    String            source;
+    SourceFolder     *parent;
+    Identifier        path;
+    Identifier        name;
+    INT               lines{};
+    INT               characters{};
 
     SourceFile(SourceFolder *parent, Identifier path, Identifier name) :
         parent(parent), path(path), name(name) {}

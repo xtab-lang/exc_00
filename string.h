@@ -26,13 +26,17 @@ struct String {
     String& append(const CHAR *v, INT vlen);
     String& appendInt(INT n);
 
-    const CHAR* end() const { return text + length; }
+    const CHAR* start() const { return text; }
+    const CHAR* end()   const { return text + length; }
 
     bool startsWith(const CHAR *v, INT vlen) const;
-    bool endsWith(const CHAR *v, INT vlen) const;
+    bool endsWith(const CHAR *v, INT vlen)   const;
 
-    bool startsWith(const String &v) const { return startsWith(v.text, v.length); }
-    bool endsWith(const String &v) const { return endsWith(v.text, v.length); }
+    auto startsWith(const String &v) const { return startsWith(v.text, v.length); }
+    auto endsWith(const String &v)   const { return endsWith(v.text, v.length); }
+
+    auto isEmpty()    const { return length == 0; };
+    auto isNotEmpty() const { return length > 0; }
 };
 
 using Identifier = const String*;

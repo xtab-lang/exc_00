@@ -15,4 +15,6 @@ private:
 };
 //----------------------------------------------------------
 __declspec(selectany) Compiler compiler{};
+
+#define compiler_error(pass, pos, msg, ...) Assert(0)
 } // namespace exy
