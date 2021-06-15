@@ -39,6 +39,12 @@
     <ClCompile Include="token.cpp">
       <Filter>compiler</Filter>
     </ClCompile>
+    <ClCompile Include="token_processor.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="keywords.cpp">
+      <Filter>compiler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="exc.h" />
@@ -86,6 +92,9 @@
       <Filter>compiler</Filter>
     </ClInclude>
     <ClInclude Include="tokenizer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="token_processor.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

@@ -19,22 +19,27 @@ private:
     void read(Stream);
     void readText(Stream);
     void readPunctuation(Stream);
-    void readWhiteSpace(Stream);
+    void readWhiteSpace(Stream, Tok);
     void readNumber(Stream);
-    void readPrefixedHex(Stream);
-    void readPrefixedBin(Stream);
-    void readPrefixedOct(Stream);
-    void readDecimal(Stream);
-    void continueFromExponent(Stream);
-    void continueFromIntSuffix(Stream, Tok);
-    void continueFromFloatSuffix(Stream);
-    void continueFromHexSuffix(Stream);
+    bool tryDecOrFloat(Stream);
+    bool tryHex(Stream);
+    bool tryBin(Stream);
+    bool tryOct(Stream);
+
+    bool continueDecimalFromDot(Stream);
+
+    bool tryExponent(Stream, Pos dot);
+    bool tryIntSuffix(Stream, Tok);
+    bool tryFloatSuffix(Stream, Tok);
 
     void take(Stream, Tok);
 
     static bool isaDigit(Pos);
+    static bool isaDigitOrBlank(Pos);
     static bool isaHex(Pos);
     static bool isaHexOrBlank(Pos);
+    static bool isaHexLetter(Pos);
+    static bool isaHexPrefix(Pos);
     static bool isaBin(Pos);
     static bool isaBinOrBlank(Pos);
     static bool isanOct(Pos);
@@ -46,5 +51,9 @@ private:
     static bool isFloatSuffix(Pos);
     static bool isExponent(Pos);
     static bool isHexSuffix(Pos);
+    static bool isBinSuffix(Pos);
+    static bool isOctSuffix(Pos);
+    static bool isSign(Pos);
+    static bool isZero(Pos);
 };
 } // namespace exy

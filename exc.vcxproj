@@ -172,9 +172,11 @@
     <ClCompile Include="exc.cpp" />
     <ClCompile Include="hash.cpp" />
     <ClCompile Include="identifiers.cpp" />
+    <ClCompile Include="keywords.cpp" />
     <ClCompile Include="mem.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="config.cpp" />
+    <ClCompile Include="token_processor.cpp" />
     <ClCompile Include="src.cpp" />
     <ClCompile Include="string.cpp" />
     <ClCompile Include="token.cpp" />
@@ -193,6 +195,7 @@
     <ClInclude Include="mem.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="token_processor.h" />
     <ClInclude Include="src.h" />
     <ClInclude Include="string.h" />
     <ClInclude Include="token.h" />

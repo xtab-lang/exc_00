@@ -52,6 +52,7 @@ static Identifier getNameFromPath(Identifier path, bool isaFile) {
 }
 
 bool SourceTree::initialize() {
+    kws.initialize();
     auto &list = compiler.config.sourceFolders;
     for (auto i = 0; i < list.length; i++) {
         visitSourceFolder(list.items[i]);
@@ -61,6 +62,7 @@ bool SourceTree::initialize() {
     if (compiler.errors == 0) {
         printTree();
     }
+    kws.dispose();
     return compiler.errors == 0;
 }
 
@@ -95,9 +97,29 @@ void SourceTree::printFolder(SourceFolder *folder, INT indent) {
                 file.characters, file.characters == 1 ? "r" : "rs",
                 file.lines, file.lines == 1 ? "e" : "es",
                 file.tokens.length, file.tokens.length == 1 ? "n" : "ns");
+        printTokens(file, indent + 2);
     }
     for (auto i = 0; i < folder->folders.length; i++) {
         printFolder(folder->folders.items[i], indent + 1);
+    }
+}
+
+void SourceTree::printTokens(SourceFile &file, INT indent) {
+    for (auto i = 0; i < file.tokens.length; i++) {
+        auto &tok = file.tokens.items[i];
+        for (auto j = 0; j < indent + 1; j++) trace("  ");
+        auto name = SourceToken::name(tok.kind);
+        if (tok.kind >= Tok::Text) {
+            auto value = tok.sourceValue();
+            if (tok.keyword == Keyword::None) {
+                traceln("%i. %s#<cyan> %s#<magenta>", i + 1, &name, &value);
+            } else {
+                traceln("%i. %s#<cyan> %s#<yellow>", i + 1, &name, &value);
+            }
+        } else {
+            auto value = SourceToken::value(tok.kind);
+            traceln("%i. %s#<cyan> %s#<darkmagenta>", i + 1, &name, &value);
+        }
     }
 }
 

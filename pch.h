@@ -66,9 +66,9 @@ static thread_local CHAR tmpbuf[tmpbufcap]{};
 #include "console.h"
 #include "aio.h"
 
+#include "keywords.h"
 #include "identifiers.h"
 #include "config.h"
 #include "token_kind.h"
-#include "keywords.h"
 #include "token.h"
 #include "compiler.h"

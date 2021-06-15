@@ -16,6 +16,7 @@ private:
     void visitSourceFolder(Identifier);
     void printTree();
     void printFolder(SourceFolder*, INT indent);
+    void printTokens(SourceFile&, INT indent);
 
     void tokenize();
     void tokenize(SourceFolder*);

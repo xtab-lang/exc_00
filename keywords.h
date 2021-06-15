@@ -153,4 +153,19 @@ enum class Keyword {
 #undef ZM
     _end_builtins
 };
+
+struct Keywords {
+    void initialize();
+    void dispose();
+
+    Keyword get(const String&);
+private:
+    struct Word {
+        String  name;
+        Keyword value;
+    };
+    List<Word> list{};
+};
+
+__declspec(selectany) Keywords kws {};
 } // namespace exy

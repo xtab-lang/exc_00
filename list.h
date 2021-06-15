@@ -69,6 +69,26 @@ struct List {
         return items[length++];
     }
 
+    T& push(const T& item) {
+        reserve(1);
+        items[length] = item;
+        return items[length++];
+    }
+
+    T& pop() {
+        Assert(length > 0);
+        return items[--length];
+    }
+
+    T& insert(const T &item, INT at) {
+        Assert(at >= 0 && at <= length);
+        reserve(1);
+        MemMove(/* dst = */ items + at + 1, /* src = */ items + at, 1);
+        items[at] = item;
+        ++length;
+        return items[at];
+    }
+
     auto isEmpty() const {
         return length == 0;
     }
@@ -84,6 +104,16 @@ struct List {
     T* end() const {
         Assert(length > 0);
         return items + length - 1;
+    }
+
+    T& first() const {
+        Assert(length > 0);
+        return items[0];
+    }
+
+    T& last() const {
+        Assert(length > 0);
+        return items[length - 1];
     }
 };
 

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "tokenizer.h"
 
+#include "token_processor.h"
 #include "src.h"
 
 #define err(pos, msg, ...) compiler_error("Tokenizer", msg, __VA_ARGS__)
@@ -100,6 +101,9 @@ void Tokenizer::run() {
 	stream.validate();
 	read(stream);
 	src.dispose();
+	TokenProcessor processor{ file };
+	processor.run();
+	processor.dispose();
 }
 
 INT Tokenizer::lengthOf(const CHAR src) {
@@ -134,7 +138,7 @@ void Tokenizer::read(Stream stream) {
 }
 
 void Tokenizer::readText(Stream stream) {
-	for (; stream.pos < stream.end; ++stream.pos) {
+	while (stream.pos < stream.end) {
 		if (!isAlphaNumeric(stream.pos)) {
 			break; // Stop.
 		}
@@ -148,15 +152,17 @@ void Tokenizer::readPunctuation(Stream stream) {
 	switch (auto ch = *pos->text) {
 		case '\r': {
 			if (stream.pos->text - pos->text == 2) {
-				readWhiteSpace(stream); // CR LF
+				readWhiteSpace(stream, Tok::NewLine); // CR LF
 			} else { // CR
 				take(stream, Tok::Text);
 			}
 		} break;
-		case ' ':
-		case '\t':
 		case '\n': {
-			readWhiteSpace(stream);
+			readWhiteSpace(stream, Tok::NewLine);
+		} break;
+		case ' ':
+		case '\t': {
+			readWhiteSpace(stream, Tok::Space);
 		} break;
 		case ',': {
 			take(stream, Tok::Comma);
@@ -342,6 +348,9 @@ void Tokenizer::readPunctuation(Stream stream) {
 			if (stream.pos + 1 < stream.end && *stream.pos->text == '=') {
 				++stream.pos; // past 3rd '='
 				take(stream, Tok::Equivalent);
+			} else if (*stream.pos->text == '>') {
+				++stream.pos; // past '>'
+				take(stream, Tok::AssignArrow);
 			} else {
 				take(stream, Tok::Equal);
 			}
@@ -356,6 +365,9 @@ void Tokenizer::readPunctuation(Stream stream) {
 			} else {
 				take(stream, Tok::LeftShift); // take '<<'
 			}
+		} else if (*stream.pos->text == '=') {
+			++stream.pos; // past '='
+			take(stream, Tok::LessOrEqual); // take '>>='
 		} else {
 			take(stream, Tok::Less); // take '<'
 		} break;
@@ -369,12 +381,12 @@ void Tokenizer::readPunctuation(Stream stream) {
 				} else {
 					take(stream, Tok::UnsignedRightShift); // take '>>>'
 				}
-			} else if (*stream.pos->text == '=') {
-				// past '='
-				take(stream, Tok::RightShiftAssign); // take '>>='
 			} else {
 				take(stream, Tok::RightShift); // take '>>'
 			}
+		} else if (*stream.pos->text == '=') {
+			++stream.pos; // past '='
+			take(stream, Tok::GreaterOrEqual); // take '>>='
 		} else {
 			take(stream, Tok::Greater); // take '>'
 		} break;
@@ -384,6 +396,9 @@ void Tokenizer::readPunctuation(Stream stream) {
 		} else if (*stream.pos->text == '=') {
 			++stream.pos; // past '='
 			take(stream, Tok::MinusAssign);
+		} else if (*stream.pos->text == '>') {
+			++stream.pos; // past '>'
+			take(stream, Tok::DashArrow);
 		} else {
 			take(stream, Tok::Minus);
 		} break;
@@ -413,10 +428,10 @@ void Tokenizer::readPunctuation(Stream stream) {
 	}
 }
 
-void Tokenizer::readWhiteSpace(Stream stream) {
-	auto newLines = 0;
+void Tokenizer::readWhiteSpace(Stream stream, Tok tok) {
+	auto newLines = tok == Tok::NewLine ? 1 : 0;
 	auto finished = false;
-	for (; stream.pos < stream.end && !finished; ++stream.pos) {
+	while (stream.pos < stream.end && !finished) {
 		switch (auto ch = *stream.pos->text) {
 			case ' ':
 			case '\t': {
@@ -436,6 +451,9 @@ void Tokenizer::readWhiteSpace(Stream stream) {
 				finished = true;
 			} break;
 		}
+		if (!finished) {
+			++stream.pos;
+		}
 	}
 	if (newLines > 0) {
 		take(stream, Tok::NewLine);
@@ -445,209 +463,298 @@ void Tokenizer::readWhiteSpace(Stream stream) {
 }
 
 void Tokenizer::readNumber(Stream stream) {
-	// {stream.pos} is just after {pos}.
-	if (*pos->text == '0') {
-		auto ch = *stream.pos->text;
-		if (ch == 'x' || ch == 'X') {
-			return readPrefixedHex(stream);
-		} 
-		if (ch == 'b' || ch == 'B') {
-			return readPrefixedBin(stream);
-		} 
-		if (ch == 'o' || ch == 'O') {
-			return readPrefixedOct(stream);
-		}
+	if (tryDecOrFloat(stream)) {
+		return;
 	}
-	readDecimal(stream);
+	if (tryHex(stream)) {
+		return;
+	}
+	if (tryBin(stream)) {
+		return;
+	}
+	if (tryOct(stream)) {
+		return;
+	}
+	stream.pos = pos;
+	readText(stream);
 }
 
-void Tokenizer::readPrefixedHex(Stream stream) {
-	// '0' 'x' | 'X' hex [hex | '_']+
-	stream.pos++; // Past 'x' | 'X'.
-	if (!isaHex(stream.pos)) {
-		return readText(stream);
-	}
-	for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
-		if (!isaHexOrBlank(stream.pos)) {
-			break;
-		}
-	}
-	if (isHexFloatSuffix(stream.pos)) {
-		return continueFromFloatSuffix(stream);
-	}
-	if (isIntSuffix(stream.pos)) {
-		return continueFromIntSuffix(stream, Tok::Hexadecimal);
-	}
-	if (isAlpha(stream.pos)) {
-		return readText(stream);
-	}
-	take(stream, Tok::Hexadecimal);
-}
-
-void Tokenizer::readPrefixedBin(Stream stream) {
-	// '0' 'b' | 'B' bin [bin | '_']+
-	stream.pos++; // Past 'b' | 'B'.
-	if (!isaBin(stream.pos)) {
-		return readText(stream);
-	}
-	for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
-		if (!isaBinOrBlank(stream.pos)) {
-			break;
-		}
-	}
-	if (isFloatSuffix(stream.pos)) {
-		return continueFromFloatSuffix(stream);
-	}
-	if (isIntSuffix(stream.pos)) {
-		return continueFromIntSuffix(stream, Tok::Binary);
-	}
-	if (isAlpha(stream.pos)) {
-		return readText(stream);
-	}
-	take(stream, Tok::Binary);
-}
-
-void Tokenizer::readPrefixedOct(Stream stream) {
-	// '0' 'o' | 'O' oct [oct | '_']+
-	stream.pos++; // Past 'o' | 'O'.
-	if (!isanOct(stream.pos)) {
-		return readText(stream);
-	}
-	for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
-		if (!isanOctOrBlank(stream.pos)) {
-			break;
-		}
-	}
-	if (isFloatSuffix(stream.pos)) {
-		return continueFromFloatSuffix(stream);
-	}
-	if (isIntSuffix(stream.pos)) {
-		return continueFromIntSuffix(stream, Tok::Octal);
-	}
-	if (isAlpha(stream.pos)) {
-		return readText(stream);
-	}
-	take(stream, Tok::Octal);
-}
-
-void Tokenizer::readDecimal(Stream stream) {
-	// dec [dec | '_']+
+bool Tokenizer::tryDecOrFloat(Stream stream) {
+	// dec [dec | '_']+ intsfx | exp [fltsfx] | fltsfx
+	// dec [dec | '_']+ '.' dec [dec | '_']+ [exp] [fltsfx]
+	stream.pos = pos; // set {stream.pos}
 	for (; stream.pos < stream.end; ++stream.pos) {
-		if (!isaDigit(stream.pos)) {
+		if (!isaDigitOrBlank(stream.pos)) {
 			break;
 		}
+	}
+	if (*stream.pos->text == '.') {
+		return continueDecimalFromDot(stream);
 	}
 	if (isExponent(stream.pos)) {
-		return continueFromExponent(stream);
-	}
-	if (isFloatSuffix(stream.pos)) {
-		return continueFromFloatSuffix(stream);
+		return tryExponent(stream, nullptr);
 	}
 	if (isIntSuffix(stream.pos)) {
-		return continueFromIntSuffix(stream, Tok::Decimal);
-	}
-	if (isAlpha(stream.pos)) {
-		return readText(stream);
-	}
-	take(stream, Tok::Decimal);
-}
-
-void Tokenizer::continueFromExponent(Stream stream) {
-	stream.pos++; // Past 'e' | 'E'.
-	Pos sign = nullptr;
-	if (*stream.pos->text == '-' || *stream.pos->text == '+') {
-		sign = stream.pos++;
-		if (!isaDigit(stream.pos)) {
-			stream.pos = sign; // Rewind to '-' | '+'.
-			return take(stream, Tok::Text); // And take as text excluding the '-' | '+'.
-		}
-	} else if (!isaDigit(stream.pos)) {
-		return readText(stream);
-	}
-	for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
-		if (!isaDigit(stream.pos)) {
-			break;
-		}
+		return tryIntSuffix(stream, Tok::Decimal);
 	}
 	if (isFloatSuffix(stream.pos)) {
-		return continueFromFloatSuffix(stream);
+		return tryFloatSuffix(stream, Tok::DecimalFloat);
 	}
-	if (isAlpha(stream.pos)) {
-		if (sign == nullptr) {
-			return readText(stream);
+	if (!isAlpha(stream.pos)) {
+		take(stream, Tok::Decimal);
+		return true;
+	}
+	return false;
+}
+
+bool Tokenizer::tryHex(Stream stream) {
+	stream.pos = pos; // set {stream.pos}
+	if (isZero(stream.pos)) {
+		// '0' 'x' | 'X' hex [hex | '_']+ intsfx | hexfltsfx
+		++stream.pos;
+		if (isaHexPrefix(stream.pos)) {
+			++stream.pos;
+			if (isaHex(stream.pos)) {
+				for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
+					if (!isaHexOrBlank(stream.pos)) {
+						break;
+					}
+				}
+				if (isIntSuffix(stream.pos)) {
+					return tryIntSuffix(stream, Tok::Hexadecimal);
+				}
+				if (isHexFloatSuffix(stream.pos)) {
+					return tryFloatSuffix(stream, Tok::HexadecimalFloat);
+				}
+				if (!isAlpha(stream.pos)) {
+					take(stream, Tok::Hexadecimal);
+					return true;
+				}
+			}
 		}
-		stream.pos = sign; // Rewind to '-' | '+'.
-		return take(stream, Tok::Text); // And take as text excluding the '-' | '+'.
 	}
-	take(stream, Tok::Float);
+	// hex [hex | '_']+ 'h' | 'H' intsfx | fltsfx
+	stream.pos = pos; // set {stream.pos}
+	if (isaHex(stream.pos)) {
+		for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
+			if (!isaHexOrBlank(stream.pos)) {
+				break;
+			}
+		}
+		if (isHexSuffix(stream.pos)) {
+			++stream.pos;
+			if (isIntSuffix(stream.pos)) {
+				return tryIntSuffix(stream, Tok::Hexadecimal);
+			}
+			if (isHexFloatSuffix(stream.pos)) {
+				return tryFloatSuffix(stream, Tok::HexadecimalFloat);
+			}
+			if (!isAlpha(stream.pos)) {
+				take(stream, Tok::Hexadecimal);
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
-void Tokenizer::continueFromIntSuffix(Stream stream, Tok tok) {
-	auto suffix = stream.pos++; // Past 'u' | 'U' | 'i' | 'I'.
-	switch (*stream.pos->text) {
-		case '8': if (stream.pos + 1 <= stream.end) {
+bool Tokenizer::tryBin(Stream stream) {
+	stream.pos = pos; // set {stream.pos}
+	if (isZero(stream.pos)) {
+		// '0' 'b' | 'B' bin [bin | '_']+ intsfx | fltsfx
+		++stream.pos;
+		if (isBinSuffix(stream.pos)) {
 			++stream.pos;
-			if (!isAlphaNumeric(stream.pos)) {
-				return take(stream, tok);
-			}
-		} break;
-		case '1': if (stream.pos + 1 < stream.end) {
-			++stream.pos;
-			if (*stream.pos->text == '6' && stream.pos + 1 <= stream.end) {
-				++stream.pos;
-				if (!isAlphaNumeric(stream.pos)) {
-					return take(stream, tok);
+			if (isaBin(stream.pos)) {
+				for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
+					if (!isaBinOrBlank(stream.pos)) {
+						break;
+					}
+				}
+				if (isIntSuffix(stream.pos)) {
+					return tryIntSuffix(stream, Tok::Binary);
+				}
+				if (isFloatSuffix(stream.pos)) {
+					return tryFloatSuffix(stream, Tok::BinaryFloat);
+				}
+				if (!isAlpha(stream.pos)) {
+					take(stream, Tok::Binary);
+					return true;
 				}
 			}
-		} break;
-		case '3': if (stream.pos + 1 < stream.end) {
-			++stream.pos;
-			if (*stream.pos->text == '2' && stream.pos + 1 <= stream.end) {
-				++stream.pos;
-				if (!isAlphaNumeric(stream.pos)) {
-					return take(stream, tok);
-				}
-			}
-		} break;
-		case '6': if (stream.pos + 1 < stream.end) {
-			++stream.pos;
-			if (*stream.pos->text == '4' && stream.pos + 1 <= stream.end) {
-				++stream.pos;
-				if (!isAlphaNumeric(stream.pos)) {
-					return take(stream, tok);
-				}
-			}
-		} break;
+		}
 	}
-	readText(stream);
+	// bin [bin | '_']+ 'b' | 'B' intsfx | fltsfx
+	stream.pos = pos; // set {stream.pos}
+	if (isaBin(stream.pos)) {
+		for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
+			if (!isaBinOrBlank(stream.pos)) {
+				break;
+			}
+		}
+		if (isBinSuffix(stream.pos)) {
+			++stream.pos;
+			if (isIntSuffix(stream.pos)) {
+				return tryIntSuffix(stream, Tok::Binary);
+			}
+			if (isFloatSuffix(stream.pos)) {
+				return tryFloatSuffix(stream, Tok::BinaryFloat);
+			}
+			if (!isAlpha(stream.pos)) {
+				take(stream, Tok::Binary);
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
-void Tokenizer::continueFromFloatSuffix(Stream stream) {
-	stream.pos++; // Past 'f' | 'F' | 'p' | 'P'.
-	switch (*stream.pos->text) {
-		case '3': if (stream.pos + 1 < stream.end) {
+bool Tokenizer::tryOct(Stream stream) {
+	stream.pos = pos; // set {stream.pos}
+	if (isZero(stream.pos)) {
+		// '0' 'o' | 'O' oct [oct | '_']+ intsfx | fltsfx
+		++stream.pos;
+		if (isOctSuffix(stream.pos)) {
 			++stream.pos;
-			if (*stream.pos->text == '2' && stream.pos + 1 <= stream.end) {
-				++stream.pos;
-				if (!isAlphaNumeric(stream.pos)) {
-					return take(stream, Tok::Float);
+			if (isanOct(stream.pos)) {
+				for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
+					if (!isanOctOrBlank(stream.pos)) {
+						break;
+					}
+				}
+				if (isIntSuffix(stream.pos)) {
+					return tryIntSuffix(stream, Tok::Octal);
+				}
+				if (isFloatSuffix(stream.pos)) {
+					return tryFloatSuffix(stream, Tok::OctalFloat);
+				}
+				if (!isAlpha(stream.pos)) {
+					take(stream, Tok::Octal);
+					return true;
 				}
 			}
-		} break;
-		case '6': if (stream.pos + 1 < stream.end) {
-			++stream.pos;
-			if (*stream.pos->text == '4' && stream.pos + 1 <= stream.end) {
-				++stream.pos;
-				if (!isAlphaNumeric(stream.pos)) {
-					return take(stream, Tok::Float);
-				}
-			}
-		} break;
+		}
 	}
-	readText(stream);
+	// oct [oct | '_']+ 'o' | 'O' intsfx | fltsfx
+	stream.pos = pos; // set {stream.pos}
+	if (isaBin(stream.pos)) {
+		for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
+			if (!isanOctOrBlank(stream.pos)) {
+				break;
+			}
+		}
+		if (isOctSuffix(stream.pos)) {
+			++stream.pos;
+			if (isIntSuffix(stream.pos)) {
+				return tryIntSuffix(stream, Tok::Octal);
+			}
+			if (isFloatSuffix(stream.pos)) {
+				return tryFloatSuffix(stream, Tok::OctalFloat);
+			}
+			if (!isAlpha(stream.pos)) {
+				take(stream, Tok::Octal);
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
-void Tokenizer::continueFromHexSuffix(Stream) {}
+bool Tokenizer::continueDecimalFromDot(Stream stream) {
+	auto dot = stream.pos++; // past '.'
+	if (isaDigit(stream.pos)) {
+		for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
+			if (!isaDigitOrBlank(stream.pos)) {
+				break;
+			}
+		}
+		if (isExponent(stream.pos)) {
+			if (tryExponent(stream, dot)) {
+				return true;
+			}
+		} else if (isFloatSuffix(stream.pos)) {
+			if (tryFloatSuffix(stream, Tok::Float)) {
+				return true;
+			}
+		} else if (!isAlpha(stream.pos)) {
+			take(stream, Tok::Float);
+			return true;
+		}
+	}
+	stream.pos = dot; // rewind to '.'
+	take(stream, Tok::Decimal);
+	return true;
+}
+
+bool Tokenizer::tryExponent(Stream stream, Pos dot) {
+	// dec [dec | '_']+ 'e' | 'E' ['-' | '+'] dec [dec | '_']+ [fltsfx]
+	// dec [dec | '_']+ '.' dec [dec | '_']+ 'e' | 'E' ['-' | '+'] dec [dec | '_']+ [fltsfx]
+	stream.pos++; // past 'e' | 'E'
+	if (isSign(stream.pos)) {
+		stream.pos++; // past '-' | '+'
+	}
+	if (isaDigit(stream.pos)) {
+		for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
+			if (!isaDigitOrBlank(stream.pos)) {
+				break;
+			}
+		}
+		if (isFloatSuffix(stream.pos)) {
+			if (dot == nullptr) {
+				return tryFloatSuffix(stream, Tok::DecimalFloat);
+			}
+			return tryFloatSuffix(stream, Tok::Float);
+		}
+		if (!isAlpha(stream.pos)) {
+			if (dot == nullptr) {
+				take(stream, Tok::DecimalFloat);
+			} else {
+				take(stream, Tok::Float);
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Tokenizer::tryIntSuffix(Stream stream, Tok tok) {
+	auto letter = stream.pos++; // past 'u' | 'U' | 'i' | 'I'
+	if (isaDigit(stream.pos)) {
+		for (; stream.pos < stream.end; ++stream.pos) {
+			if (!isaDigit(stream.pos)) {
+				break;
+			}
+		}
+	}
+	if (!isAlpha(stream.pos)) {
+		String sfx{ letter->text + 1, stream.pos->text };
+		if (sfx.isEmpty() || sfx == "8" || sfx == "16" || sfx == "32" || sfx == "64") {
+			take(stream, tok);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Tokenizer::tryFloatSuffix(Stream stream, Tok tok) {
+	auto letter = stream.pos++; // past 'f' | 'F' | 'p' | 'P'
+	if (isaDigit(stream.pos)) {
+		for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
+			if (!isaDigit(stream.pos)) {
+				break;
+			}
+		}
+	}
+	if (!isAlpha(stream.pos)) {
+		String sfx{ letter->text + 1, stream.pos->text };
+		if (sfx.isEmpty() || sfx == "32" || sfx == "64") {
+			take(stream, tok);
+			return true;
+		}
+	}
+	return false;
+}
+
 
 void Tokenizer::take(Stream stream, Tok tok) {
 	tokens.place(file, *pos, *stream.pos, tok);
@@ -656,6 +763,11 @@ void Tokenizer::take(Stream stream, Tok tok) {
 bool Tokenizer::isaDigit(Pos pos) {
 	const auto ch = *pos->text;
 	return (ch >= '0' && ch <= '9');
+}
+
+bool Tokenizer::isaDigitOrBlank(Pos pos) {
+	const auto ch = *pos->text;
+	return (ch >= '0' && ch <= '9') || (ch == '_');
 }
 
 bool Tokenizer::isaHex(Pos pos) {
@@ -668,6 +780,16 @@ bool Tokenizer::isaHexOrBlank(Pos pos) {
 	const auto ch = *pos->text;
 	return ((ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F') ||
 			(ch >= '0' && ch <= '9') || (ch == '_'));
+}
+
+bool Tokenizer::isaHexLetter(Pos pos) {
+	const auto ch = *pos->text;
+	return ((ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'));
+}
+
+bool Tokenizer::isaHexPrefix(Pos pos) {
+	const auto ch = *pos->text;
+	return ch == 'x' || ch == 'X';
 }
 
 bool Tokenizer::isaBin(Pos pos) {
@@ -731,5 +853,25 @@ bool Tokenizer::isExponent(Pos pos) {
 bool Tokenizer::isHexSuffix(Pos pos) {
 	const auto ch = *pos->text;
 	return ch == 'h' || ch == 'H';
+}
+
+bool Tokenizer::isBinSuffix(Pos pos) {
+	const auto ch = *pos->text;
+	return ch == 'b' || ch == 'B';
+}
+
+bool Tokenizer::isOctSuffix(Pos pos) {
+	const auto ch = *pos->text;
+	return ch == 'o' || ch == 'O';
+}
+
+bool Tokenizer::isSign(Pos pos) {
+	const auto ch = *pos->text;
+	return ch == '-' || ch == '+';
+}
+
+bool Tokenizer::isZero(Pos pos) {
+	const auto ch = *pos->text;
+	return ch == '0';
 }
 } // namespace exy

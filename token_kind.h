@@ -21,6 +21,8 @@ namespace exy {
     ZM(Ellipsis,                "...")      \
     ZM(Colon,                   ":")        \
     ZM(ColonColon,              "::")       \
+    ZM(DashArrow,               "->")       \
+    ZM(AssignArrow,             "=>")       \
     ZM(WideSingleQuote,         "w'")       \
     ZM(WideDoubleQuote,         "w\"")      \
     ZM(RawSingleQuote,          "r'")       \
@@ -117,7 +119,11 @@ namespace exy {
     ZM(Hexadecimal,     "")   \
     ZM(Binary,          "")   \
     ZM(Octal,           "")   \
-    ZM(Float,           "")
+    ZM(Float,           "")   \
+    ZM(DecimalFloat,    "")   \
+    ZM(HexadecimalFloat,"")   \
+    ZM(BinaryFloat,     "")   \
+    ZM(OctalFloat,      "")
 
 enum class Tok {
 #define ZM(zName, zText) zName,
