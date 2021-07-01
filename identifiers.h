@@ -2,6 +2,17 @@
 
 namespace exy {
 struct Identifiers {
+    Identifier kw_main;
+    Identifier kw_GET;
+    Identifier kw_POST;
+    Identifier kw_DELETE;
+    Identifier kw_PUT;
+    Identifier kw_HEAD;
+    Identifier kw_CONNECT;
+    Identifier kw_OPTIONS;
+    Identifier kw_TRACE;
+    Identifier kw_PATCH;
+
     void initialize();
     void dispose();
 

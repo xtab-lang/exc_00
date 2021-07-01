@@ -12,6 +12,10 @@ namespace exy {
     ZM(BackSlash,               "\\")       \
     ZM(SingleQuote,             "'")        \
     ZM(DoubleQuote,             "\"")       \
+    ZM(WideSingleQuote,         "w'")       \
+    ZM(WideDoubleQuote,         "w\"")      \
+    ZM(RawSingleQuote,          "r'")       \
+    ZM(RawDoubleQuote,          "r\"")      \
     ZM(Hash,                    "#")        \
     ZM(HashHash,                "##")       \
     ZM(At,                      "@")        \
@@ -23,10 +27,6 @@ namespace exy {
     ZM(ColonColon,              "::")       \
     ZM(DashArrow,               "->")       \
     ZM(AssignArrow,             "=>")       \
-    ZM(WideSingleQuote,         "w'")       \
-    ZM(WideDoubleQuote,         "w\"")      \
-    ZM(RawSingleQuote,          "r'")       \
-    ZM(RawDoubleQuote,          "r\"")      \
     ZM(OpenSingleLineComment,   "//")       \
     ZM(OpenMultiLineComment,    "/*")       \
     ZM(CloseMultiLineComment,   "*/")
@@ -37,17 +37,19 @@ namespace exy {
     ZM(HashOpenParen,       "#(")   \
     ZM(OpenParen,           "(")    \
     ZM(CloseParen,          ")")    \
+    ZM(OpenCloseParen,      "()")   \
     ZM(HashOpenBracket,     "#[")   \
     ZM(OpenBracket,         "[")    \
     ZM(CloseBracket,        "]")    \
+    ZM(OpenCloseBracket,    "[]")   \
     ZM(OpenAngle,           "<")    \
     ZM(CloseAngle,          ">")    \
     ZM(HashOpenCurly,       "#{")   \
     ZM(CloseCurlyHash,      "}#")
 
-#define DeclareOperatorTokens(ZM)    \
+#define DeclareOperatorTokens(ZM)\
 /* Binary operators ↓ */        \
-    /* Assignment ↓ */          \
+    /* Compound assignment ↓ */ \
     ZM(OrAssign,        "|=")   \
     ZM(XOrAssign,       "^=")   \
     ZM(AndAssign,       "&=")   \
@@ -65,9 +67,6 @@ namespace exy {
     ZM(QuestionQuestionAssign,"??=")   \
     /* Assignment */            \
     ZM(Assign,          "=")    \
-    ZM(ColonAssign,     ":=")   \
-    /* Ternary ↓ */             \
-    ZM(Question,        "?")    \
     /* Logical ↓ */             \
     ZM(OrOr,            "||")   \
     ZM(AndAnd,          "&&")   \
@@ -98,6 +97,10 @@ namespace exy {
     ZM(Remainder,       "%")    \
     ZM(DivRem,          "%%")   \
     ZM(Exponentiation,  "**")   \
+/* Ternary operators ↓ */       \
+    ZM(Question,        "?")    \
+/* Variable declaration operator ↓ */\
+    ZM(ColonAssign,     ":=")   \
 /* Unary operators ↓ */         \
     /* Prefix ↓ */              \
     ZM(UnaryMinus,      "-")    \
@@ -106,24 +109,26 @@ namespace exy {
     ZM(AddressOf,       "&")    \
     ZM(LogicalNot,      "!")    \
     ZM(BitwiseNot,      "~")    \
-    /* Suffix ↓ */              \
-    ZM(Pointer,         "*")    \
-    ZM(Reference,       "&")    \
     /* Prefix and suffix ↓ */   \
     ZM(MinusMinus,      "--")   \
-    ZM(PlusPlus,        "++")
+    ZM(PlusPlus,        "++")   \
+    /* Suffix ↓ */              \
+    ZM(Pointer,          "*")   \
+    ZM(Reference,       "&")
 
 #define DeclareTextTokens(ZM) \
-    ZM(Text,            "")   \
-    ZM(Decimal,         "")   \
-    ZM(Hexadecimal,     "")   \
-    ZM(Binary,          "")   \
-    ZM(Octal,           "")   \
-    ZM(Float,           "")   \
-    ZM(DecimalFloat,    "")   \
-    ZM(HexadecimalFloat,"")   \
-    ZM(BinaryFloat,     "")   \
-    ZM(OctalFloat,      "")
+    ZM(Text,             "")   \
+    ZM(SingleLineComment,"")   \
+    ZM(MultiLineComment, "")   \
+    ZM(Decimal,          "")   \
+    ZM(Hexadecimal,      "")   \
+    ZM(Binary,           "")   \
+    ZM(Octal,            "")   \
+    ZM(Float,            "")   \
+    ZM(DecimalFloat,     "")   \
+    ZM(HexadecimalFloat, "")   \
+    ZM(BinaryFloat,      "")   \
+    ZM(OctalFloat,       "")
 
 enum class Tok {
 #define ZM(zName, zText) zName,

@@ -152,13 +152,14 @@
       <CallingConvention>StdCall</CallingConvention>
       <CompileAs>CompileAsCpp</CompileAs>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;libvcruntime.lib;libucrt.lib;libcmt.lib;Synchronization.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;libcmt.lib;libucrt.lib;libvcruntime.lib;Synchronization.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <CETCompat>false</CETCompat>
@@ -167,6 +168,7 @@
   <ItemGroup>
     <ClCompile Include="aio.cpp" />
     <ClCompile Include="compiler.cpp" />
+    <ClCompile Include="compiler_format_error.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="dict.cpp" />
     <ClCompile Include="exc.cpp" />
@@ -174,8 +176,14 @@
     <ClCompile Include="identifiers.cpp" />
     <ClCompile Include="keywords.cpp" />
     <ClCompile Include="mem.cpp" />
+    <ClCompile Include="parse_number.cpp" />
+    <ClCompile Include="parse_quoted.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="config.cpp" />
+    <ClCompile Include="parser.cpp" />
+    <ClCompile Include="syntax.cpp" />
+    <ClCompile Include="syntax_dump.cpp" />
+    <ClCompile Include="syntax_modules.cpp" />
     <ClCompile Include="token_processor.cpp" />
     <ClCompile Include="src.cpp" />
     <ClCompile Include="string.cpp" />
@@ -195,6 +203,8 @@
     <ClInclude Include="mem.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="parser.h" />
+    <ClInclude Include="syntax.h" />
     <ClInclude Include="token_processor.h" />
     <ClInclude Include="src.h" />
     <ClInclude Include="string.h" />

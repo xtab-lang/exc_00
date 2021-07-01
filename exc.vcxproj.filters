@@ -45,6 +45,27 @@
     <ClCompile Include="keywords.cpp">
       <Filter>compiler</Filter>
     </ClCompile>
+    <ClCompile Include="parser.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="syntax.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="parse_number.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="parse_quoted.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="syntax_dump.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="syntax_modules.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="compiler_format_error.cpp">
+      <Filter>compiler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="exc.h" />
@@ -97,6 +118,12 @@
     <ClInclude Include="token_processor.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="parser.h">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="syntax.h">
+      <Filter>parser</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="lib">
@@ -107,6 +134,9 @@
     </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{9fead3a0-70c9-435e-812e-b3ad11559cd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="parser">
+      <UniqueIdentifier>{d5568f67-a801-415d-b7c4-69ef8dde8332}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

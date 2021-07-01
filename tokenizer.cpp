@@ -33,6 +33,7 @@ struct SourceCharReader {
 				++col;
 			}
 		}
+		Assert(pos == end && *end == '\0');
 		list.place(end, line, col);
 		return list;
 	}
@@ -51,43 +52,6 @@ struct SourceCharStream {
 
 	SourceCharStream(const SourceFile &file, const List<SourceChar> &list) : file(file),
 		start(list.start()), pos(list.start()), end(list.end()) {}
-
-	void validate() {
-		for (; pos < end; ++pos ) {
-			if (!posIsValidUtf8()) {
-				SourcePos token{ file, *pos, pos[1] };
-				err(token, "invalid UTF8 character");
-			}
-		}
-		pos = start;
-	}
-
-	bool posIsValidUtf8() {
-		switch (Tokenizer::lengthOf(*pos->text)) {
-			case 2: {
-				if (pos + 1 < end) {
-					return (INT(*pos[1].text) & 0xC0) == 0x80;
-				}
-				return false;
-			} break;
-			case 3: {
-				if (pos + 2 < end) {
-					return (INT(*pos[1].text) & 0xC0) == 0x80 &&
-						(INT(*pos[2].text) & 0xC0) == 0x80;
-				}
-				return false;
-			} break;
-			case 4: {
-				if (pos + 3 < end) {
-					return (INT(*pos[1].text) & 0xC0) == 0x80 &&
-						(INT(*pos[2].text) & 0xC0) == 0x80 &&
-						(INT(*pos[3].text) & 0xC0) == 0x80;
-				}
-				return false;
-			} break;
-		}
-		return true;
-	}
 };
 //----------------------------------------------------------
 Tokenizer::Tokenizer(SourceFile &file) : file(file), tokens(file.tokens) {}
@@ -98,26 +62,26 @@ void Tokenizer::run() {
 	file.lines = reader.line;
 	file.characters = src.length;
 	SourceCharStream stream{ file, src };
-	stream.validate();
 	read(stream);
 	src.dispose();
 	TokenProcessor processor{ file };
 	processor.run();
 	processor.dispose();
+	file.tokens.compact();
 }
 
 INT Tokenizer::lengthOf(const CHAR src) {
-	const auto ch = INT(src);
-	if ((ch & 0x80) == 0) { // 1 B UTF8 character.
+	const auto ch = UINT(src);
+	if ((ch & 0x80u) == 0u) { // 1 B UTF8 character.
 		return 1;
 	}
-	if ((ch & 0xE0) == 0xC0) { // 2 B UTF8 character.
+	if ((ch & 0xE0u) == 0xC0u) { // 2 B UTF8 character.
 		return 2;
 	}
-	if ((ch & 0xF0) == 0xE0) { // 3 B UTF8 character.
+	if ((ch & 0xF0u) == 0xE0u) { // 3 B UTF8 character.
 		return 3;
 	}
-	if ((ch & 0xF8) == 0xF0) { // 4 B UTF8 character.
+	if ((ch & 0xF8u) == 0xF0u) { // 4 B UTF8 character.
 		return 4;
 	} // Else not utf8.
 	return 1;
@@ -133,7 +97,8 @@ void Tokenizer::read(Stream stream) {
 			readPunctuation(stream);
 		}
 	}
-	Assert(stream.pos == stream.end);
+	pos = stream.pos;
+	Assert(stream.pos == stream.end && *stream.pos->text == '\0');
 	take(stream, Tok::EndOfFile);
 }
 
@@ -170,7 +135,15 @@ void Tokenizer::readPunctuation(Stream stream) {
 		case ';': {
 			take(stream, Tok::SemiColon);
 		} break;
-		case '\\': {
+		case '\\': { // Let '\#(' or '\#[' be a token for the parser to take care of.
+			if (*stream.pos->text == '#') {
+				++stream.pos; // Past '#'.
+				if (*stream.pos->text == '(' || *stream.pos->text == '[') {
+					++stream.pos;
+					return readText(stream);
+				}
+				--stream.pos;
+			}
 			take(stream, Tok::BackSlash);
 		} break;
 		case '\'': {
@@ -188,6 +161,9 @@ void Tokenizer::readPunctuation(Stream stream) {
 		} else if (*stream.pos->text == '[') {
 			++stream.pos; // past '('
 			take(stream, Tok::HashOpenBracket); // take '#['
+		} else if (*stream.pos->text == '{') {
+			++stream.pos; // past '{'
+			take(stream, Tok::HashOpenCurly); // take '#{'
 		} else {
 			take(stream, Tok::Hash); // take '#'
 		} break;
@@ -348,12 +324,12 @@ void Tokenizer::readPunctuation(Stream stream) {
 			if (stream.pos + 1 < stream.end && *stream.pos->text == '=') {
 				++stream.pos; // past 3rd '='
 				take(stream, Tok::Equivalent);
-			} else if (*stream.pos->text == '>') {
-				++stream.pos; // past '>'
-				take(stream, Tok::AssignArrow);
 			} else {
 				take(stream, Tok::Equal);
 			}
+		} else if (*stream.pos->text == '>') {
+			++stream.pos; // past '>'
+			take(stream, Tok::AssignArrow);
 		} else {
 			take(stream, Tok::Assign);
 		} break;

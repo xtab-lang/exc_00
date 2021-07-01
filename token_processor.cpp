@@ -14,15 +14,17 @@ void TokenProcessor::dispose() {
 }
 
 void TokenProcessor::run() {
+    auto last = &tokens.last();
+    Assert(last->kind == Tok::EndOfFile && *last->pos.range.start.text == '\0');
     auto j = -1;
     for (auto i = 0; i < tokens.length; i++) {
         auto &pos = tokens.items[i];
         if (pos.kind == Tok::EndOfFile) {
             break;
         }
-        auto         last = opens.length ? tokens.items[opens.last()].kind : Tok::Unknown;
-        auto        state = getState(last);
-        auto         prev = i >= 0 ? tokens.items[j].kind : Tok::Unknown;
+        auto         open = opens.length ? tokens.items[opens.last()].kind : Tok::Unknown;
+        auto        state = getState(open);
+        auto         prev = j >= 0 ? tokens.items[j].kind : Tok::Unknown;
         auto    isEscaped = prev == Tok::BackSlash;
         auto isNotEscaped = !isEscaped;
 
@@ -36,14 +38,42 @@ void TokenProcessor::run() {
             }
 
             case Tok::OpenSingleLineComment: if (isInCode) {
+                auto commentPos = i; // Where the single-line comment will start.
                 i = skipSingleLineComment(i);
-                continue; // So that {j} does not change because of SP or NL.
+                if (i < tokens.length) {
+                    // {i} is at NL.
+                    auto &start = tokens.items[commentPos]; // Comment starts here.
+                    auto   &end = tokens.items[i]; // Comment ends here. Excludes NL.
+                    SourceToken comment{ start.pos.file, start.pos.range.start, end.pos.range.start, Tok::SingleLineComment };
+                    tokens.erase(commentPos, i - commentPos); // Remove all tokens up to 1 past NL.
+                    tokens.items[commentPos] = comment; // Replace the removed tokens with 1 single-line comment token.
+                } else {
+                    // {i} is 1 past EOF.
+                    --i; // Move to EOF.
+                    auto &start = tokens.items[commentPos]; // Comment starts here.
+                    auto   &end = tokens.items[i]; // Comment ends here. Excludes EOF.
+                    SourceToken comment{ start.pos.file, start.pos.range.start, end.pos.range.start, Tok::SingleLineComment };
+                    tokens.erase(commentPos, i - commentPos); // Remove all tokens up to 1 past NL.
+                    tokens.items[commentPos] = comment; // Replace the removed tokens with 1 single-line comment token.
+                }
+                i = commentPos; // Because of {++i} above.
             } break;
 
             case Tok::OpenMultiLineComment: if (isInCode) {
+                auto commentPos = i; // Where the multi-line comment will start.
                 i = skipMultiLineComment(i);
                 if (i == tokens.length) {
-                    err(pos, "unmatched %t", &pos);
+                    // {i} is 1 past EOF.
+                    err(pos, "unmatched %tok", &pos);
+                } else {
+                    // {i} is at '*/'.
+                    ++i; // Move 1 past '*/'.
+                    auto &start = tokens.items[commentPos]; // Comment starts here.
+                    auto   &end = tokens.items[i]; // Comment ends here. Includes '*/'.
+                    SourceToken comment{ start.pos.file, start.pos.range.start, end.pos.range.start, Tok::MultiLineComment };
+                    tokens.erase(commentPos, i - commentPos); // Remove all tokens up to 1 past '*/'.
+                    tokens.items[commentPos] = comment; // Replace the removed tokens with 1 multi-line comment token.
+                    i = commentPos; // Because of {++i} above.
                 }
                 continue; // So that {j} does not change because of SP or NL.
             } break;
@@ -80,32 +110,32 @@ void TokenProcessor::run() {
             } break;
 
             case Tok::HashOpenBracket:
-            case Tok::HashOpenParen: if (isInText && isNotEscaped) {
+            case Tok::HashOpenParen: if (isInText) {
                 opens.push(i); // Begin code inside '#[' or '#(' in text without preceding '\'.
             } break;
 
             case Tok::CloseParen: if (state == State::InParens) {
                 opens.pop(); // ')' in code with opening '(' or '#('. Pop state.
             } else if (isInCode) {
-                err(pos, "unmatched %t", &pos); // ')' in code without opening '(' or '#('.
+                err(pos, "unmatched %tok", &pos); // ')' in code without opening '(' or '#('.
             } break;
 
             case Tok::CloseBracket: if (state == State::InBrackets) {
                 opens.pop(); // ']' in code with opening '[' or '#['. Pop state.
             } else if (isInCode) {
-                err(pos, "unmatched %t", &pos); // ']' in code without opening '[' or '#['.
+                err(pos, "unmatched %tok", &pos); // ']' in code without opening '[' or '#['.
             } break;
 
             case Tok::CloseCurly: if (state == State::InCurlies) {
                 opens.pop(); // '}' in code with opening '{'. Pop state.
             } else if (isInCode) {
-                err(pos, "unmatched %t", &pos); // '}' in code without opening '{'.
+                err(pos, "unmatched %tok", &pos); // '}' in code without opening '{'.
             } break;
 
             case Tok::CloseCurlyHash: if (state == State::InHashCurlies) {
                 opens.pop(); // '}#' in text with opening '#{'. Pop state.
             } else if (isInCode) {
-                err(pos, "unmatched %t", &pos); // '}#' in code.
+                err(pos, "unmatched %tok", &pos); // '}#' in code.
             } break;
 
             case Tok::Less: if (isInCode) {
@@ -118,54 +148,54 @@ void TokenProcessor::run() {
             case Tok::Greater: if (isInCode && isaCloseAngle(i)) {
                 if (openAngles.isNotEmpty()) {
                     // Mark '<'.
-                    auto &open = tokens.items[openAngles.pop()];
-                    open.kind = Tok::OpenAngle;
+                    auto &less = tokens.items[openAngles.pop()];
+                    less.kind = Tok::OpenAngle;
                     // Mark '>'.
                     pos.kind = Tok::CloseAngle;
                 } else {
                     // Mark '>'.
-                    auto &close = pos;
-                    close.kind = Tok::CloseAngle;
-                    err(pos, "unmatched %t", &pos); // '>' in code.
+                    auto &greater = pos;
+                    greater.kind = Tok::CloseAngle;
+                    err(pos, "unmatched %tok", &pos); // '>' in code.
                 }
             } break;
 
             case Tok::RightShift: if (isInCode && isaCloseAngle(i)) {
                 if (openAngles.isNotEmpty()) {
                     // Mark '<'.
-                    auto &open = tokens.items[openAngles.pop()];
-                    open.kind = Tok::OpenAngle;
+                    auto &less = tokens.items[openAngles.pop()];
+                    less.kind = Tok::OpenAngle;
                     // Mark '>'.
-                    auto &close = pos;
-                    close.kind = Tok::CloseAngle;
+                    auto &greater = pos;
+                    greater.kind = Tok::CloseAngle;
                     // Split the '>>' into 1 other '>' token.
                     SourceToken dup(pos);
                     tokens.insert(dup, /* at = */ i).kind = Tok::Greater;
                 } else {
                     // Mark '>'.
-                    auto &close = pos;
-                    close.kind = Tok::CloseAngle;
-                    err(pos, "unmatched %t", &pos); // '>' in code.
+                    auto &greater = pos;
+                    greater.kind = Tok::CloseAngle;
+                    err(pos, "unmatched %tok", &pos); // '>' in code.
                 }
             } break;
 
             case Tok::UnsignedRightShift: if (isInCode && isaCloseAngle(i)) {
                 if (openAngles.isNotEmpty()) {
                     // Mark '<'.
-                    auto &open = tokens.items[openAngles.pop()];
-                    open.kind = Tok::OpenAngle;
+                    auto &less = tokens.items[openAngles.pop()];
+                    less.kind = Tok::OpenAngle;
                     // Mark '>'.
-                    auto &close = pos;
-                    close.kind = Tok::CloseAngle;
+                    auto &greater = pos;
+                    greater.kind = Tok::CloseAngle;
                     // Split the '>>>' into 2 other '>' tokens.
                     SourceToken dup(pos);
                     tokens.insert(dup, /* at = */ i).kind = Tok::Greater;
                     tokens.insert(dup, /* at = */ i).kind = Tok::Greater;
                 } else {
                     // Mark '>'.
-                    auto &close = pos;
-                    close.kind = Tok::CloseAngle;
-                    err(pos, "unmatched %t", &pos); // '>' in code.
+                    auto &greater = pos;
+                    greater.kind = Tok::CloseAngle;
+                    err(pos, "unmatched %tok", &pos); // '>' in code.
                 }
             } break;
 
@@ -177,7 +207,7 @@ void TokenProcessor::run() {
                 pos.kind = Tok::Pointer;
                 // Split the '**' into 1 other '*' token.
                 SourceToken dup(pos);
-                tokens.insert(dup, /* at = */ i).kind = Tok::Multiply;
+                tokens.insert(dup, /* at = */ i).kind = Tok::Pointer;
             } break;
 
             case Tok::And: if (isInCode && isaPointerOrReference(i)) {
@@ -188,16 +218,17 @@ void TokenProcessor::run() {
                 pos.kind = Tok::Reference;
                 // Split the '&&' into 1 other '&' token.
                 SourceToken dup(pos);
-                tokens.insert(dup, /* at = */ i).kind = Tok::And;
+                tokens.insert(dup, /* at = */ i).kind = Tok::Reference;
             } break;
 
             case Tok::Text: if (isInCode) {
                 pos.keyword = kws.get(pos.sourceValue());
             } break;
         }
-
         j = i;
     }
+    last = &tokens.last();
+    Assert(last->kind == Tok::EndOfFile && *last->pos.range.start.text == '\0');
 }
 
 TokenProcessor::State TokenProcessor::getState(Tok tok) {
@@ -238,7 +269,7 @@ INT TokenProcessor::skipSingleLineComment(INT i) {
 }
 
 INT TokenProcessor::skipMultiLineComment(INT i) {
-    // {i} is at '/*'
+    // {i} is at '/*' hence ++{i} as initializer.
     for (++i; i < tokens.length; ++i) {
         auto &pos = tokens.items[i];
         if (pos.kind == Tok::CloseMultiLineComment) {
@@ -256,8 +287,8 @@ bool TokenProcessor::isaCloseAngle(INT i) {
             next = skipSingleLineComment(i);
         } else if (pos.kind == Tok::OpenMultiLineComment) {
             next = skipMultiLineComment(i);
-        } else if (pos.kind == Tok::Space) {
-            continue;
+        } else if (pos.kind == Tok::Space || pos.kind == Tok::SingleLineComment || pos.kind == Tok::MultiLineComment) {
+            // Do nothing.
         } else {
             break;
         }
@@ -303,8 +334,8 @@ bool TokenProcessor::isaPointerOrReference(INT i) {
             next = skipSingleLineComment(i);
         } else if (pos.kind == Tok::OpenMultiLineComment) {
             next = skipMultiLineComment(i);
-        } else if (pos.kind == Tok::Space) {
-            continue;
+        } else if (pos.kind == Tok::Space || pos.kind == Tok::SingleLineComment || pos.kind == Tok::MultiLineComment) {
+            // Do nothing.
         } else {
             break;
         }
@@ -316,8 +347,10 @@ bool TokenProcessor::isaPointerOrReference(INT i) {
     switch (pos.kind) {
         case Tok::NewLine:                  // '*' then 'NL'
         case Tok::Multiply:                 // '*' then '*'
+        case Tok::Pointer:                  // '*' then '*'
         case Tok::Exponentiation:           // '*' then '**'
         case Tok::And:                      // '*' then '&'
+        case Tok::Reference:                // '*' then '&'
         case Tok::AndAnd:                   // '*' then '&&'
         case Tok::Greater:                  // '*' then '>'
         case Tok::RightShift:               // '*' then '>>'
@@ -332,8 +365,6 @@ bool TokenProcessor::isaPointerOrReference(INT i) {
         case Tok::Assign:                   // '*' then '='
         case Tok::EndOfFile:                // '*' then EOF
             return true;
-        default:
-            return false;
     }
     return false;
 }

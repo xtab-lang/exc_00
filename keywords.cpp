@@ -4,12 +4,9 @@ namespace exy {
 void Keywords::initialize() {
 #define ZM(zName, zText) list.place(String{ S(zText) }, Keyword::zName);
     DeclareKeywords(ZM)
-#undef ZM
-#define ZM(zName, zText) list.place(String{ S(zText) }, Keyword::zName);
     DeclareModifiers(ZM)
-#undef ZM
-#define ZM(zName, zText) list.place(String{ S(zText) }, Keyword::zName);
     DeclareUserDefinedTypeKeywords(ZM)
+    DeclareCompilerKeywords(ZM)
 #undef ZM
 #define ZM(zName, zSize) list.place(String{ S(#zName) }, Keyword::zName);
     DeclareBuiltinTypeKeywords(ZM)

@@ -3,6 +3,16 @@
 namespace exy {
 void Identifiers::initialize() {
     append(S(""), Dict<Identifier>::nullHash);
+    kw_main     = get(S("main"));
+    kw_GET      = get(S("GET"));
+    kw_POST     = get(S("POST"));
+    kw_DELETE   = get(S("DELETE"));
+    kw_PUT      = get(S("PUT"));
+    kw_HEAD     = get(S("HEAD"));
+    kw_CONNECT  = get(S("CONNECT"));
+    kw_OPTIONS  = get(S("OPTIONS"));
+    kw_TRACE    = get(S("TRACE"));
+    kw_PATCH    = get(S("PATCH"));
 }
 
 void Identifiers::dispose() {

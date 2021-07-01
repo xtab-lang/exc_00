@@ -60,10 +60,11 @@ String SourceToken::name(Tok t) {
 String SourceToken::name(Keyword k) {
     switch (k) {
     #define ZM(zName, zText) case Keyword::zName: return { S(#zName) };
-    DeclareKeywords(ZM)
+        DeclareKeywords(ZM)
         DeclareModifiers(ZM)
         DeclareUserDefinedTypeKeywords(ZM)
         DeclareBuiltinTypeKeywords(ZM)
+        DeclareCompilerKeywords(ZM)
     #undef ZM
         default:
             Assert(0);
@@ -96,6 +97,7 @@ String SourceToken::value(Keyword k) {
         DeclareKeywords(ZM)
         DeclareModifiers(ZM)
         DeclareUserDefinedTypeKeywords(ZM)
+        DeclareCompilerKeywords(ZM)
     #undef ZM
     #define ZM(zName, zSize) case Keyword::zName: return { S(#zName), 0u };
         DeclareBuiltinTypeKeywords(ZM)

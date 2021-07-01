@@ -4,7 +4,7 @@
 #include "tokenizer.h"
 
 namespace exy {
-static Identifier makeName(Identifier path, const CHAR *start, const CHAR *end, bool isaFile) {
+static Identifier getName(Identifier path, const CHAR *start, const CHAR *end, bool isaFile) {
     auto     alphas = 0;
     auto        pos = start;
     const CHAR* dot = nullptr;
@@ -44,13 +44,24 @@ static Identifier getNameFromPath(Identifier path, bool isaFile) {
     for (auto i = path->length; --i >= 0; ) {
         auto c = path->text[i];
         if (c == '\\') {
-            return makeName(path, path->text + i + 1, path->end(), isaFile);
+            return getName(path, path->text + i + 1, path->end(), isaFile);
         }
     }
     traceln("skipping invalid source name (no slash found): %s#<yellow>", path);
     return nullptr;
 }
 
+static Identifier makeDotName(SourceFolder *parent, Identifier name) {
+    String str{};
+    if (parent != nullptr) {
+        str.append(parent->dotName).append(S("."));
+    }
+    str.append(name);
+    auto id = ids.get(str);
+    str.dispose();
+    return id;
+}
+//----------------------------------------------------------
 bool SourceTree::initialize() {
     kws.initialize();
     auto &list = compiler.config.sourceFolders;
@@ -73,9 +84,14 @@ void SourceTree::dispose() {
 
 void SourceTree::visitSourceFolder(Identifier folderPath) {
     if (auto folderName = getNameFromPath(folderPath, /* isaFile = */ false)) {
-        auto     folder = mem.New<SourceFolder>(nullptr, folderPath, folderName);
-        folders.append(folder);
-        folder->initialize();
+        if (folderName == ids.kw_main) {
+            traceln("a source folder cannot be named %s#<red>: %s#<red>", folderName, folderPath);
+            ++compiler.errors;
+        } else {
+            auto folder = mem.New<SourceFolder>(nullptr, folderPath, folderName, folderName);
+            folders.append(folder);
+            folder->initialize();
+        }
     }
 }
 
@@ -97,7 +113,7 @@ void SourceTree::printFolder(SourceFolder *folder, INT indent) {
                 file.characters, file.characters == 1 ? "r" : "rs",
                 file.lines, file.lines == 1 ? "e" : "es",
                 file.tokens.length, file.tokens.length == 1 ? "n" : "ns");
-        printTokens(file, indent + 2);
+        //printTokens(file, indent + 2);
     }
     for (auto i = 0; i < folder->folders.length; i++) {
         printFolder(folder->folders.items[i], indent + 1);
@@ -164,7 +180,7 @@ void SourceFolder::initialize() {
                 if (compiler.config.subFolderHasAtLeastOneSourceFile(subFolderPath)) {
                     auto   subFolderPathId = ids.get(subFolderPath);
                     if (auto subFolderName = getNameFromPath(subFolderPathId, /* isaFile = */ false)) {
-                        auto     subFolder = mem.New<SourceFolder>(this, subFolderPathId, subFolderName);
+                        auto     subFolder = mem.New<SourceFolder>(this, subFolderPathId, subFolderName, makeDotName(this, subFolderName));
                         folders.append(subFolder);
                         subFolder->initialize();
                     }
@@ -175,7 +191,7 @@ void SourceFolder::initialize() {
                 filePath.append(path).append(S("\\")).append(itemName);
                 auto   filePathId = ids.get(filePath);
                 if (auto fileName = getNameFromPath(filePathId, /* isaFile = */ true)) {
-                    auto    &file = files.place(this, filePathId, fileName);
+                    auto    &file = files.place(this, filePathId, fileName, makeDotName(this, fileName));
                     file.initialize();
                 }
                 filePath.dispose();
@@ -195,6 +211,22 @@ void SourceFolder::initialize() {
 void SourceFolder::dispose() {
     folders.dispose([](auto x) { x->dispose(); });
     files.dispose([](auto &x) { x.dispose(); });
+}
+
+SourceToken SourceFolder::pos() {
+    for (auto i = 0; i < files.length; i++) {
+        auto &file = files.items[i];
+        if (file.name == ids.kw_main) {
+            return file.pos();
+        }
+    }
+    for (auto i = 0; i < files.length; i++) {
+        auto &file = files.items[i];
+        if (file.name == name) {
+            return file.pos();
+        }
+    }
+    return files.first().pos();
 }
 //----------------------------------------------------------
 #define MAX_FILE_SIZE 0x10000
@@ -231,5 +263,11 @@ void SourceFile::initialize() {
 void SourceFile::dispose() {
     tokens.dispose();
     source.dispose();
+}
+
+SourceToken SourceFile::pos() const {
+    auto &first = tokens.first();
+    auto  &last = tokens.last();
+    return SourceToken(*this, first.pos.range.start, last.pos.range.end, Tok::Unknown);
 }
 } // namespace exy

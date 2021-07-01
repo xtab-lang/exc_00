@@ -6,8 +6,8 @@ struct SourceFolder;
 struct SourceFile;
 //----------------------------------------------------------
 struct SourceTree {
-    Mem                 mem{};
-    List<SourceFolder*> folders{};
+    Mem                 mem;
+    List<SourceFolder*> folders;
 
     bool initialize();
     void dispose();
@@ -27,14 +27,17 @@ struct SourceFolder {
     SourceFolder       *parent;
     Identifier          path;
     Identifier          name;
+    Identifier          dotName;
     List<SourceFile>    files;
     List<SourceFolder*> folders;
 
-    SourceFolder(SourceFolder *parent, Identifier path, Identifier name) :
-        parent(parent), path(path), name(name) {}
+    SourceFolder(SourceFolder *parent, Identifier path, Identifier name, Identifier dotName) :
+        parent(parent), path(path), name(name), dotName(dotName) {}
 
     void initialize();
     void dispose();
+
+    SourceToken pos();
 };
 //----------------------------------------------------------
 struct SourceFile {
@@ -43,14 +46,17 @@ struct SourceFile {
     SourceFolder     *parent;
     Identifier        path;
     Identifier        name;
+    Identifier        dotName;
     INT               lines{};
     INT               characters{};
 
-    SourceFile(SourceFolder *parent, Identifier path, Identifier name) :
-        parent(parent), path(path), name(name) {}
+    SourceFile(SourceFolder *parent, Identifier path, Identifier name, Identifier dotName) :
+        parent(parent), path(path), name(name), dotName(dotName) {}
 
     void initialize();
     void dispose();
+
+    SourceToken pos() const;
 };
 //----------------------------------------------------------
 } // namespace exy

@@ -62,6 +62,15 @@ struct List {
         return items[length++];
     }
 
+    List& append(const List<T> &list) {
+        if (list.isNotEmpty()) {
+            reserve(list.length);
+            MemCopy(items + length, list.items, list.length);
+            length += list.length;
+        }
+        return *this;
+    }
+
     template<typename ...TArgs>
     T& place(TArgs&&...args) {
         reserve(1);
@@ -83,10 +92,23 @@ struct List {
     T& insert(const T &item, INT at) {
         Assert(at >= 0 && at <= length);
         reserve(1);
-        MemMove(/* dst = */ items + at + 1, /* src = */ items + at, 1);
+        MemMove(/* dst = */ items + at + 1, /* src = */ items + at, length - at);
         items[at] = item;
         ++length;
         return items[at];
+    }
+
+    List& erase(INT start, INT count) {
+        Assert(start >= 0);
+        auto end = start + count;
+        Assert(end <= length);
+        if (end < length) {
+            MemMove(/*   dst = */ items + start, 
+                    /*   src = */ items + end, 
+                    /* count = */ length - end);
+        }
+        length -= count;
+        return *this;
     }
 
     auto isEmpty() const {

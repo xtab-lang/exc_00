@@ -49,10 +49,15 @@ U reinterpret(T t) {
 
 #define Assert(expr) do { if (!(expr)) DebugBreak(); } while (0)
 #define OsError(function, msg, ...) Assert(0)
+#define UNREACHABLE() do { Assert(0); ExitProcess(0); } while (0)
 
 #define EXY_EXTENSION ".exy"
 
 #define S(text) (text), ((INT)__crt_countof(text) - 1)
+
+namespace exy {
+using DOUBLE = double;
+} // namespace exy
 
 constexpr auto cstrlen(const CHAR *v) { return v ? (INT)strlen(v) : 0; }
 constexpr auto tmpbufcap = 0x1000;
@@ -65,6 +70,31 @@ static thread_local CHAR tmpbuf[tmpbufcap]{};
 #include "dict.h"
 #include "console.h"
 #include "aio.h"
+
+namespace exy {
+template<typename T>
+T* ndispose(T *node) {
+    if (node) {
+        node->dispose();
+    }
+    return nullptr;
+}
+
+template<typename T>
+void ldispose(List<T*> &list) {
+    list.dispose([](T *x) { ndispose(x); });
+}
+
+/*template<typename T>
+void ldispose(Queue<T> &queue) {
+    queue.dispose([](T *x) { ndispose(x); });
+}*/
+
+template<typename T>
+void ldispose(Dict<T*> &dict) {
+    dict.dispose([](T *x) { ndispose(x); });
+}
+} // namespace exy
 
 #include "keywords.h"
 #include "identifiers.h"

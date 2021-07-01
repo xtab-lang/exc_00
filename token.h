@@ -43,8 +43,12 @@ struct SourcePos {
     String sourceValue() const { return range.value(); }
 
     SourcePos& operator=(const SourcePos & other);
+
+    auto operator>(const SourcePos &other) const  { return range.start > other.range.start; }
+    auto operator>=(const SourcePos &other) const { return range.start >= other.range.start; }
+    auto operator<(const SourcePos &other) const  { return range.start < other.range.start; }
+    auto operator<=(const SourcePos &other) const { return range.start <= other.range.start; }
 };
-using Pos = const SourcePos&;
 //----------------------------------------------------------
 struct SourceToken {
     SourcePos pos;

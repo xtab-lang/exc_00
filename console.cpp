@@ -2,6 +2,8 @@
 #include <wincon.h>
 #include <WinNls.h>
 
+#include "token.h"
+
 namespace exy {
 void FormatStream::write(const CHAR *v, INT vlen) {
 	lock();
@@ -180,7 +182,13 @@ struct Formatter {
 
 	void run() {
 		while (*pos) {
-			for (; *pos != '\0' && *pos != '%'; ++pos) {}
+			for (; *pos != '\0' && *pos != '%'; ++pos) {
+				if (*pos == '\t') {
+					take();
+					stream.write("    ");
+					++mark; // {mark} will now start after '\t'.
+				}
+			}
 			take(); // {mark} and {pos} are both at '%' or '\0'.
 			if (*pos == '\0') break; // EOS.
 			++pos;  // Past '%'.
@@ -201,8 +209,10 @@ struct Formatter {
 			case 'c': {
 				auto specs = parseSpecifiers();
 				auto   arg = __crt_va_arg(vargs, CHAR*);
-				auto   len = cstrlen(arg);
-				fmtCstr(specs, arg, len);
+				if (arg != nullptr) {
+					auto   len = cstrlen(arg);
+					fmtCstr(specs, arg, len);
+				}
 			} break;
 			case 's': {
 				auto specs = parseSpecifiers();
@@ -223,6 +233,7 @@ struct Formatter {
 				} else if (*pos == '3') {
 					++pos; // Past '3'.
 					if (*pos == '2') {
+						++pos; // Past '2'
 						auto specs = parseSpecifiers();
 						auto   arg = __crt_va_arg(vargs, INT);
 						fmtInt(specs, arg, sizeof(INT32));
@@ -232,6 +243,7 @@ struct Formatter {
 				} else if (*pos == '1') {
 					++pos; // Past '1'.
 					if (*pos == '6') {
+						++pos; // Past '6'
 						auto specs = parseSpecifiers();
 						auto   arg = __crt_va_arg(vargs, INT);
 						fmtInt(specs, arg, sizeof(INT16));
@@ -248,6 +260,20 @@ struct Formatter {
 				auto   arg = __crt_va_arg(vargs, INT);
 				fmtInt(specs, arg, sizeof(INT));
 				break;
+			} break;
+			case 't': {
+				if (*pos == 'o') {
+					++pos; // Past 'o'.
+					if (*pos == 'k') {
+						++pos; // Past 'k'
+						auto specs = parseSpecifiers();
+						auto   arg = __crt_va_arg(vargs, SourceToken*);
+						fmtToken(specs, arg);
+						break;
+					}
+					--pos; // Back to 'o'.
+				}
+				Assert(0);
 			} break;
 			default:
 				Assert(0); // What is {ch}?
@@ -306,6 +332,25 @@ struct Formatter {
 				break;
 		}
 		writeBuf(specs, buf, cstrlen(buf));
+	}
+
+	void fmtToken(Specifiers &specs, const SourceToken *arg) {
+		if (arg != nullptr) {
+			auto name = arg->name();
+			specs.fore = TxtFmt::ForeYellow;
+			writeBuf(specs, name.text, name.length);
+			stream.resetTextFormat();
+			writeBuf(specs, S(" "));
+			specs.fore = TxtFmt::ForeDarkYellow;
+			if (arg->kind >= Tok::Text) {
+				auto value = arg->sourceValue();
+				writeBuf(specs, value.text, value.length);
+			} else {
+				auto value = arg->value();
+				writeBuf(specs, value.text, value.length);
+			}
+			stream.resetTextFormat();
+		}
 	}
 
 	void writeBuf(Specifiers &specs, const CHAR *buf, INT len) {

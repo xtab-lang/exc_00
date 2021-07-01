@@ -57,12 +57,15 @@ namespace exy {
 #define DeclareUserDefinedTypeKeywords(ZM) \
     /* User-Defined Types (UDTs) */ \
     ZM(Module,       "module")      \
+    /* Structure Types */           \
     ZM(Struct,       "struct")      \
     ZM(Union,        "union")       \
+    ZM(Object,       "object")      \
+    /* Enumerated type */           \
     ZM(Enum,         "enum")        \
-    ZM(Lambda,       "lambda")      \
     /* Function Types */            \
     ZM(Fn,           "fn")          \
+    ZM(Lambda,       "lambda")      \
     ZM(Extern,       "extern")      \
     ZM(UrlHandler,   "urlhandler")  \
     ZM(Html,         "html")        \
@@ -77,36 +80,44 @@ namespace exy {
     ZM(Import,      "import")       \
     ZM(Export,      "export")       \
     /* Alias */                     \
-    ZM(Define,      "define")          \
+    ZM(Define,      "define")       \
     /* Control */                   \
     ZM(If,          "if")           \
     ZM(Else,        "else")         \
     ZM(Switch,      "switch")       \
     ZM(Case,        "case")         \
     ZM(Default,     "default")      \
+    /* Defer execution */           \
+    ZM(Defer,       "defer")        \
+    ZM(Using,       "using")        \
+    /* Assertion */                 \
+    ZM(Assert,      "assert")       \
     /* Flow break */                \
+    ZM(Throw,       "throw")        \
+    ZM(Return,      "return")       \
     ZM(Break,       "break")        \
     ZM(Continue,    "continue")     \
-    ZM(Return,      "return")       \
-    /* Generator */                 \
-    ZM(Yield,       "yield")        \
-    ZM(Await,       "await")        \
     /* Loop */                      \
     ZM(For,         "for")          \
-    ZM(In,          "in")           \
+    ZM(While,       "while")        \
+    ZM(Do,          "do")           \
     /* Binary functions */          \
     ZM(As,          "as")           \
     ZM(To,          "to")           \
     ZM(Is,          "is")           \
     ZM(NotIs,       "!is")          \
     ZM(NotIn,       "!in")          \
+    ZM(In,          "in")           \
     /* Unary functions */           \
-    ZM(New,         "new")          \
-    ZM(Delete,      "delete")       \
     ZM(AlignOf,     "alignof")      \
     ZM(SizeOf,      "sizeof")       \
     ZM(TypeOf,      "typeof")       \
     ZM(NameOf,      "nameof")       \
+    ZM(New,         "new")          \
+    ZM(Delete,      "delete")       \
+    /* Generator */                 \
+    ZM(Await,       "await")        \
+    ZM(Yield,       "yield")        \
     /* Literals */                  \
     ZM(Null,        "null")         \
     ZM(void_,       "void")         \
@@ -116,21 +127,37 @@ namespace exy {
     ZM(This,        "this")         \
     ZM(Super,       "super")        \
     /* Others */                    \
-    ZM(Defer,       "defer")        \
     ZM(From,        "from")         \
     ZM(With,        "with")
 
 #define DeclareModifiers(ZM)        \
+    /* Visibility modifiers  */     \
     ZM(Private,     "private")      \
+    ZM(Internal,    "internal")     \
+    ZM(Protected,   "protected")    \
+    /* Scope modifiers  */          \
     ZM(Static,      "static")       \
+    /* Mutability modifiers  */     \
     ZM(Const,       "const")        \
     ZM(ReadOnly,    "readonly")     \
+    /* Lifetime modifiers  */       \
     ZM(Auto,        "auto")         \
+    /* Info modifiers  */           \
     ZM(Var,         "var")          \
+    /* Async modifiers  */          \
     ZM(Async,       "async")        \
+    /* Hierarchy modifiers  */      \
     ZM(Abstract,    "abstract")     \
     ZM(Override,    "override")     \
+    /* Synchronization modifiers  */\
     ZM(Synchronized,"synchronized")
+
+#define DeclareCompilerKeywords(ZM)  \
+    ZM(MODULE__,     "__MODULE__")   \
+    ZM(FILE__,       "__FILE__")     \
+    ZM(FUNCTION__,   "__FUNCTION__") \
+    ZM(LINE__,       "__LINE__")     \
+    ZM(COL__,        "__COL__")
 
 enum class Keyword {
     None,
@@ -146,12 +173,17 @@ enum class Keyword {
 #define ZM(zName, zText) zName,
     DeclareUserDefinedTypeKeywords(ZM)
 #undef ZM
-    _end_utds,
+    _end_udts,
     _begin_builtins,
 #define ZM(zName, zSize) zName,
     DeclareBuiltinTypeKeywords(ZM)
 #undef ZM
-    _end_builtins
+    _end_builtins,
+    _begin_compiler_keywords,
+#define ZM(zName, zText) zName,
+    DeclareCompilerKeywords(ZM)
+#undef ZM
+    _end_compiler_keywords
 };
 
 struct Keywords {
@@ -167,5 +199,5 @@ private:
     List<Word> list{};
 };
 
-__declspec(selectany) Keywords kws {};
+__declspec(selectany) Keywords kws{};
 } // namespace exy
