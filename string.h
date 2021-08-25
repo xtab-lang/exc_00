@@ -26,6 +26,8 @@ struct String {
     String& append(const CHAR *v, INT vlen);
     String& appendInt(INT n);
 
+    String& removeTrailingSpaces();
+
     const CHAR* start() const { return text; }
     const CHAR* end()   const { return text + length; }
 
@@ -37,6 +39,8 @@ struct String {
 
     auto isEmpty()    const { return length == 0; };
     auto isNotEmpty() const { return length > 0; }
+
+    bool isRandomOf(const CHAR *v, INT vlen) const;
 };
 
 using Identifier = const String*;

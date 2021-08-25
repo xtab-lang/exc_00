@@ -64,7 +64,6 @@ namespace exy {
     ZM(DivRemAssign,    "%%=")  \
     ZM(BitwiseNotAssign,"~=")   \
     ZM(ExponentiationAssign,  "**=")   \
-    ZM(QuestionQuestionAssign,"??=")   \
     /* Assignment */            \
     ZM(Assign,          "=")    \
     /* Logical ↓ */             \

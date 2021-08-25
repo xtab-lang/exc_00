@@ -189,6 +189,31 @@
     <ClCompile Include="string.cpp" />
     <ClCompile Include="token.cpp" />
     <ClCompile Include="tokenizer.cpp" />
+    <ClCompile Include="tp.cpp" />
+    <ClCompile Include="tp_apply_modfiers.cpp" />
+    <ClCompile Include="tp_binary.cpp" />
+    <ClCompile Include="tp_bind_statement.cpp" />
+    <ClCompile Include="tp_bind_expression.cpp" />
+    <ClCompile Include="tp_parenthesized.cpp" />
+    <ClCompile Include="tp_bracketed.cpp" />
+    <ClCompile Include="tp_braced.cpp" />
+    <ClCompile Include="tp_lambda.cpp" />
+    <ClCompile Include="tp_unary.cpp" />
+    <ClCompile Include="tp_upper_bound.cpp" />
+    <ClCompile Include="tp_var.cpp" />
+    <ClCompile Include="tp_site.cpp" />
+    <ClCompile Include="tp_cast.cpp" />
+    <ClCompile Include="tp_collect.cpp" />
+    <ClCompile Include="tp_lookup.cpp" />
+    <ClCompile Include="tp_fn.cpp" />
+    <ClCompile Include="tp_isa.cpp" />
+    <ClCompile Include="tp_mk.cpp" />
+    <ClCompile Include="tp_module.cpp" />
+    <ClCompile Include="tp_struct.cpp" />
+    <ClCompile Include="tp_type.cpp" />
+    <ClCompile Include="tp_import.cpp" />
+    <ClCompile Include="typer.cpp" />
+    <ClCompile Include="tp_current.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aio.h" />
@@ -211,6 +236,25 @@
     <ClInclude Include="token.h" />
     <ClInclude Include="tokenizer.h" />
     <ClInclude Include="token_kind.h" />
+    <ClInclude Include="tp.h" />
+    <ClInclude Include="tp_binary.h" />
+    <ClInclude Include="tp_parenthesized.h" />
+    <ClInclude Include="tp_bracketed.h" />
+    <ClInclude Include="tp_braced.h" />
+    <ClInclude Include="tp_lambda.h" />
+    <ClInclude Include="tp_site.h" />
+    <ClInclude Include="tp_cast.h" />
+    <ClInclude Include="tp_lookup.h" />
+    <ClInclude Include="tp_fn.h" />
+    <ClInclude Include="tp_isa.h" />
+    <ClInclude Include="tp_mk.h" />
+    <ClInclude Include="tp_module.h" />
+    <ClInclude Include="tp_struct.h" />
+    <ClInclude Include="tp_type.h" />
+    <ClInclude Include="tp_unary.h" />
+    <ClInclude Include="tp_var.h" />
+    <ClInclude Include="typer.h" />
+    <ClInclude Include="tp_current.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

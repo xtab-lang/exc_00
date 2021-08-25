@@ -2,6 +2,7 @@
 
 #include "src.h"
 #include "syntax.h"
+#include "tp.h"
 
 namespace exy {
 
@@ -9,11 +10,14 @@ void Compiler::run() {
     traceln("Starting compiler");
     ids.initialize();
     if (compiler.config.initialize()) {
-        compiler.source = MemNew<SourceTree>();
-        if (compiler.source->initialize()) {
-            compiler.syntax = MemNew<SyntaxTree>();
-            if (compiler.syntax->initialize()) {
+        compiler.sourceTree = MemNew<SourceTree>();
+        if (compiler.sourceTree->initialize()) {
+            compiler.syntaxTree = MemNew<SyntaxTree>();
+            if (compiler.syntaxTree->initialize()) {
+                compiler.tpTree = MemNew<TpTree>();
+                if (compiler.tpTree->initialize()) {
 
+                }
             }
         }
     }
@@ -22,13 +26,17 @@ void Compiler::run() {
 
 void Compiler::dispose() {
     traceln("Stopping compiler");
-    if (syntax != nullptr) {
-        syntax->dispose();
-        syntax = MemFree(syntax);
+    if (tpTree != nullptr) {
+        tpTree->dispose();
+        tpTree = MemFree(tpTree);
     }
-    if (source != nullptr) {
-        source->dispose();
-        source = MemFree(source);
+    if (syntaxTree != nullptr) {
+        syntaxTree->dispose();
+        syntaxTree = MemFree(syntaxTree);
+    }
+    if (sourceTree != nullptr) {
+        sourceTree->dispose();
+        sourceTree = MemFree(sourceTree);
     }
     config.dispose();
     ids.dispose();
@@ -99,6 +107,35 @@ void Compiler::error(const CHAR *cppFile, const CHAR *cppFunc, INT cppLine,
     __crt_va_end(ap);
 }
 
+void Compiler::error(const CHAR *cppFile, const CHAR *cppFunc, INT cppLine,
+                     const CHAR *pass, const TpNode *node, const CHAR *msg, ...) {
+    va_list ap = nullptr;
+    __crt_va_start(ap, msg);
+    if (node == nullptr) {
+        error(cppFile, cppFunc, cppLine, pass, nullptr, nullptr, nullptr, msg, ap);
+    } else {
+        auto &pos = node->pos;
+        error(cppFile, cppFunc, cppLine, pass, &pos.file,
+              &pos.range.start, &pos.range.end, msg, ap);
+    }
+    __crt_va_end(ap);
+}
+
+void Compiler::error(const CHAR *cppFile, const CHAR *cppFunc, INT cppLine,
+                     const CHAR *pass, const TpSymbol *symbol, const CHAR *msg, ...) {
+    va_list ap = nullptr;
+    __crt_va_start(ap, msg);
+    if (symbol == nullptr) {
+        error(cppFile, cppFunc, cppLine, pass, nullptr, nullptr, nullptr, msg, ap);
+    } else {
+        auto node = symbol->node;
+        auto &pos = node->pos;
+        error(cppFile, cppFunc, cppLine, pass, &pos.file,
+              &pos.range.start, &pos.range.end, msg, ap);
+    }
+    __crt_va_end(ap);
+}
+
 void Compiler::error(const CHAR *cppFile, const CHAR *cppFunc, INT cppLine, 
                      const CHAR *pass, const SourceFile *file, const SourceChar *start,
                      const SourceChar *end, const CHAR *msg, va_list ap) {
@@ -124,7 +161,7 @@ void Compiler::error(const CHAR *cppFile, const CHAR *cppFunc, INT cppLine,
         trace("%i#<yellow>:%i#<yellow>―%i#<yellow>:%i#<yellow>", start->line, start->col, end->line, end->col);
     }
     trace(") %c#<red underline>%c#<red underline> %c#<darkred> ", pass, "Error", "→");
-    if (msg) {
+    if (msg != nullptr) {
         vprintln(nullptr, msg, ap);
     } else {
         traceln("");
@@ -133,7 +170,8 @@ void Compiler::error(const CHAR *cppFile, const CHAR *cppFunc, INT cppLine,
     for (auto i = 0; i < maxLineNumberLength; i++) {
         trace(" ");
     }
-    traceln("  %c#<darkyellow>(%c#<darkyellow>:%i#<darkyellow>)", cppFile, cppFunc, cppLine);
+    traceln("  %c#<darkyellow> @ %c#<darkyellow>:%i#<darkyellow>", cppFile, cppFunc, cppLine);
+    graph(maxLineNumberLength);
 }
 
 void Compiler::error(const CHAR *, const CHAR *, INT , 

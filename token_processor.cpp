@@ -3,7 +3,7 @@
 
 #include "src.h"
 
-#define err(pos, msg, ...) compiler_error("Tokenizer", pos, msg, __VA_ARGS__)
+#define err(pos, msg, ...) diagnostic("Tokenizer", pos, msg, __VA_ARGS__)
 
 namespace exy {
 TokenProcessor::TokenProcessor(SourceFile &file) : tokens(file.tokens) {}
@@ -40,15 +40,13 @@ void TokenProcessor::run() {
             case Tok::OpenSingleLineComment: if (isInCode) {
                 auto commentPos = i; // Where the single-line comment will start.
                 i = skipSingleLineComment(i);
-                if (i < tokens.length) {
-                    // {i} is at NL.
+                if (i < tokens.length) { // {i} is at NL.
                     auto &start = tokens.items[commentPos]; // Comment starts here.
                     auto   &end = tokens.items[i]; // Comment ends here. Excludes NL.
                     SourceToken comment{ start.pos.file, start.pos.range.start, end.pos.range.start, Tok::SingleLineComment };
-                    tokens.erase(commentPos, i - commentPos); // Remove all tokens up to 1 past NL.
+                    tokens.erase(commentPos, i - commentPos); // Remove all tokens up to NL.
                     tokens.items[commentPos] = comment; // Replace the removed tokens with 1 single-line comment token.
-                } else {
-                    // {i} is 1 past EOF.
+                } else { // {i} is 1 past EOF.
                     --i; // Move to EOF.
                     auto &start = tokens.items[commentPos]; // Comment starts here.
                     auto   &end = tokens.items[i]; // Comment ends here. Excludes EOF.
@@ -67,7 +65,7 @@ void TokenProcessor::run() {
                     err(pos, "unmatched %tok", &pos);
                 } else {
                     // {i} is at '*/'.
-                    ++i; // Move 1 past '*/'.
+                    //++i; // Move 1 past '*/'.
                     auto &start = tokens.items[commentPos]; // Comment starts here.
                     auto   &end = tokens.items[i]; // Comment ends here. Includes '*/'.
                     SourceToken comment{ start.pos.file, start.pos.range.start, end.pos.range.start, Tok::MultiLineComment };
@@ -284,9 +282,9 @@ bool TokenProcessor::isaCloseAngle(INT i) {
     for (; next < tokens.length; ++next) {
         auto &pos = tokens.items[next];
         if (pos.kind == Tok::OpenSingleLineComment) {
-            next = skipSingleLineComment(i);
+            next = skipSingleLineComment(next) - 1; // Because {next} is now at NL.
         } else if (pos.kind == Tok::OpenMultiLineComment) {
-            next = skipMultiLineComment(i);
+            next = skipMultiLineComment(next);
         } else if (pos.kind == Tok::Space || pos.kind == Tok::SingleLineComment || pos.kind == Tok::MultiLineComment) {
             // Do nothing.
         } else {
@@ -331,9 +329,9 @@ bool TokenProcessor::isaPointerOrReference(INT i) {
     for (; next < tokens.length; ++next) {
         auto &pos = tokens.items[next];
         if (pos.kind == Tok::OpenSingleLineComment) {
-            next = skipSingleLineComment(i);
+            next = skipSingleLineComment(next) - 1; // Because {next} is now at NL.
         } else if (pos.kind == Tok::OpenMultiLineComment) {
-            next = skipMultiLineComment(i);
+            next = skipMultiLineComment(next);
         } else if (pos.kind == Tok::Space || pos.kind == Tok::SingleLineComment || pos.kind == Tok::MultiLineComment) {
             // Do nothing.
         } else {

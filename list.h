@@ -4,9 +4,9 @@ namespace exy {
 
 template<typename T>
 struct List {
-    T  *items{};
-    INT length{};
-    INT capacity{};
+    T  *items    = nullptr;
+    INT length   = 0;
+    INT capacity = 0;
 
     auto dispose() {
         items = MemFree(items);
@@ -87,6 +87,14 @@ struct List {
     T& pop() {
         Assert(length > 0);
         return items[--length];
+    }
+
+    T& insert(INT at) {
+        Assert(at >= 0 && at <= length);
+        reserve(1);
+        MemMove(/* dst = */ items + at + 1, /* src = */ items + at, length - at);
+        ++length;
+        return items[at];
     }
 
     T& insert(const T &item, INT at) {

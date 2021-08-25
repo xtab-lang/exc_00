@@ -10,7 +10,7 @@ namespace exy {
 using Pos = const SourceToken&;
 
 bool SyntaxTree::initialize() {
-    parse(nullptr, compiler.source->folders);
+    parse(nullptr, compiler.sourceTree->folders);
     if (compiler.errors == 0) {
         discoverModules();
     }
@@ -54,20 +54,28 @@ void SyntaxTree::parse(SyntaxFolder *parent, SourceFile &srcFile) {
 }
 //----------------------------------------------------------
 SyntaxFolder::SyntaxFolder(SourceFolder &src, SyntaxFolder *parent) 
-    : SyntaxNode(src.pos(), Kind::Folder), src(src), parent(parent) {}
+    : SyntaxNode(src.posFile().tokens.first(), Kind::Folder), src(src), parent(parent) {}
 
 void SyntaxFolder::dispose() {
     ldispose(folders);
     ldispose(files);
     __super::dispose();
 }
+
+Pos SyntaxFolder::lastPos() const {
+    return src.posFile().tokens.last();
+}
 //----------------------------------------------------------
 SyntaxFile::SyntaxFile(SourceFile &src, SyntaxFolder *parent)
-    : SyntaxNode(src.pos(), Kind::File), src(src), parent(parent) {}
+    : SyntaxNode(src.tokens.first(), Kind::File), src(src), parent(parent) {}
 
 void SyntaxFile::dispose() {
     ldispose(nodes);
     __super::dispose();
+}
+
+Pos SyntaxFile::lastPos() const {
+    return src.tokens.last();
 }
 //----------------------------------------------------------
 SyntaxModule::SyntaxModule(SyntaxFile *firstFile) : pos(firstFile->src.pos()) {}
@@ -76,6 +84,7 @@ SyntaxModule::SyntaxModule(SyntaxFile *main, SyntaxFile *init) :
     pos(main == nullptr ? init->src.pos() : main->src.pos()), main(main), init(init) {}
 
 void SyntaxModule::dispose() {
+    ldispose(modules);
     files.dispose();
     main = init = nullptr;
 }
@@ -98,6 +107,16 @@ Pos ModifierListSyntax::lastPos() const {
         return nodes.last()->lastPos();
     }
     return __super::lastPos();
+}
+
+ModifierSyntax* ModifierListSyntax::contains(Keyword value) {
+    for (auto i = 0; i < nodes.length; i++) {
+        auto modifier = nodes.items[i];
+        if (modifier->value == value) {
+            return modifier;
+        }
+    }
+    return nullptr;
 }
 //----------------------------------------------------------
 ModuleSyntax::ModuleSyntax(Pos pos)
@@ -215,6 +234,7 @@ StructureSyntax::StructureSyntax(Node modifiers, Pos pos)
 void StructureSyntax::dispose() {
     modifiers = ndispose(modifiers);
     name = ndispose(name);
+    parameters = ndispose(parameters);
     attributes = ndispose(attributes);
     supers = ndispose(supers);
     body = ndispose(body);
@@ -234,6 +254,9 @@ Pos StructureSyntax::lastPos() const {
     if (attributes != nullptr) {
         return attributes->lastPos();
     }
+    if (parameters != nullptr) {
+        return parameters->lastPos();
+    }
     if (name != nullptr) {
         return name->lastPos();
     }
@@ -241,7 +264,7 @@ Pos StructureSyntax::lastPos() const {
 }
 //----------------------------------------------------------
 FunctionSyntax::FunctionSyntax(Node modifiers, Pos pos)
-    : SyntaxNode(pos, Kind::Structure), modifiers(modifiers) {}
+    : SyntaxNode(pos, Kind::Function), modifiers(modifiers) {}
 
 void FunctionSyntax::dispose() {
     modifiers = ndispose(modifiers);
@@ -283,6 +306,7 @@ Pos FunctionSyntax::lastPos() const {
     }
     return __super::lastPos();
 }
+
 //----------------------------------------------------------
 BlockSyntax::BlockSyntax(Pos pos)
     : SyntaxNode(pos, Kind::Block) {}
@@ -292,6 +316,7 @@ BlockSyntax::BlockSyntax(Node modifiers, Pos pos)
 
 void BlockSyntax::dispose() {
     modifiers = ndispose(modifiers);
+    arguments = ndispose(arguments);
     ldispose(nodes);
     __super::dispose();
 }
@@ -302,6 +327,9 @@ Pos BlockSyntax::lastPos() const {
     }
     if (nodes.isNotEmpty()) {
         return nodes.last()->lastPos();
+    }
+    if (arguments != nullptr) {
+        return arguments->lastPos();
     }
     return __super::lastPos();
 }
@@ -395,13 +423,13 @@ void ForInSyntax::dispose() {
     variables = ndispose(variables);
     expression = ndispose(expression);
     body = ndispose(body);
-    ifalse = ndispose(ifalse);
+    ifnobreak = ndispose(ifnobreak);
     __super::dispose();
 }
 
 Pos ForInSyntax::lastPos() const {
-    if (ifalse != nullptr) {
-        return ifalse->lastPos();
+    if (ifnobreak != nullptr) {
+        return ifnobreak->lastPos();
     }
     if (kwElse != nullptr) {
         return *kwElse;
@@ -432,13 +460,13 @@ void ForSyntax::dispose() {
     condition = ndispose(condition);
     increment = ndispose(increment);
     body = ndispose(body);
-    ifalse = ndispose(ifalse);
+    ifnobreak = ndispose(ifnobreak);
     __super::dispose();
 }
 
 Pos ForSyntax::lastPos() const {
-    if (ifalse != nullptr) {
-        return ifalse->lastPos();
+    if (ifnobreak != nullptr) {
+        return ifnobreak->lastPos();
     }
     if (kwElse != nullptr) {
         return *kwElse;
@@ -459,18 +487,18 @@ Pos ForSyntax::lastPos() const {
 }
 //----------------------------------------------------------
 WhileSyntax::WhileSyntax(Pos pos)
-    : SyntaxNode(pos, Kind::DoWhile) {}
+    : SyntaxNode(pos, Kind::While) {}
 
 void WhileSyntax::dispose() {
     condition = ndispose(condition);
     body = ndispose(body);
-    ifalse = ndispose(ifalse);
+    ifnobreak = ndispose(ifnobreak);
     __super::dispose();
 }
 
 Pos WhileSyntax::lastPos() const {
-    if (ifalse != nullptr) {
-        return ifalse->lastPos();
+    if (ifnobreak != nullptr) {
+        return ifnobreak->lastPos();
     }
     if (kwElse != nullptr) {
         return *kwElse;
@@ -558,8 +586,8 @@ Pos VariableSyntax::lastPos() const {
     if (rhs != nullptr) {
         return rhs->lastPos();
     }
-    if (op != nullptr) {
-        return *op;
+    if (assign != nullptr) {
+        return *assign;
     }
     if (name != nullptr) {
         return name->lastPos();
@@ -636,8 +664,8 @@ UnaryPrefixSyntax::UnaryPrefixSyntax(Pos op)
     : SyntaxNode(op, Kind::UnaryPrefix) {}
 
 void UnaryPrefixSyntax::dispose() {
-    with = ndispose(with);
     expression = ndispose(expression);
+    with = ndispose(with);
     __super::dispose();
 }
 
@@ -684,6 +712,18 @@ Pos DotSyntax::lastPos() const {
     }
     return dot;
 }
+
+void DotSyntax::flatten(Nodes &list) {
+    if (lhs->kind == Kind::Dot) {
+        auto lhsSyntax = (DotSyntax*)lhs;
+        lhsSyntax->flatten(list);
+    } else {
+        list.append(lhs);
+    }
+    Assert(rhs->kind != Kind::Dot);
+    list.append(rhs);
+}
+
 //----------------------------------------------------------
 CallSyntax::CallSyntax(Node name, ParenthesizedSyntax *arguments)
     : PostfixEnclosedSyntax(name, arguments, Kind::Call) {}
@@ -696,6 +736,9 @@ void CallSyntax::dispose() {
 Pos CallSyntax::lastPos() const {
     if (with != nullptr) {
         return with->lastPos();
+    }
+    if (kwWith != nullptr) {
+        return *kwWith;
     }
     return __super::lastPos();;
 }
@@ -710,7 +753,7 @@ InitializerSyntax::InitializerSyntax(Node name, BracedSyntax *arguments)
     : PostfixEnclosedSyntax(name, arguments, Kind::Initializer) {}
 //----------------------------------------------------------
 void EnclosedSyntax::dispose() {
-    node = ndispose(node);
+    value = ndispose(value);
     __super::dispose();
 }
 
@@ -718,8 +761,8 @@ EnclosedSyntax::Pos EnclosedSyntax::lastPos() const {
     if (close != nullptr) {
         return *close;
     }
-    if (node != nullptr) {
-        return node->lastPos();
+    if (value != nullptr) {
+        return value->lastPos();
     }
     return __super::lastPos();
 }
@@ -849,9 +892,14 @@ DoubleQuotedSyntax::DoubleQuotedSyntax(Pos pos, const String &value, Pos close)
 Pos DoubleQuotedSyntax::lastPos() const {
     return close;
 }
+
 //----------------------------------------------------------
 BooleanSyntax::BooleanSyntax(Pos pos)
     : SyntaxNode(pos, Kind::Boolean), value(pos.keyword == Keyword::True) {}
+
+BooleanSyntax::BooleanSyntax(Pos pos, bool value)
+    : SyntaxNode(pos, Kind::Boolean), value(value) {}
+
 //----------------------------------------------------------
 NumberSyntax::NumberSyntax(Pos pos)
     : SyntaxNode(pos, Kind::Number) {}

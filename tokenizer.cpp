@@ -4,7 +4,7 @@
 #include "token_processor.h"
 #include "src.h"
 
-#define err(pos, msg, ...) compiler_error("Tokenizer", msg, __VA_ARGS__)
+#define err(pos, msg, ...) diagnostic("Tokenizer", msg, __VA_ARGS__)
 
 namespace exy {
 struct SourceCharReader {
@@ -293,12 +293,7 @@ void Tokenizer::readPunctuation(Stream stream) {
 		} break;
 		case '?': if (*stream.pos->text == '?') {
 			++stream.pos; // past 2nd '?'
-			if (stream.pos + 1 < stream.end && *stream.pos->text == '=') {
-				++stream.pos; // past '='
-				take(stream, Tok::QuestionQuestionAssign); // take '??='
-			} else {
-				take(stream, Tok::QuestionQuestion); // take '??'
-			}
+			take(stream, Tok::QuestionQuestion); // take '??'
 		} else {
 			take(stream, Tok::Question); // take '?'
 		} break;
@@ -560,7 +555,7 @@ bool Tokenizer::tryBin(Stream stream) {
 			}
 		}
 	}
-	// bin [bin | '_']+ 'b' | 'B' intsfx | fltsfx
+	// bin [bin | '_']+ 'b' | 'B' [intsfx | fltsfx]
 	stream.pos = pos; // set {stream.pos}
 	if (isaBin(stream.pos)) {
 		for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
@@ -613,7 +608,7 @@ bool Tokenizer::tryOct(Stream stream) {
 	}
 	// oct [oct | '_']+ 'o' | 'O' intsfx | fltsfx
 	stream.pos = pos; // set {stream.pos}
-	if (isaBin(stream.pos)) {
+	if (isanOct(stream.pos)) {
 		for (++stream.pos; stream.pos < stream.end; ++stream.pos) {
 			if (!isanOctOrBlank(stream.pos)) {
 				break;

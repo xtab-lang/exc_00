@@ -79,7 +79,6 @@ DeclareSyntaxNodes(ZM)
 //----------------------------------------------------------
 enum class SyntaxKind {
     Unknown,
-    Node,
     Folder,
     File,
 #define ZM(zName) zName,
@@ -102,7 +101,7 @@ private:
     // syntax_modules.cpp
     void discoverModules();
     void printModules();
-    void printModule(SyntaxModule*);
+    void printModule(INT indent, SyntaxModule*);
 };
 //----------------------------------------------------------
 struct SyntaxNode {
@@ -135,28 +134,29 @@ struct SyntaxFolder : SyntaxNode {
 
     SyntaxFolder(SourceFolder&, SyntaxFolder *parent);
     void dispose() override;
+    Pos lastPos() const override;
 };
 //----------------------------------------------------------
 struct SyntaxFile : SyntaxNode {
-    SourceFile   &src;      // Source.
-    SyntaxFolder *parent;          // The immediate parent {SyntaxFolder} of {this} file.
-    ModuleSyntax *moduleStatement; // The 1 and only file-scope level {ModuleSyntax} statement in {this} file. May be null.
-    Nodes         nodes;           // All the statements in {this} file.
+    SourceFile     &src;             // Source.
+    SyntaxFolder   *parent;          // The immediate parent {SyntaxFolder} of {this} file.
+    ModuleSyntax   *moduleStatement; // The 1 and only file-scope level {ModuleSyntax} statement in {this} file. May be null.
+    Nodes           nodes;           // All the statements in {this} file.
 
     SyntaxFile(SourceFile&, SyntaxFolder *parent);
     void dispose() override;
+    Pos lastPos() const override;
 };
 //----------------------------------------------------------
 struct SyntaxModule {
-    using Pos = const SourceToken&;
-
-    Pos               pos;  // For error reporting.
-    List<SyntaxFile*> files;// All the {SyntaxFile}s contributing to {this} module.
-    SyntaxFile       *main; // The 1 and only file named 'main.exy' in {this} module.
-    SyntaxFile       *init; // The 1 and {SyntaxFile} with the same name as {this} module.
-    Identifier        dotName;
-    Identifier        name;
-    Identifier        system;
+    SourceToken         pos;  // For error reporting.
+    List<SyntaxModule*> modules; // All the {SyntaxModule}s sharing the source heirarchy with {this} module.
+    List<SyntaxFile*>   files;// All the {SyntaxFile}s contributing to {this} module.
+    SyntaxFile         *main; // The 1 and only file named 'main.exy' in {this} module.
+    SyntaxFile         *init; // The 1 and {SyntaxFile} with the same name as {this} module.
+    Identifier          dotName;
+    Identifier          name;
+    Identifier          system;
 
     SyntaxModule(SyntaxFile *firstFile);
     SyntaxModule(SyntaxFile *main, SyntaxFile *init);
@@ -173,6 +173,7 @@ struct ModifierSyntax : SyntaxNode {
     Keyword value;
 
     ModifierSyntax(Pos pos);
+    auto is(Keyword k) { return value == k ? this : nullptr; }
 }; 
 //----------------------------------------------------------
 // modifier-list := modifier [modifier]+
@@ -182,11 +183,10 @@ struct ModifierListSyntax : SyntaxNode {
     ModifierListSyntax(ModifierSyntax *first);
     void dispose() override;
     Pos lastPos() const override;
+
+    ModifierSyntax* contains(Keyword);
 };
 //----------------------------------------------------------
-// module      := 'module' module-name ['as' system]
-// module-name := identifier ['.' identifier]+
-// system      := 'console' | 'service' | 'windows' | 'driver' | 'dll' | 'lib' | 'exe'
 struct ModuleSyntax : SyntaxNode {
     Node  name;
     KwPos kwAs;
@@ -197,12 +197,6 @@ struct ModuleSyntax : SyntaxNode {
     Pos lastPos() const override;
 };
 //----------------------------------------------------------
-// import      := 'import' | 'export' import-list
-// import-list := import-item [',' import-item]*
-// import-item := import-name ['as' identifier] ['from' import-name]
-//             or import-name ['from' import-name] ['as' identifier]
-// import-name := identifier ['.' identifier]+
-//             or '*'
 struct ImportSyntax : SyntaxNode {
     Node  name;
     KwPos kwAs;
@@ -218,7 +212,7 @@ struct ImportSyntax : SyntaxNode {
 // define := 'define' identifier expression
 struct DefineSyntax : SyntaxNode {
     Node modifiers;
-    Node name;
+    Name name;
     Node value;
 
     DefineSyntax(Node modifiers, Pos pos);
@@ -242,6 +236,7 @@ struct ExternBlockSyntax : SyntaxNode {
 struct StructureSyntax : SyntaxNode {
     Node  modifiers;
     Node  name;
+    AngledSyntax *parameters;
     Node  attributes;
     OpPos supersOp;
     Node  supers;
@@ -254,15 +249,17 @@ struct StructureSyntax : SyntaxNode {
 //----------------------------------------------------------
 struct FunctionSyntax : SyntaxNode {
     Node  modifiers;
-    Node  httpVerb;
+    Node  webProtocol; // 'http' ... 'wss'
+    Node  httpVerb;    // 'GET' ... 'PATCH'
     Node  name;
     OpPos opName;
     OpPos kwName;
-    Node  parameters;
+    ParenthesizedSyntax *parameters;
     OpPos fnreturnOp;
     Node  fnreturn;
     OpPos bodyOp;
     Node  body;
+    INT awaits, yields, returns;
 
     FunctionSyntax(Node modifiers, Pos pos);
     void dispose() override;
@@ -271,6 +268,7 @@ struct FunctionSyntax : SyntaxNode {
 //----------------------------------------------------------
 struct BlockSyntax : SyntaxNode {
     Node     modifiers;
+    ParenthesizedSyntax *arguments;
     Nodes    nodes;
     ClosePos close;
 
@@ -333,7 +331,7 @@ struct ForInSyntax : SyntaxNode {
     Node  expression;
     Node  body;
     KwPos kwElse;
-    Node ifalse;
+    Node ifnobreak;
 
     ForInSyntax(Pos pos, Node variables);
     void dispose() override;
@@ -346,7 +344,7 @@ struct ForSyntax : SyntaxNode {
     Node  increment;
     Node  body;
     KwPos kwElse;
-    Node  ifalse;
+    Node  ifnobreak;
 
     ForSyntax(Pos pos, Node initializer = nullptr);
     void dispose() override;
@@ -357,7 +355,7 @@ struct WhileSyntax : SyntaxNode {
     Node  condition;
     Node  body;
     KwPos kwElse;
-    Node  ifalse;
+    Node  ifnobreak;
 
     WhileSyntax(Pos pos);
     void dispose() override;
@@ -399,7 +397,7 @@ struct UsingSyntax : SyntaxNode {
 struct VariableSyntax : SyntaxNode {
     Node  modifiers;
     Node  name;
-    OpPos op;
+    OpPos assign;
     Node  rhs;
 
     VariableSyntax(Node modifiers, Pos pos);
@@ -445,8 +443,8 @@ struct IfExpressionSyntax : SyntaxNode {
 struct UnaryPrefixSyntax : SyntaxNode {
     KwPos kwFrom; // For 'yield' 'from' ...
     Node  expression;
-    KwPos kwWith; // For 'delete', 'await' and 'yield'
-    Node  with;
+    KwPos kwWith; // For 'delete' expression 'with' ...
+    FunctionSyntax *with;
 
     UnaryPrefixSyntax(Pos op);
     void dispose() override;
@@ -471,6 +469,8 @@ struct DotSyntax : SyntaxNode {
     DotSyntax(Node lhs, Pos dot, Node rhs = nullptr);
     void dispose() override;
     Pos lastPos() const override;
+
+    void flatten(Nodes &list);
 };
 //----------------------------------------------------------
 template<typename T>
@@ -491,8 +491,8 @@ struct PostfixEnclosedSyntax : SyntaxNode {
 };
 //----------------------------------------------------------
 struct CallSyntax : PostfixEnclosedSyntax<ParenthesizedSyntax> {
-    KwPos kwWith;
-    Node  with;
+    KwPos           kwWith;
+    FunctionSyntax *with;
 
     CallSyntax(Node name, ParenthesizedSyntax *arguments);
     void dispose() override;
@@ -515,7 +515,7 @@ struct InitializerSyntax : PostfixEnclosedSyntax<BracedSyntax> {
 };
 //----------------------------------------------------------
 struct EnclosedSyntax : SyntaxNode {
-    Node     node;
+    Node     value;
     ClosePos close;
 
     EnclosedSyntax(Pos pos, Kind kind) : SyntaxNode(pos, kind) {}
@@ -642,6 +642,7 @@ struct BooleanSyntax : SyntaxNode {
     bool value;
 
     BooleanSyntax(Pos pos);
+    BooleanSyntax(Pos pos, bool value);
 };
 //----------------------------------------------------------
 struct NumberSyntax : SyntaxNode {

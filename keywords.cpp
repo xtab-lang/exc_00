@@ -6,7 +6,7 @@ void Keywords::initialize() {
     DeclareKeywords(ZM)
     DeclareModifiers(ZM)
     DeclareUserDefinedTypeKeywords(ZM)
-    DeclareCompilerKeywords(ZM)
+    DeclareCompileTimeKeywords(ZM)
 #undef ZM
 #define ZM(zName, zSize) list.place(String{ S(#zName) }, Keyword::zName);
     DeclareBuiltinTypeKeywords(ZM)

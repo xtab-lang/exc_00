@@ -1,25 +1,27 @@
 #pragma once
 
 namespace exy {
-
 #define DeclareBuiltinTypeKeywords(ZM)   \
 /* Type declaration keywords. */         \
     /* Non-SIMD types. */                \
     ZM(Void,        0)   \
-    ZM(Char,        1)   \
-    ZM(Int8,        1)   \
-    ZM(Int16,       2)   \
-    ZM(Int32,       4)   \
-    ZM(Int64,       8)   \
-    ZM(Bool,        1)   \
-    ZM(UInt8,       1)   \
-    ZM(WChar,       2)   \
-    ZM(UInt16,      2)   \
-    ZM(Utf8,        4)   \
-    ZM(UInt32,      4)   \
-    ZM(UInt64,      8)   \
-    ZM(Float,       4)   \
-    ZM(Double,      8)   \
+    /* Signed. */            \
+        ZM(Char,        1)   \
+        ZM(Int8,        1)   \
+        ZM(Int16,       2)   \
+        ZM(Int32,       4)   \
+        ZM(Int64,       8)   \
+    /* Unsigned */           \
+        ZM(Bool,        1)   \
+        ZM(UInt8,       1)   \
+        ZM(WChar,       2)   \
+        ZM(UInt16,      2)   \
+        ZM(Utf8,        4)   \
+        ZM(UInt32,      4)   \
+        ZM(UInt64,      8)   \
+    /* Floating point */     \
+        ZM(Float,       4)   \
+        ZM(Double,      8)   \
     /* SIMD types (16 B; AVX128). */     \
     ZM(Floatx4,     16)  \
     ZM(Doublex2,    16)  \
@@ -54,18 +56,13 @@ namespace exy {
     ZM(UInt32x16,   64)  \
     ZM(UInt64x8,    64)
 
-#define DeclareUserDefinedTypeKeywords(ZM) \
-    /* User-Defined Types (UDTs) */ \
-    ZM(Module,       "module")      \
-    /* Structure Types */           \
+#define DeclareStructureTypeKeywords(ZM) \
     ZM(Struct,       "struct")      \
-    ZM(Union,        "union")       \
-    ZM(Object,       "object")      \
-    /* Enumerated type */           \
-    ZM(Enum,         "enum")        \
-    /* Function Types */            \
-    ZM(Fn,           "fn")          \
+    ZM(Union,        "union")
+
+#define DeclareFunctionTypeKeywords(ZM) \
     ZM(Lambda,       "lambda")      \
+    ZM(Fn,           "fn")          \
     ZM(Extern,       "extern")      \
     ZM(UrlHandler,   "urlhandler")  \
     ZM(Html,         "html")        \
@@ -73,7 +70,17 @@ namespace exy {
     ZM(Js,           "js")          \
     ZM(Json,         "json")        \
     ZM(Sql,          "sql")         \
-    ZM(Blob,         "blob")        \
+    ZM(Blob,         "blob")
+
+#define DeclareUserDefinedTypeKeywords(ZM) \
+    /* User-Defined Types (UDTs) */ \
+    ZM(Module,       "module")      \
+    /* Structure Types */           \
+    DeclareStructureTypeKeywords(ZM) \
+    /* Enumerated type */           \
+    ZM(Enum,         "enum")        \
+    /* Function Types */            \
+    DeclareFunctionTypeKeywords(ZM)
 
 #define DeclareKeywords(ZM)         \
     /* Namespace usage */           \
@@ -115,6 +122,7 @@ namespace exy {
     ZM(NameOf,      "nameof")       \
     ZM(New,         "new")          \
     ZM(Delete,      "delete")       \
+    ZM(Atomic,      "atomic")       \
     /* Generator */                 \
     ZM(Await,       "await")        \
     ZM(Yield,       "yield")        \
@@ -152,8 +160,9 @@ namespace exy {
     /* Synchronization modifiers  */\
     ZM(Synchronized,"synchronized")
 
-#define DeclareCompilerKeywords(ZM)  \
+#define DeclareCompileTimeKeywords(ZM)  \
     ZM(MODULE__,     "__MODULE__")   \
+    ZM(FOLDER__,     "__FOLDER__")   \
     ZM(FILE__,       "__FILE__")     \
     ZM(FUNCTION__,   "__FUNCTION__") \
     ZM(LINE__,       "__LINE__")     \
@@ -174,16 +183,16 @@ enum class Keyword {
     DeclareUserDefinedTypeKeywords(ZM)
 #undef ZM
     _end_udts,
+    _begin_compiler_keywords,
+#define ZM(zName, zText) zName,
+    DeclareCompileTimeKeywords(ZM)
+#undef ZM
+    _end_compiler_keywords,
     _begin_builtins,
 #define ZM(zName, zSize) zName,
     DeclareBuiltinTypeKeywords(ZM)
 #undef ZM
-    _end_builtins,
-    _begin_compiler_keywords,
-#define ZM(zName, zText) zName,
-    DeclareCompilerKeywords(ZM)
-#undef ZM
-    _end_compiler_keywords
+    _end_builtins
 };
 
 struct Keywords {

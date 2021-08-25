@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "parser.h"
 
-#define err(pos, msg, ...) compiler_error("Syntax", pos, msg, __VA_ARGS__)
+#define err(pos, msg, ...) diagnostic("Syntax", pos, msg, __VA_ARGS__)
 
 namespace exy {
 using  Pos = const SourceToken*;

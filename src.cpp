@@ -161,7 +161,7 @@ void SourceTree::tokenize(SourceFile &file) {
 //----------------------------------------------------------
 void SourceFolder::initialize() {
     const String extension{ S(EXY_EXTENSION) };
-    auto &mem = compiler.source->mem;
+    auto &mem = compiler.sourceTree->mem;
     WIN32_FIND_DATA wfd{};
     String tmp{};
     tmp.append(path).append(S("\\*"));
@@ -213,20 +213,20 @@ void SourceFolder::dispose() {
     files.dispose([](auto &x) { x.dispose(); });
 }
 
-SourceToken SourceFolder::pos() {
+SourceFile& SourceFolder::posFile() {
     for (auto i = 0; i < files.length; i++) {
         auto &file = files.items[i];
         if (file.name == ids.kw_main) {
-            return file.pos();
+            return file;
         }
     }
     for (auto i = 0; i < files.length; i++) {
         auto &file = files.items[i];
         if (file.name == name) {
-            return file.pos();
+            return file;
         }
     }
-    return files.first().pos();
+    return files.first();
 }
 //----------------------------------------------------------
 #define MAX_FILE_SIZE 0x10000

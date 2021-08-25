@@ -56,9 +56,23 @@ String& String::append(const CHAR *v, INT vlen) {
 
 String& String::appendInt(INT n) {
     static thread_local CHAR numbuf[0x20]{};
-    auto e = _itoa_s(n, numbuf, 10);
-    Assert(e != 0); 
+    _itoa_s(n, numbuf, 10);
     return append(numbuf, cstrlen(numbuf));
+}
+
+String& String::removeTrailingSpaces() {
+    if (length > 0) {
+        auto vend = text + length - 1;
+        while (vend >= text && (*vend == ' ' || *vend == '\t')) {
+            --vend;
+        }
+        if (vend < text) {
+            length = 0;
+        } else {
+            length = INT(vend - text) + 1;
+        }
+    }
+    return *this;
 }
 
 bool String::startsWith(const CHAR *v, INT vlen) const {
@@ -80,5 +94,19 @@ bool String::endsWith(const CHAR *v, INT vlen) const {
     }
     auto start = length - vlen;
     return strncmp(text + start, v, vlen) == 0;
+}
+
+bool String::isRandomOf(const CHAR *v, INT vlen) const {
+    if (vlen == 0) {
+        return false;
+    }
+    for (auto i = 0; i < length; i++) {
+        if (text[i] == '`') {
+            String sub{ text, text + i };
+            String id{ v, vlen };
+            return sub.cmp(id) == 0;
+        }
+    }
+    return false;
 }
 } // namespace exy

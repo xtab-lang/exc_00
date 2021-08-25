@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "parser.h"
 
-#define err(msg, ...) compiler_error("Syntax", cursor.pos, msg, __VA_ARGS__)
+#define err(msg, ...) diagnostic("Syntax", cursor.pos, msg, __VA_ARGS__)
 
 namespace exy {
 using  Pos = const SourceToken*;
@@ -34,6 +34,7 @@ auto removeUnderscores(const String &v) {
 }
 
 Node Parser::parseDecimal() {
+    // dec [dec | '_']+
     auto     v = cursor.pos->sourceValue();
     auto  vpos = v.start();
     auto  vend = v.end();
@@ -54,7 +55,7 @@ Node Parser::parseDecimal() {
         } else {
             Assert(0);
         }
-        if (++vpos == vend) { // Past sufix letter.
+        if (++vpos == vend) { // Past suffix letter.
             break;
         }
         vwidth = vpos;
@@ -80,7 +81,7 @@ Node Parser::parseDecimal() {
             err("bad decimal number: %s#<yellow>", &num.value);
         } else if (num.width == Num::Bits8) {
             if (u64 > MAXUINT8) {
-                err("decimal value too large for UInt8: %s#<yellow>", &buf);
+                err("decimal value too large for UInt8: %s#<yellow> (%u64)", &buf, u64);
             } else {
                 node->u64 = u64;
                 node->type = Keyword::UInt8;
@@ -154,6 +155,8 @@ Node Parser::parseDecimal() {
 }
 
 Node Parser::parseHexadecimal() {
+    // '0x' | '0X' hex [hex | '_']+
+    // hex [hex | '_']+ 'h' | 'H'
     auto     v = cursor.pos->sourceValue();
     auto  vpos = v.start();
     auto  vend = v.end();
@@ -285,20 +288,27 @@ Node Parser::parseHexadecimal() {
 }
 
 Node Parser::parseBinary() {
-    auto     v = cursor.pos->sourceValue();
-    auto  vpos = v.start();
-    auto  vend = v.end();
-    auto vmark = vpos;
+    // '0b' | '0B' bin [bin | '_']+ intsfx?
+    // bin [bin | '_']+ 'b' | 'B' intsfx?
+    auto      v = cursor.pos->sourceValue();
+    auto vstart = v.start();
+    auto   vpos = vstart;
+    auto   vend = v.end();
+    auto  vmark = vpos;
+    const CHAR  *vpref = nullptr;
     const CHAR *vwidth = nullptr;
     Num num{};
     for (; vpos < vend; ++vpos) {
         auto ch = *vpos;
         if (ch == 'b' || ch == 'B') {
-            Assert(vpos - 1 == v.start());
-            vmark = vpos + 1;
-            continue;
-        }
-        if (isBinDigit(ch) || ch == '_') {
+            Assert(vpref == nullptr);
+            if (vpos + 1 < vend && isBinDigit(vpos[1])) {
+                Assert(vpos - 1 == vstart && vpos[-1] == '0');
+                vpref = vpos;
+                vmark = vpos + 1;
+                continue;
+            }
+        } else if (isBinDigit(ch) || ch == '_') {
             continue;
         }
         num.value = { vmark, INT(vpos - vmark) };
@@ -416,20 +426,25 @@ Node Parser::parseBinary() {
 }
 
 Node Parser::parseOctal() {
-    auto     v = cursor.pos->sourceValue();
-    auto  vpos = v.start();
-    auto  vend = v.end();
-    auto vmark = vpos;
+    auto      v = cursor.pos->sourceValue();
+    auto vstart = v.start();
+    auto   vpos = vstart;
+    auto   vend = v.end();
+    auto  vmark = vpos;
+    const CHAR  *vpref = nullptr;
     const CHAR *vwidth = nullptr;
     Num num{};
     for (; vpos < vend; ++vpos) {
         auto ch = *vpos;
         if (ch == 'o' || ch == 'O') {
-            Assert(vpos - 1 == v.start());
-            vmark = vpos + 1;
-            continue;
-        }
-        if (isOctDigit(ch) || ch == '_') {
+            Assert(vpref == nullptr);
+            if (vpos + 1 < vend && isOctDigit(vpos[1])) {
+                Assert(vpos - 1 == vstart && vpos[-1] == '0');
+                vpref = vpos;
+                vmark = vpos + 1;
+                continue;
+            }
+        } else if (isOctDigit(ch) || ch == '_') {
             continue;
         }
         num.value = { vmark, INT(vpos - vmark) };
@@ -759,20 +774,25 @@ Node Parser::parseHexadecimalFloat() {
 }
 
 Node Parser::parseBinaryFloat() {
-    auto     v = cursor.pos->sourceValue();
-    auto  vpos = v.start();
-    auto  vend = v.end();
-    auto vmark = vpos;
+    auto      v = cursor.pos->sourceValue();
+    auto vstart = v.start();
+    auto   vpos = vstart;
+    auto   vend = v.end();
+    auto  vmark = vpos;
+    const CHAR  *vpref = nullptr;
     const CHAR *vwidth = nullptr;
     Num num{};
     for (; vpos < vend; ++vpos) {
         auto ch = *vpos;
         if (ch == 'b' || ch == 'B') {
-            Assert(vpos - 1 == v.start());
-            vmark = vpos + 1;
-            continue;
-        }
-        if (isBinDigit(ch) || ch == '_') {
+            Assert(vpref == nullptr);
+            if (vpos + 1 < vend && isBinDigit(vpos[1])) {
+                Assert(vpos - 1 == vstart && vpos[-1] == '0');
+                vpref = vpos;
+                vmark = vpos + 1;
+                continue;
+            }
+        } else if (isBinDigit(ch) || ch == '_') {
             continue;
         }
         num.value = { vmark, INT(vpos - vmark) };
@@ -839,20 +859,25 @@ Node Parser::parseBinaryFloat() {
 }
 
 Node Parser::parseOctalFloat() {
-    auto     v = cursor.pos->sourceValue();
-    auto  vpos = v.start();
-    auto  vend = v.end();
-    auto vmark = vpos;
+    auto      v = cursor.pos->sourceValue();
+    auto vstart = v.start();
+    auto   vpos = vstart;
+    auto   vend = v.end();
+    auto  vmark = vpos;
+    const CHAR  *vpref = nullptr;
     const CHAR *vwidth = nullptr;
     Num num{};
     for (; vpos < vend; ++vpos) {
         auto ch = *vpos;
         if (ch == 'o' || ch == 'O') {
-            Assert(vpos - 1 == v.start());
-            vmark = vpos + 1;
-            continue;
-        }
-        if (isOctDigit(ch) || ch == '_') {
+            Assert(vpref == nullptr);
+            if (vpos + 1 < vend && isOctDigit(vpos[1])) {
+                Assert(vpos - 1 == vstart && vpos[-1] == '0');
+                vpref = vpos;
+                vmark = vpos + 1;
+                continue;
+            }
+        } else if (isOctDigit(ch) || ch == '_') {
             continue;
         }
         num.value = { vmark, INT(vpos - vmark) };

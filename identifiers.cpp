@@ -3,7 +3,12 @@
 namespace exy {
 void Identifiers::initialize() {
     append(S(""), Dict<Identifier>::nullHash);
-    kw_main     = get(S("main"));
+    // Web protocols.
+    kw_http  = get(S("http"));
+    kw_https = get(S("https"));
+    kw_ws    = get(S("ws"));
+    kw_wss   = get(S("wss"));
+    // HTTP verbs.
     kw_GET      = get(S("GET"));
     kw_POST     = get(S("POST"));
     kw_DELETE   = get(S("DELETE"));
@@ -13,6 +18,64 @@ void Identifiers::initialize() {
     kw_OPTIONS  = get(S("OPTIONS"));
     kw_TRACE    = get(S("TRACE"));
     kw_PATCH    = get(S("PATCH"));
+    // Module systems.
+    kw_console = get(S("console"));
+    kw_windows = get(S("windows"));
+    kw_service = get(S("service"));
+    kw_driver  = get(S("driver"));
+    kw_dll     = get(S("dll"));
+    kw_lib     = get(S("lib"));
+    // Names.
+    kw_star    = get(S("*"));
+    kw_blank   = get(S("_"));
+    kw__args__ = get(S("__args__"));
+    kw_this    = get(S("this"));
+    kw_super   = get(S("super"));
+    // Known modules.
+    kw_aio         = get(S("aio"));
+    kw_std         = get(S("std"));
+    kw_collections = get(S("collections"));
+    // Known structs.
+    kw_OVERLAPPED = get(S("OVERLAPPED"));
+    kw_SRWLOCK    = get(S("SRWLOCK"));
+    kw_string     = get(S("string"));
+    kw_String     = get(S("String"));
+    kw_wstring    = get(S("wstring"));
+    kw_WString    = get(S("WString"));
+    kw_Resumable  = get(S("Resumable"));
+    kw_List       = get(S("List"));
+    // Known functions.
+    kw_main    = get(S("main"));
+    kw_print   = get(S("print"));
+    kw_println = get(S("println"));
+    kw_next    = get(S("next"));
+    kw_dispose = get(S("dispose"));
+    kw_malloc  = get(S("malloc"));
+    kw_mfree   = get(S("mfree"));
+    kw_open_close_parens   = get(S("()"));
+    kw_open_close_brackets = get(S("[]"));
+    kw_startup  = get(S("startup"));
+    kw_shutdown = get(S("shutdown"));
+    kw_acquire  = get(S("acquire"));
+    kw_release  = get(S("release"));
+    // Known fields.
+    kw_srw        = get(S("srw"));
+    kw_overlapped = get(S("overlapped"));
+    kw__awaiter__ = get(S("__awaiter__"));
+    kw__resume__  = get(S("__resume__"));
+    kw__hResult__ = get(S("__hResult__"));
+    kw__bytesTransferred__ = get(S("kw__bytesTransferred__"));
+    kw__done__   = get(S("__done__"));
+
+    kw_source = get(S("source"));
+    kw_index  = get(S("index"));
+    kw_text   = get(S("text"));
+    kw_items  = get(S("items"));
+    kw_length = get(S("length"));
+    // Blocks.
+    kw_block = get(S("block"));
+    kw_if    = get(S("if"));
+    kw_loop  = get(S("loop"));
 }
 
 void Identifiers::dispose() {
@@ -77,11 +140,12 @@ Identifier Identifiers::random(const CHAR *prefix, INT prefixlen) {
     if (prefixlen > 0) {
         s.append(prefix, prefixlen);
     }
-    s.append(S("__"));
+    s.append(S("`"));
     lock();
-    s.appendInt(randomCounter++);
-    auto id = append(s.text, s.length, hash32(s.text, s.length));
+    auto suffix = randomCounter++;
     unlock();
+    s.appendInt(suffix).append(S("`"));
+    auto id = append(s.text, s.length, hash32(s.text, s.length));
     s.dispose();
     return id;
 }

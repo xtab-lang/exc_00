@@ -37,6 +37,7 @@ private:
 		ctxTypeName = 0x04, // Stop at '{' (unless it is the first token encountered) or '='.
 		ctxNoIf     = 0x08, // Stop at 'if'.
 		ctxNoIn     = 0x10, // Stop at 'in.
+		ctxNoWith	= 0x20, // Stop at 'with'
 	};
 
 	Node parseStatement();
@@ -52,16 +53,22 @@ private:
 	Node parseDefine(Node modifiers);
 
 	Node parseExternsBlock(Node modifiers);
+	Node appendDllToExternSourceName(Node);
 
 	Node parseStructure(Node modifiers);
-	Node parseStructureName();
+	void parseStructureName(StructureSyntax*);
 	Node parseStructureParameters();
 	Node parseStructureAttributes();
 	Node parseStructureSupers();
 
+	struct CurrentFunction {
+		CurrentFunction *prev = nullptr;
+		FunctionSyntax  *node = nullptr;
+	};
+	CurrentFunction currentFunction{};
 	Node parseFunction(Node modifiers);
 	void parseFunctionName(FunctionSyntax*);
-	void parseUrlName(FunctionSyntax*);
+	void parseUrlHandlerName(FunctionSyntax*);
 	void parseFunctionOperatorName(FunctionSyntax*);
 	Node parseFunctionParameters();
 	Node parseFunctionParameter(Node modifiers);
@@ -70,6 +77,7 @@ private:
 	Node parseVariable(Node modifiers, Ctx = ctxLhsExpr);
 	Node parseMultiVariable(Node modifiers);
 	Node parseBlock(Node modifiers);
+	Node parseBlockWithArguments(Node modifiers);
 	Node parseUDT(Node modifiers);
 
 	Node parseTextBlock();
@@ -84,6 +92,7 @@ private:
 	Node parseAssert();
 	Node parseThrow();
 	Node parseReturn();
+	Node parseYield();
 	Node parseBreakOrContinue();
 
 	Node parseFor();
@@ -107,9 +116,11 @@ private:
 	BracketedSyntax* parseIndexArguments();
 	AngledSyntax* parseAngleArguments();
 	BracedSyntax* parseBraceArguments();
+	FunctionSyntax* parseWith();
 	Node parsePrimary(Ctx);
 	Node parseParenthesized(Ctx);
 	Node parseBracketed(Ctx);
+	Node parseCurlyBraced(Ctx);
 	Node parseRest();
 
 	Node parseQuoted();

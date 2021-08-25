@@ -10,6 +10,8 @@ struct SourceChar {
 
     SourceChar() = delete;
     SourceChar(const CHAR *text, INT line, INT col) : text(text), line(line), col(col) {}
+    auto operator==(const SourceChar &other) const { return text == other.text && line == other.line && col == other.col; }
+    auto operator!=(const SourceChar &other) const { return text != other.text || line != other.line || col != other.col; }
     auto operator>(const SourceChar &other) const  { return line > other.line || (line == other.line && col > other.col);  }
     auto operator>=(const SourceChar &other) const { return line > other.line || (line == other.line && col >= other.col); }
     auto operator<(const SourceChar &other) const  { return line < other.line || (line == other.line && col < other.col);  }
@@ -25,6 +27,8 @@ struct SourceRange {
     SourceRange(const SourceChar &start, const SourceChar &end) : start(start), end(end) {
         Assert(start <= end);
     }
+    auto operator==(const SourceRange &other) const { return start == other.start && end == other.end; }
+    auto operator!=(const SourceRange &other) const { return start != other.start || end != other.end; }
     auto operator>(const SourceRange &other) const  { return start > other.end;  }
     auto operator>=(const SourceRange &other) const { return start >= other.end; }
     auto operator<(const SourceRange &other) const  { return end < other.start;  }

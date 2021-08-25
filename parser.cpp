@@ -3,15 +3,14 @@
 
 #include "src.h"
 
-#define err(pos, msg, ...) compiler_error("Syntax", pos, msg, __VA_ARGS__)
-
 namespace exy {
 using  Pos = const SourceToken*;
 using Node = SyntaxNode*;
 //----------------------------------------------------------
 struct Is {
-    auto ModifierList(auto node) { return node->kind == SyntaxKind::ModifierList ? (ModifierListSyntax*)node : nullptr; }
-    auto CommaSeparated(auto node) { return node->kind == SyntaxKind::CommaSeparated ? (CommaSeparatedSyntax*)node : nullptr; }
+    auto ModifierListSyntax(auto node) { return node->kind == SyntaxKind::ModifierList ? (exy::ModifierListSyntax*)node : nullptr; }
+    auto CommaSeparatedSyntax(auto node) { return node->kind == SyntaxKind::CommaSeparated ? (exy::CommaSeparatedSyntax*)node : nullptr; }
+    auto PointerOrReferenceSyntax(auto node) { return node->kind == SyntaxKind::UnarySuffix ? (((UnarySuffixSyntax*)node)->op.kind == Tok::Pointer || ((UnarySuffixSyntax*)node)->op.kind == Tok::Reference) ? (UnarySuffixSyntax*)node : nullptr : nullptr; }
 
     auto NotEndOfFile(auto pos) { return pos->kind != Tok::EndOfFile; }
     auto NotCloseCurly(auto pos) { return pos->kind != Tok::CloseCurly; }
@@ -32,7 +31,7 @@ struct Is {
     auto Modifier(auto pos) { return pos->keyword > Keyword::_begin_modifiers && pos->keyword < Keyword::_end_modifiers; }
     auto UDT(auto pos) { return pos->keyword > Keyword::_begin_udts && pos->keyword < Keyword::_end_udts; }
     auto Primitive(auto pos) { return pos->keyword >= Keyword::Void && pos->keyword <= Keyword::UInt64x8; }
-    auto Function(auto pos) { return pos->keyword >= Keyword::Fn && pos->keyword <= Keyword::Blob; }
+    auto Function(auto pos) { return pos->keyword >= Keyword::Lambda && pos->keyword <= Keyword::Blob; }
     auto Identifier(auto pos) { return pos->kind == Tok::Text && pos->keyword == Keyword::None; }
 
     auto CompilerKeyword(auto pos) { return pos->keyword > Keyword::_begin_compiler_keywords && pos->keyword < Keyword::_end_compiler_keywords; }
@@ -50,7 +49,7 @@ struct Is {
     DeclareModifiers(ZM)
     DeclareUserDefinedTypeKeywords(ZM)
     DeclareBuiltinTypeKeywords(ZM)
-    DeclareCompilerKeywords(ZM)
+    DeclareCompileTimeKeywords(ZM)
 #undef ZM
 } is{};
 
@@ -134,7 +133,7 @@ bool Parser::Cursor::hasNewLineBefore(Pos cur) {
 
 Parser::Parser(SyntaxFile &file)
     : file(file), cursor(file.src.tokens.start(), file.src.tokens.end()), 
-    mem(compiler.syntax->mem) {
+    mem(compiler.syntaxTree->mem) {
     Assert(is.EndOfFile(cursor.end));
 }
 
@@ -167,6 +166,10 @@ Node Parser::parseStatement() {
             return parseVariable(modifiers);
         }
         if (is.OpenParen(cursor.pos)) {
+            if (modifiers->kind == SyntaxKind::Modifier && 
+                ((ModifierSyntax*)modifiers)->pos.keyword == Keyword::Synchronized) {
+                return parseBlockWithArguments(modifiers);
+            }
             return parseMultiVariable(modifiers);
         }
         if (is.kwFrom(cursor.pos)) {
@@ -178,7 +181,7 @@ Node Parser::parseStatement() {
         if (is.kwDefine(cursor.pos)) {
             return parseDefine(modifiers);
         }
-        err(modifiers, "dangling modifiers: expected a block, a UDT or variable declaration after modifiers");
+        syntax_error(modifiers, "dangling modifiers: expected a block, a UDT or variable declaration after modifiers");
         return modifiers;
     }
     switch (cursor.pos->keyword) {
@@ -202,6 +205,8 @@ Node Parser::parseStatement() {
             return parseThrow();
         case Keyword::Return:
             return parseReturn();
+        case Keyword::Yield:
+            return parseYield();
         case Keyword::Assert:
             return parseAssert();
         case Keyword::For:
@@ -235,13 +240,13 @@ Node Parser::parseModule() {
             node->system = mem.New<IdentifierSyntax>(*cursor.pos);
             cursor.advance(); // Past identifier.
         } else {
-            err(cursor.pos, "expected identifier, not %tok", cursor.pos);
+            syntax_error(cursor.pos, "expected identifier, not %tok", cursor.pos);
         }
     }
     if (file.moduleStatement == nullptr) {
         file.moduleStatement = node;
     } else {
-        err(node, "a module cannot contain more than one module statement");
+        syntax_error(node, "a module cannot contain more than one module statement");
     }
     return node;
 }
@@ -268,7 +273,7 @@ Node Parser::parseImport() {
 
 void Parser::parseImportAlias(ImportSyntax *node) {
     if (node->kwAs != nullptr) {
-        err(cursor.pos, "unexpected keyword %tok", cursor.pos);
+        syntax_error(cursor.pos, "unexpected keyword %tok", cursor.pos);
         return;
     }
     node->kwAs = cursor.pos;
@@ -277,7 +282,7 @@ void Parser::parseImportAlias(ImportSyntax *node) {
         node->alias = mem.New<IdentifierSyntax>(*cursor.pos);
         cursor.advance(); // Past identifier.
     } else {
-        err(cursor.pos, "expected identifier, not %tok", cursor.pos);
+        syntax_error(cursor.pos, "expected identifier, not %tok", cursor.pos);
     }
     if (is.kwFrom(cursor.pos)) {
         parseImportSource(node);
@@ -286,7 +291,7 @@ void Parser::parseImportAlias(ImportSyntax *node) {
 
 void Parser::parseImportSource(ImportSyntax *node) {
     if (node->kwFrom != nullptr) {
-        err(cursor.pos, "unexpected keyword %tok", cursor.pos);
+        syntax_error(cursor.pos, "unexpected keyword %tok", cursor.pos);
         return;
     }
     node->kwFrom = cursor.pos;
@@ -294,7 +299,7 @@ void Parser::parseImportSource(ImportSyntax *node) {
     if (is.Identifier(cursor.pos)) {
         node->source = parseModuleName();
     } else {
-        err(cursor.pos, "expected identifier, not %tok", cursor.pos);
+        syntax_error(cursor.pos, "expected identifier, not %tok", cursor.pos);
     }
     if (is.kwAs(cursor.pos)) {
         parseImportAlias(node);
@@ -309,10 +314,16 @@ Node Parser::parseImportList(Node first) {
         node->name = parseModuleName();
         if (is.kwAs(cursor.pos)) {
             parseImportAlias(node);
-        } else if (is.kwFrom(cursor.pos)) {
-            parseImportSource(node);
         }
         list->nodes.append(node);
+    }
+    if (is.kwFrom(cursor.pos)) {
+        Cursor state = cursor;
+        for (auto i = 0; i < list->nodes.length; i++) {
+            cursor = state;
+            auto node = (ImportSyntax*)list->nodes.items[i];
+            parseImportSource(node);
+        }
     }
     return list;
 }
@@ -326,7 +337,7 @@ Node Parser::parseModuleName() {
         }
         return node;
     }
-    err(cursor.pos, "expected identifier, not %tok", cursor.pos);
+    syntax_error(cursor.pos, "expected identifier, not %tok", cursor.pos);
     return nullptr;
 }
 
@@ -338,7 +349,7 @@ Node Parser::parseDotModuleName(Node node) {
             node = mem.New<DotSyntax>(node, *dot, mem.New<IdentifierSyntax>(*cursor.pos));
             cursor.advance(); // Past identifier.
         } else {
-            err(cursor.pos, "expected identifier, not %tok", cursor.pos);
+            syntax_error(cursor.pos, "expected identifier, not %tok", cursor.pos);
             break;
         }
     }
@@ -353,7 +364,7 @@ Node Parser::parseDefine(Node modifiers) {
         cursor.advance(); // Past identifier.
         node->value = parseExpressionList(ctxLhsExpr);
     } else {
-        err(cursor.pos, "expected identifier, not %tok", cursor.pos);
+        syntax_error(cursor.pos, "expected identifier, not %tok", cursor.pos);
     }
     return node;
 }
@@ -363,12 +374,12 @@ Node Parser::parseExternsBlock(Node modifiers) {
     cursor.advance(); // Past 'from' keyword.
     block->name = parseModuleName();
     if (!is.kwImport(cursor.pos)) {
-        err(cursor.pos, "expected 'import', not %tok", cursor.pos);
+        syntax_error(cursor.pos, "expected 'import', not %tok", cursor.pos);
         return block;
     }
     cursor.advance(); // Past 'import' keyword.
     if (!is.OpenCurly(cursor.pos)) {
-        err(cursor.pos, "expected '{', not %tok", cursor.pos);
+        syntax_error(cursor.pos, "expected '{', not %tok", cursor.pos);
         return block;
     }
     block->open = cursor.pos;
@@ -385,7 +396,7 @@ Node Parser::parseExternsBlock(Node modifiers) {
         block->close = cursor.pos;
         cursor.advance(); // Past '}'.
     } else {
-        err(block->open, "unmatched %tok", &block->open);
+        syntax_error(block->open, "unmatched %tok", &block->open);
     }
     return block;
 }
@@ -394,7 +405,7 @@ Node Parser::parseStructure(Node modifiers) {
     auto node = mem.New<StructureSyntax>(modifiers, *cursor.pos);
     cursor.advance(); // Past 'struct' ... 'enum' keyword.
     if (is.Identifier(cursor.pos)) {
-        node->name = parseStructureName();
+        parseStructureName(node);
     }
     if (is.OpenBracket(cursor.pos)) {
         node->attributes = parseStructureAttributes();
@@ -409,18 +420,17 @@ Node Parser::parseStructure(Node modifiers) {
         node->body = mem.New<EmptySyntax>(*cursor.pos);
         cursor.advance(); // Past ';'
     } else {
-        err(cursor.pos, "expected '{' or ';', not %tok", cursor.pos);
+        syntax_error(cursor.pos, "expected '{' or ';', not %tok", cursor.pos);
     }
     return node;
 }
 
-Node Parser::parseStructureName() {
-    auto id = mem.New<IdentifierSyntax>(*cursor.pos);
+void Parser::parseStructureName(StructureSyntax *node) {
+    node->name = mem.New<IdentifierSyntax>(*cursor.pos);
     cursor.advance(); // Past identifier.
     if (is.OpenAngle(cursor.pos)) {
-        return mem.New<TypeNameSyntax>(id, (AngledSyntax*)parseStructureParameters());
+        node->parameters = (AngledSyntax*)parseStructureParameters();
     }
-    return id;
 }
 
 Node Parser::parseStructureParameters() {
@@ -439,17 +449,17 @@ Node Parser::parseStructureParameters() {
             } else {
                 node = id;
             }
-            if (list->node == nullptr) {
-                list->node = node;
-            } else if (auto comma = is.CommaSeparated(list->node)) {
+            if (list->value == nullptr) {
+                list->value = node;
+            } else if (auto comma = is.CommaSeparatedSyntax(list->value)) {
                 comma->nodes.append(node);
             } else {
-                comma = mem.New<CommaSeparatedSyntax>(list->node);
+                comma = mem.New<CommaSeparatedSyntax>(list->value);
                 comma->nodes.append(node);
-                list->node = comma;
+                list->value = comma;
             }
         } else {
-            err(cursor.pos, "expected identifier, not %tok", cursor.pos);
+            syntax_error(cursor.pos, "expected identifier, not %tok", cursor.pos);
             cursor.advance(); // Past bad token.
         }
         if (is.Comma(cursor.pos)) {
@@ -460,7 +470,7 @@ Node Parser::parseStructureParameters() {
         list->close = cursor.pos;
         cursor.advance(); // Past '>'.
     } else {
-        err(list->pos, "unmatched %tok", &list->pos);
+        syntax_error(list->pos, "unmatched %tok", &list->pos);
     }
     return list;
 }
@@ -481,17 +491,17 @@ Node Parser::parseStructureAttributes() {
             } else {
                 node = id;
             }
-            if (list->node == nullptr) {
-                list->node = node;
-            } else if (auto comma = is.CommaSeparated(list->node)) {
+            if (list->value == nullptr) {
+                list->value = node;
+            } else if (auto comma = is.CommaSeparatedSyntax(list->value)) {
                 comma->nodes.append(node);
             } else {
-                comma = mem.New<CommaSeparatedSyntax>(list->node);
+                comma = mem.New<CommaSeparatedSyntax>(list->value);
                 comma->nodes.append(node);
-                list->node = comma;
+                list->value = comma;
             }
         } else {
-            err(cursor.pos, "expected identifier, not %tok", cursor.pos);
+            syntax_error(cursor.pos, "expected identifier, not %tok", cursor.pos);
             cursor.advance(); // Past bad token.
         }
         if (is.Comma(cursor.pos)) {
@@ -502,7 +512,7 @@ Node Parser::parseStructureAttributes() {
         list->close = cursor.pos;
         cursor.advance(); // Past ']'.
     } else {
-        err(list->pos, "unmatched %tok", &list->pos);
+        syntax_error(list->pos, "unmatched %tok", &list->pos);
     }
     return list;
 }
@@ -513,7 +523,7 @@ Node Parser::parseStructureSupers() {
         while (is.Comma(cursor.pos)) {
             cursor.advance(); // Past ','.
             if (auto item = parseExpression(ctxTypeName)) {
-                if (auto list = is.CommaSeparated(node)) {
+                if (auto list = is.CommaSeparatedSyntax(node)) {
                     list->nodes.append(item);
                 } else {
                     list = mem.New<CommaSeparatedSyntax>(node);
@@ -529,21 +539,28 @@ Node Parser::parseStructureSupers() {
 
 Node Parser::parseFunction(Node modifiers) {
     auto node = mem.New<FunctionSyntax>(modifiers, *cursor.pos);
+    currentFunction = { &currentFunction, node };
     cursor.advance(); // Past 'fn' ... 'blob' keyword.
     parseFunctionName(node);
     if (is.OpenParen(cursor.pos)) {
-        node->parameters = parseFunctionParameters();
+        node->parameters = (ParenthesizedSyntax*)parseFunctionParameters();
     }
     if (is.Colon(cursor.pos) || is.DashArrow(cursor.pos)) {
         node->fnreturnOp = cursor.pos;
         node->fnreturn = parseStructureSupers();
+    } else if (is.kwExtern(&node->pos)) {
+        syntax_error(cursor.pos, "expected ':' or '->' after %kw declaration, not %tok", 
+                     node->pos.keyword, cursor.pos);
     }
     if (is.kwExtern(&node->pos)) {
         if (is.SemiColon(cursor.pos)) {
             node->body = mem.New<EmptySyntax>(*cursor.pos);
             cursor.advance(); // Past ';'
-        } else if (is.OpenCurly(cursor.pos) || is.Assign(cursor.pos) || is.AssignArrow(cursor.pos) || is.HashOpenCurly(cursor.pos)) {
-            err(cursor.pos, "expected ';', not %tok", cursor.pos);
+        } else if (is.OpenCurly(cursor.pos) || is.Assign(cursor.pos) || is.AssignArrow(cursor.pos) || 
+                   is.HashOpenCurly(cursor.pos)) {
+            syntax_error(cursor.pos, "expected ';', not %tok", cursor.pos);
+        } else {
+            node->body = mem.New<EmptySyntax>(*cursor.pos);
         }
     } else if (is.OpenCurly(cursor.pos)) {
         node->body = parseBlock(nullptr);
@@ -553,18 +570,21 @@ Node Parser::parseFunction(Node modifiers) {
     } else if (is.Assign(cursor.pos) || is.AssignArrow(cursor.pos)) {
         node->bodyOp = cursor.pos;
         cursor.advance(); // Past '=' | '=>'.
-        node->body = parseStatement();
+        node->body = parseExpression(ctxLhsExpr);
     } else if (is.HashOpenCurly(cursor.pos)) {
         node->body = parseTextBlock();
     } else {
-        err(cursor.pos, "expected '{', ';', '=' or '=>', not %tok", cursor.pos);
+        syntax_error(cursor.pos, "expected '{', ';', '=' or '=>', not %tok", cursor.pos);
+    }
+    if (currentFunction.prev) {
+        currentFunction = *currentFunction.prev;
     }
     return node;
 }
 
 void Parser::parseFunctionName(FunctionSyntax *node) {
     if (is.kwUrlHandler(&node->pos)) {
-        parseUrlName(node);
+        parseUrlHandlerName(node);
     } else if (is.Identifier(cursor.pos)) {
         node->name = mem.New<IdentifierSyntax>(*cursor.pos);
         cursor.advance(); // Past identifier.
@@ -601,23 +621,37 @@ void Parser::parseFunctionName(FunctionSyntax *node) {
     }
 }
 
-void Parser::parseUrlName(FunctionSyntax *node) {
+void Parser::parseUrlHandlerName(FunctionSyntax *node) {
     if (is.Quote(cursor.pos)) {
         node->name = parseQuoted();
         return;
     }
     auto start = cursor.pos;
     if (is.Identifier(start)) {
+        static const Identifier protocols[] = {
+            ids.kw_http, ids.kw_https, ids.kw_ws, ids.kw_wss
+        };
         static const Identifier verbs[] = {
             ids.kw_GET, ids.kw_POST, ids.kw_DELETE, ids.kw_PUT, 
             ids.kw_HEAD, ids.kw_CONNECT, ids.kw_OPTIONS, ids.kw_TRACE, ids.kw_PATCH
         };
-        auto value = start->sourceValue();
-        for (auto i = 0; i < _countof(verbs); i++) {
-            if (verbs[i]->cmp(value)) {
-                node->httpVerb = mem.New<IdentifierSyntax>(*start);
-                cursor.advance(); // Past http-verb.
+        auto protocol = start->sourceValue();
+        for (auto i = 0; i < _countof(protocols); i++) {
+            if (protocols[i]->cmp(protocol) == 0) {
+                node->webProtocol = mem.New<IdentifierSyntax>(*start);
+                cursor.advance(); // Past web-protocol
+                start = cursor.pos;
                 break;
+            }
+        }
+        if (is.Identifier(start)) {
+            auto verb = start->sourceValue();
+            for (auto i = 0; i < _countof(verbs); i++) {
+                if (verbs[i]->cmp(verb) == 0) {
+                    node->httpVerb = mem.New<IdentifierSyntax>(*start);
+                    cursor.advance(); // Past http-verb.
+                    break;
+                }
             }
         }
         if (is.Quote(cursor.pos)) {
@@ -625,6 +659,7 @@ void Parser::parseUrlName(FunctionSyntax *node) {
             return;
         }
     }
+    start = cursor.pos;
     while (true) {
         if (is.Text(cursor.pos) || is.Divide(cursor.pos)) {
             cursor.advance();
@@ -634,8 +669,11 @@ void Parser::parseUrlName(FunctionSyntax *node) {
     }
     auto end = cursor.pos;
     String value{ start->pos.range.start.text, end->pos.range.start.text };
+    value.removeTrailingSpaces();
     if (value.isNotEmpty()) {
         node->name = mem.New<TextSyntax>(*start, value, *end);
+    } else {
+        syntax_error(cursor.pos, "expected a urlhandler name before %tok", cursor.pos);
     }
 }
 
@@ -656,17 +694,17 @@ Node Parser::parseFunctionParameters() {
         auto modifiers = parseModifiers();
         auto       pos = cursor.pos;
         if (auto param = parseFunctionParameter(modifiers)) {
-            if (params->node == nullptr) {
-                params->node = param;
-            } else if (auto list = is.CommaSeparated(params->node)) {
+            if (params->value == nullptr) {
+                params->value = param;
+            } else if (auto list = is.CommaSeparatedSyntax(params->value)) {
                 list->nodes.append(param);
             } else {
-                list = mem.New<CommaSeparatedSyntax>(params->node);
+                list = mem.New<CommaSeparatedSyntax>(params->value);
                 list->nodes.append(param);
-                params->node = list;
+                params->value = list;
             }
         } else if (modifiers) {
-            err(modifiers, "dangling modifiers");
+            syntax_error(modifiers, "dangling modifiers");
             ndispose(modifiers);
         } else if (pos == cursor.pos) {
             cursor.advance(); // Past bad token.
@@ -679,7 +717,7 @@ Node Parser::parseFunctionParameters() {
         params->close = cursor.pos;
         cursor.advance(); // Past ')'.
     } else {
-        err(params->pos, "unmatched %tok", &params->pos);
+        syntax_error(params->pos, "unmatched %tok", &params->pos);
     }
     return params;
 }
@@ -701,9 +739,9 @@ Node Parser::parseFunctionParameter(Node modifiers) {
             nv->value = parseExpression(ctxTypeName);
             node->name = nv;
         }
-        if (is.Assign(cursor.pos)) {
-            node->op = cursor.pos;
-            cursor.advance(); // Past '='.
+        if (is.ColonAssign(cursor.pos) || is.Assign(cursor.pos)) {
+            node->assign = cursor.pos;
+            cursor.advance(); // Past '=' | ':='.
             node->rhs = parseExpression(ctxLhsExpr);
         }
         return node;
@@ -712,7 +750,7 @@ Node Parser::parseFunctionParameter(Node modifiers) {
         cursor.advance(); // Past '...'
         return node;
     }
-    err(cursor.pos, "expected identifier or '...', not %tok", cursor.pos);
+    syntax_error(cursor.pos, "expected identifier or '...', not %tok", cursor.pos);
     return nullptr;
 }
 
@@ -721,10 +759,11 @@ Node Parser::parseModifiers() {
     while (is.Modifier(cursor.pos)) {
         if (node == nullptr) {
             node = mem.New<ModifierSyntax>(*cursor.pos);
-        } else if (auto list = is.ModifierList(node)) {
+        } else if (auto list = is.ModifierListSyntax(node)) {
             list->nodes.append(mem.New<ModifierSyntax>(*cursor.pos));
         } else {
             list = mem.New<ModifierListSyntax>((ModifierSyntax*)node);
+            list->nodes.append(mem.New<ModifierSyntax>(*cursor.pos));
             node = list;
         }
         cursor.advance(); // Past modifier.
@@ -737,7 +776,7 @@ Node Parser::parseVariable(Node modifiers, Ctx ctx) {
     node->name = mem.New<IdentifierSyntax>(*cursor.pos);
     cursor.advance(); // Past identifier.
     if (is.ColonAssign(cursor.pos)) {
-        node->op = cursor.pos;
+        node->assign = cursor.pos;
         cursor.advance(); // Past ':='
         node->rhs = parseExpression(((ctx & ctxRhsExpr) != 0) ? ctx : ctxLhsExpr);
         return node;
@@ -749,7 +788,7 @@ Node Parser::parseVariable(Node modifiers, Ctx ctx) {
         node->name = nv;
     }
     if (is.Assign(cursor.pos)) {
-        node->op = cursor.pos;
+        node->assign = cursor.pos;
         cursor.advance(); // Past '='
         node->rhs = parseExpression(((ctx & ctxRhsExpr) != 0) ? ctx : ctxLhsExpr);
     }
@@ -773,29 +812,32 @@ Node Parser::parseMultiVariable(Node modifiers) {
             } else {
                 item = id;
             }
-            if (parens->node == nullptr) {
-                parens->node = item;
-            } else if (auto list = is.CommaSeparated(parens->node)) {
+            if (parens->value == nullptr) {
+                parens->value = item;
+            } else if (auto list = is.CommaSeparatedSyntax(parens->value)) {
                 list->nodes.append(item);
             } else {
-                list = mem.New<CommaSeparatedSyntax>(parens->node);
+                list = mem.New<CommaSeparatedSyntax>(parens->value);
                 list->nodes.append(item);
-                parens->node = list;
+                parens->value = list;
+            }
+            if (is.Comma(cursor.pos)) {
+                cursor.advance();
             }
         } else {
-            err(cursor.pos, "expected identifier, not %tok", cursor.pos);
+            syntax_error(cursor.pos, "expected identifier, not %tok", cursor.pos);
             cursor.advance(); // Past bad token.
         }
     }
     node->name = parens;
     if (!is.CloseParen(cursor.pos)) {
-        err(parens->pos, "unmatched %tok", &parens->pos);
+        syntax_error(parens->pos, "unmatched %tok", &parens->pos);
         return node;
     }
     parens->close = cursor.pos;
     cursor.advance(); // Past ')'
-    if (is.Assign(cursor.pos)) {
-        node->op = cursor.pos;
+    if (is.Assign(cursor.pos) || is.ColonAssign(cursor.pos)) {
+        node->assign = cursor.pos;
         cursor.advance(); // Past '='
         node->rhs = parseExpression(ctxLhsExpr);
     }
@@ -817,25 +859,38 @@ Node Parser::parseBlock(Node modifiers) {
         block->close = cursor.pos;
         cursor.advance(); // Past '}'.
     } else {
-        err(block->pos, "unmatched %tok", &block->pos);
+        syntax_error(block->pos, "unmatched %tok", &block->pos);
     }
     return block;
+}
+
+Node Parser::parseBlockWithArguments(Node modifiers) {
+    if (auto arguments = parseParenthesized(ctxLhsExpr)) {
+        if (is.OpenCurly(cursor.pos)) {
+            auto block = (BlockSyntax*)parseBlock(modifiers);
+            block->arguments = (ParenthesizedSyntax*)arguments;
+            return block;
+        }
+        syntax_error(modifiers, "dangling modifiers");
+        ndispose(modifiers);
+        return arguments;
+    }
+    syntax_error(modifiers, "dangling modifiers");
+    return modifiers;
 }
 
 Node Parser::parseUDT(Node modifiers) {
     switch (cursor.pos->keyword) {
         case Keyword::Struct:
         case Keyword::Union:
-        case Keyword::Object:
         case Keyword::Enum:
             return parseStructure(modifiers);
     }
     if (is.Function(cursor.pos)) {
         return parseFunction(modifiers);
     }
-    traceln("parseUDT");
-    Assert(0);
-    return nullptr;
+    syntax_error(cursor.pos, "not a UDT, %tok", cursor.pos);
+    return modifiers;
 }
 
 Node Parser::parseTextBlock() {
@@ -864,7 +919,7 @@ Node Parser::parseTextBlock() {
         }
         cursor.advance(); // Past '}#'.
     } else {
-        err(block->pos, "unmatched %tok", &block->pos);
+        syntax_error(block->pos, "unmatched %tok", &block->pos);
     }
     return block;
 }
@@ -878,7 +933,7 @@ Node Parser::parseCodeBlock() {
         if (auto node = parseStatement()) {
             if (block->node == nullptr) {
                 block->node = node;
-            } else if (auto list = is.CommaSeparated(block->node)) {
+            } else if (auto list = is.CommaSeparatedSyntax(block->node)) {
                 list->nodes.append(node);
             } else {
                 list = mem.New<CommaSeparatedSyntax>(block->node);
@@ -893,7 +948,7 @@ Node Parser::parseCodeBlock() {
         block->close = cursor.pos;
         cursor.advance(); // Past ')' or ']'.
     } else {
-        err(block->pos, "unmatched %tok", &block->pos);
+        syntax_error(block->pos, "unmatched %tok", &block->pos);
     }
     return block;
 }
@@ -901,7 +956,9 @@ Node Parser::parseCodeBlock() {
 Node Parser::parseIf(Node modifiers) {
     auto node = mem.New<IfSyntax>(modifiers, *cursor.pos);
     cursor.advance(); // Past 'if' keyword.
-    if (is.NotOpenCurly(cursor.pos)) {
+    if (is.OpenCurly(cursor.pos)) {
+        node->condition = mem.New<BooleanSyntax>(*cursor.pos, true);
+    } else {
         node->condition = parseExpression(ctxRhsExpr);
     }
     node->iftrue = parseStatement();
@@ -916,13 +973,15 @@ Node Parser::parseIf(Node modifiers) {
 Node Parser::parseSwitch() {
     auto node = mem.New<SwitchSyntax>(*cursor.pos);
     cursor.advance(); // Past 'switch' keyword.
-    if (is.NotOpenCurly(cursor.pos)) {
+    if (is.OpenCurly(cursor.pos)) {
+        node->condition = mem.New<BooleanSyntax>(*cursor.pos, true);
+    } else {
         node->condition = parseExpression(ctxRhsExpr);
     }
     if (is.OpenCurly(cursor.pos) || is.kwCase(cursor.pos)) {
         node->body = parseCaseList(node);
     } else {
-        err(cursor.pos, "expected '{' or 'case', not %tok", cursor.pos);
+        syntax_error(cursor.pos, "expected '{' or 'case', not %tok", cursor.pos);
     }
     return node;
 }
@@ -953,7 +1012,7 @@ Node Parser::parseCaseList(SwitchSyntax *parent) {
             block->close = cursor.pos;
             cursor.advance(); // Past '}'
         } else {
-            err(block->pos, "unmatched %tok", &block->pos);
+            syntax_error(block->pos, "unmatched %tok", &block->pos);
         }
     }
     return block;
@@ -1003,11 +1062,17 @@ Node Parser::parseCaseConditionList(SwitchSyntax *parent, Node first) {
 Node Parser::parseAssert() {
     auto node = mem.New<FlowControlSyntax>(*cursor.pos);
     cursor.advance(); // Past 'assert' keyword.
-    node->expression = parseExpressionList(ctxLhsExpr); // Let '{' start an initializer.
+    if (is.kwWith(cursor.pos)) {
+        node->expression = mem.New<BooleanSyntax>(*cursor.pos, false);
+        cursor.advance(); // Past 'with' keyword.
+        node->with = parseWith();
+    } else {
+        node->expression = parseExpressionList(Ctx(ctxLhsExpr | ctxNoWith)); // Let '{' start an initializer.
+    }
     if (is.kwWith(cursor.pos)) {
         node->kwWith = cursor.pos;
         cursor.advance(); // Past 'with' keyword.
-        node->with = parseStatement();
+        node->with = parseWith();
     }
     return node;
 }
@@ -1020,11 +1085,11 @@ Node Parser::parseThrow() {
     } else if (is.kwIf(cursor.pos)) {
         node->kwIf = cursor.pos;
         cursor.advance(); // Past 'if' keyword.
-        node->expression = parseExpressionList(ctxRhsExpr); // Stop at '{'.
+        node->expression = parseExpressionList(Ctx(ctxRhsExpr | ctxNoWith)); // Stop at '{' or 'with'.
     } else if (cursor.hasNewLineAfter()) {
         // Do nothing.
     } else {
-        node->expression = parseExpressionList(ctxLhsExpr); // Let '{' start an initializer.
+        node->expression = parseExpressionList(Ctx(ctxLhsExpr | ctxNoWith)); // Let '{' start an initializer.
     }
     if (is.kwWith(cursor.pos)) {
         node->kwWith = cursor.pos;
@@ -1045,6 +1110,25 @@ Node Parser::parseReturn() {
         node->expression = parseExpression(ctxRhsExpr); // Stop at '{'.
     } else {
         node->expression = parseExpressionList(ctxLhsExpr); // Allow '{' to be an initializer.
+    }
+    if (auto fn = currentFunction.node) {
+        ++fn->returns;
+    }
+    return node;
+}
+
+Node Parser::parseYield() {
+    auto node = mem.New<UnaryPrefixSyntax>(*cursor.pos);
+    cursor.advance(); // Past 'yield' keyword.
+    if (is.kwFrom(cursor.pos)) {
+        node->kwFrom = cursor.next;
+        cursor.advance(); // Past 'from' keyword.
+    }
+    node->expression = parseExpression(ctxRhsExpr);
+    if (auto fn = currentFunction.node) {
+        ++fn->yields;
+    } else {
+        syntax_error(node, "%kw outside of a function", node->pos.keyword);
     }
     return node;
 }
@@ -1101,7 +1185,7 @@ Node Parser::parseFor() {
             node->body = parseStatement();
             return parseForElse(node);
         }
-        err(cursor.pos, "expected ';', not %tok", cursor.pos);
+        syntax_error(cursor.pos, "expected ';', not %tok", cursor.pos);
         return parseForElse(node);
     }
     if (is.OpenParen(cursor.pos)) { // 'for' '(' ...
@@ -1130,7 +1214,7 @@ Node Parser::parseFor() {
                     cursor.advance(); // Past ')'.
                     node->body = parseStatement();
                 } else {
-                    err(open, "unmatched %tok", open);
+                    syntax_error(open, "unmatched %tok", open);
                 }
             } else {
                 // 'for' '(' ';' condition ...
@@ -1146,10 +1230,10 @@ Node Parser::parseFor() {
                         cursor.advance(); // Past ')'.
                         node->body = parseStatement();
                     } else {
-                        err(open, "unmatched %tok", open);
+                        syntax_error(open, "unmatched %tok", open);
                     }
                 } else {
-                    err(cursor.pos, "expected ';', not %tok", cursor.pos);
+                    syntax_error(cursor.pos, "expected ';', not %tok", cursor.pos);
                 }
             }
             return parseForElse(node);
@@ -1166,7 +1250,7 @@ Node Parser::parseFor() {
                     cursor.advance(); // Past ')'.
                     node->body = parseStatement();
                 } else {
-                    err(open, "unmatched %tok", open);
+                    syntax_error(open, "unmatched %tok", open);
                 }
                 return parseForElse(node);
             }
@@ -1190,7 +1274,7 @@ Node Parser::parseFor() {
                         cursor.advance(); // Past ')'.
                         node->body = parseStatement();
                     } else {
-                        err(open, "unmatched %tok", open);
+                        syntax_error(open, "unmatched %tok", open);
                     }
                     return parseForElse(node);
                 }
@@ -1209,13 +1293,13 @@ Node Parser::parseFor() {
                     node->body = parseStatement();
                     return parseForElse(node);
                 }
-                err(cursor.pos, "expected ';', not %tok", cursor.pos);
+                syntax_error(cursor.pos, "expected ';', not %tok", cursor.pos);
                 return parseForElse(node);
             }
-            err(cursor.pos, "expected 'in' or ';', not %tok", cursor.pos);
+            syntax_error(cursor.pos, "expected 'in' or ';', not %tok", cursor.pos);
             return expr;
         }
-        err(cursor.pos, "expected ';', ')' or expression, not %tok", cursor.pos);
+        syntax_error(cursor.pos, "expected ';', ')' or expression, not %tok", cursor.pos);
         return nullptr;
     }
     if (auto expr = parseExpressionList(Ctx(ctxRhsExpr | ctxNoIn))) {
@@ -1265,7 +1349,7 @@ Node Parser::parseFor() {
                     // 'for' initializer ';' condition '{' ...
                     node->body = parseStatement();
                 } else {
-                    err(cursor.pos, "expected ';' or '{' after condition, not %tok", cursor.pos);
+                    syntax_error(cursor.pos, "expected ';' or '{' after condition, not %tok", cursor.pos);
                 }
             }
             return parseForElse(node);
@@ -1286,9 +1370,12 @@ Node Parser::parseAwaitFor() {
         if (node->kind == SyntaxKind::ForIn) {
             auto forin = (ForInSyntax*)node;
             forin->kwAwait = kwAwait;
+            if (auto fn = currentFunction.node) {
+                ++fn->awaits;
+            }
             return forin;
         }
-        err(node, "expected 'forin' syntax");
+        syntax_error(node, "expected 'forin' syntax");
         return node;
     }
     return nullptr;
@@ -1298,7 +1385,7 @@ Node Parser::parseForElse(ForInSyntax *node) {
     if (is.kwElse(cursor.pos)) {
         node->kwElse = cursor.pos;
         cursor.advance(); // Past 'else' keyword.
-        node->ifalse = parseStatement();
+        node->ifnobreak = parseStatement();
     }
     return node;
 }
@@ -1307,7 +1394,7 @@ Node Parser::parseForElse(ForSyntax *node) {
     if (is.kwElse(cursor.pos)) {
         node->kwElse = cursor.pos;
         cursor.advance(); // Past 'else' keyword.
-        node->ifalse = parseStatement();
+        node->ifnobreak = parseStatement();
     }
     return node;
 }
@@ -1315,8 +1402,9 @@ Node Parser::parseForElse(ForSyntax *node) {
 Node Parser::parseWhile() {
     auto node = mem.New<WhileSyntax>(*cursor.pos);
     cursor.advance(); // Past 'while' keyword.
-    if (is.NotOpenCurly(cursor.pos)) {
-        // 'while' condition ...
+    if (is.OpenCurly(cursor.pos)) { // while true ...
+        node->condition = mem.New<BooleanSyntax>(*cursor.pos, true);
+    } else { // 'while' condition ...
         node->condition = parseExpressionList(ctxRhsExpr); // Stop at '{'.
     }
     node->body = parseStatement();
@@ -1324,7 +1412,7 @@ Node Parser::parseWhile() {
         // 'while' [condition] body 'else' ...
         node->kwElse = cursor.pos;
         cursor.advance(); // Past 'else' keyword.
-        node->ifalse = parseStatement();
+        node->ifnobreak = parseStatement();
     }
     return node;
 }
@@ -1342,7 +1430,7 @@ Node Parser::parseDoWhile() {
         cursor.advance(); // Past 'while' keyword.
         node->condition = parseExpressionList(ctxRhsExpr); // Stop at '{'.
     } else {
-        err(cursor.pos, "expected 'while'  keyword, not %tok", cursor.pos);
+        syntax_error(cursor.pos, "expected 'while'  keyword, not %tok", cursor.pos);
     }
     if (is.kwElse(cursor.pos)) {
         // 'do' [body] 'while' condition 'else' ...
@@ -1403,7 +1491,10 @@ Node Parser::parseExpression(Ctx ctx) {
     return nullptr;
 }
 
-auto precedenceOf(Pos op) {
+static auto precedenceOf(Pos op) {
+    if (op->kind >= Tok::OrAssign && op->kind <= Tok::Assign) {
+        return Tok::Assign;
+    }
     if (op->kind == Tok::Question || op->keyword == Keyword::If) {
         return Tok::OrOr;
     } 
@@ -1446,6 +1537,9 @@ Node Parser::parseInfix(Node lhs, Ctx ctx, Tok minPrec) {
                 while ((is.InfixOp(nextop) && nextprec > prec) ||
                        (is.RightAssociative(nextop) && nextprec == prec)) {
                     rhs = parseInfix(rhs, ctx, Tok(INT(prec) + 1));
+                    if (nextop == cursor.pos) {
+                        break;
+                    }
                     nextop = cursor.pos;
                     nextprec = precedenceOf(nextop);
                 }
@@ -1469,7 +1563,7 @@ Node Parser::parseTernaryOp(Node condition) {
             node->ifalse = parseInfix(expr, ctxRhsExpr, Tok::OrOr);
         }
     } else {
-        err(cursor.pos, "expected ':', not %tok", cursor.pos);
+        syntax_error(cursor.pos, "expected ':', not %tok", cursor.pos);
     }
     return node;
 }
@@ -1489,7 +1583,7 @@ Node Parser::parseIfExpression(Node iftrue) {
 }
 
 Node Parser::parseUnary(Ctx ctx) {
-    UnaryPrefixSyntax *node{}, *last{};
+    UnaryPrefixSyntax *node = nullptr, *last = nullptr;
     while (true) {
         UnaryPrefixSyntax *inner{};
         switch (cursor.pos->kind) {
@@ -1531,17 +1625,18 @@ Node Parser::parseUnary(Ctx ctx) {
                 case Keyword::AlignOf:
                 case Keyword::SizeOf:
                 case Keyword::NameOf:
-                case Keyword::TypeOf: {
-                    inner = mem.New<UnaryPrefixSyntax>(*cursor.pos);
-                } break;
+                case Keyword::TypeOf:
                 case Keyword::New:
                 case Keyword::Delete:
-                case Keyword::Await:
-                case Keyword::Yield: {
+                case Keyword::Atomic: {
                     inner = mem.New<UnaryPrefixSyntax>(*cursor.pos);
-                    if (is.kwFrom(cursor.next)) {
-                        inner->kwFrom = cursor.next;
-                        cursor.advance(); // Past 'from' keyword.
+                } break;
+                case Keyword::Await: {
+                    inner = mem.New<UnaryPrefixSyntax>(*cursor.pos);
+                    if (auto fn = currentFunction.node) {
+                        ++fn->awaits;
+                    } else {
+                        syntax_error(inner, "%kw outside of a function", inner->pos.keyword);
                     }
                 } break;
             }
@@ -1560,10 +1655,10 @@ Node Parser::parseUnary(Ctx ctx) {
     if (last != nullptr) {
         Assert(last->expression == nullptr);
         last->expression = parseUnarySuffix(ctx);
-        if (is.kwWith(cursor.pos)) {
+        if (is.kwWith(cursor.pos) && !cursor.hasNewLineBefore()) {
             last->kwWith = cursor.pos;
             cursor.advance(); // Past 'with' keyword.
-            last->with = parseStatement();
+            last->with = parseWith();
         }
         return node;
     }
@@ -1583,6 +1678,13 @@ Node Parser::parseUnarySuffix(Ctx ctx) {
                     node = mem.New<UnarySuffixSyntax>(node, *cursor.pos);
                 } break;
                 default: {
+                    if ((ctx & ctxLhsExpr) != 0) {
+                        if (auto syntax = is.PointerOrReferenceSyntax(node)) {
+                            if (is.OpenCurly(cursor.pos) && !cursor.hasNewLineBefore()) {
+                                node = mem.New<InitializerSyntax>(node, parseBraceArguments());
+                            }
+                        }
+                    }
                     return node;
                 }
             }
@@ -1605,6 +1707,12 @@ Node Parser::parsePostfix(Ctx ctx) {
                 } break;
                 case Tok::OpenParen: if (!cursor.hasNewLineBefore()) {
                     node = mem.New<CallSyntax>(node, parseCallArguments());
+                    if (is.kwWith(cursor.pos) && (ctx & ctxNoWith) == 0 && !cursor.hasNewLineBefore()) {
+                        auto call = (CallSyntax*)node;
+                        call->kwWith = cursor.pos;
+                        cursor.advance(); // Past 'with' keyword.
+                        call->with = parseWith();
+                    }
                 } else {
                     isFinished = true;
                 } break;
@@ -1653,14 +1761,14 @@ ParenthesizedSyntax* Parser::parseCallArguments() {
         }
         if (node == nullptr) {
             // Do nothing.
-        } else if (parenthesized->node == nullptr) {
-            parenthesized->node = node;
-        } else if (auto list = is.CommaSeparated(parenthesized->node)) {
+        } else if (parenthesized->value == nullptr) {
+            parenthesized->value = node;
+        } else if (auto list = is.CommaSeparatedSyntax(parenthesized->value)) {
             list->nodes.append(node);
         } else {
-            list = mem.New<CommaSeparatedSyntax>(parenthesized->node);
+            list = mem.New<CommaSeparatedSyntax>(parenthesized->value);
             list->nodes.append(node);
-            parenthesized->node = list;
+            parenthesized->value = list;
         }
         if (is.Comma(cursor.pos)) {
             cursor.advance(); // Past ','.
@@ -1670,7 +1778,7 @@ ParenthesizedSyntax* Parser::parseCallArguments() {
         parenthesized->close = cursor.pos;
         cursor.advance(); // Past ')'.
     } else {
-        err(parenthesized->pos, "unmatched %tok", &parenthesized->pos);
+        syntax_error(parenthesized->pos, "unmatched %tok", &parenthesized->pos);
     }
     return parenthesized;
 }
@@ -1694,14 +1802,14 @@ BracketedSyntax* Parser::parseIndexArguments() {
         }
         if (node == nullptr) {
             // Do nothing.
-        } else if (bracketed->node == nullptr) {
-            bracketed->node = node;
-        } else if (auto list = is.CommaSeparated(bracketed->node)) {
+        } else if (bracketed->value == nullptr) {
+            bracketed->value = node;
+        } else if (auto list = is.CommaSeparatedSyntax(bracketed->value)) {
             list->nodes.append(node);
         } else {
-            list = mem.New<CommaSeparatedSyntax>(bracketed->node);
+            list = mem.New<CommaSeparatedSyntax>(bracketed->value);
             list->nodes.append(node);
-            bracketed->node = list;
+            bracketed->value = list;
         }
         if (is.Comma(cursor.pos)) {
             cursor.advance(); // Past ','.
@@ -1711,7 +1819,7 @@ BracketedSyntax* Parser::parseIndexArguments() {
         bracketed->close = cursor.pos;
         cursor.advance(); // Past ']'.
     } else {
-        err(bracketed->pos, "unmatched %tok", &bracketed->pos);
+        syntax_error(bracketed->pos, "unmatched %tok", &bracketed->pos);
     }
     return bracketed;
 }
@@ -1735,21 +1843,21 @@ AngledSyntax* Parser::parseAngleArguments() {
         }
         if (node == nullptr) {
             // Do nothing.
-        } else if (angled->node == nullptr) {
-            angled->node = node;
-        } else if (auto list = is.CommaSeparated(angled->node)) {
+        } else if (angled->value == nullptr) {
+            angled->value = node;
+        } else if (auto list = is.CommaSeparatedSyntax(angled->value)) {
             list->nodes.append(node);
         } else {
-            list = mem.New<CommaSeparatedSyntax>(angled->node);
+            list = mem.New<CommaSeparatedSyntax>(angled->value);
             list->nodes.append(node);
-            angled->node = list;
+            angled->value = list;
         }
     }
     if (is.CloseAngle(cursor.pos)) {
         angled->close = cursor.pos;
         cursor.advance(); // Past '>'.
     } else {
-        err(angled->pos, "unmatched %tok", &angled->pos);
+        syntax_error(angled->pos, "unmatched %tok", &angled->pos);
     }
     return angled;
 }
@@ -1779,23 +1887,65 @@ BracedSyntax* Parser::parseBraceArguments() {
         }
         if (node == nullptr) {
             // Do nothing.
-        } else if (braced->node == nullptr) {
-            braced->node = node;
-        } else if (auto list = is.CommaSeparated(braced->node)) {
+        } else if (braced->value == nullptr) {
+            braced->value = node;
+        } else if (auto list = is.CommaSeparatedSyntax(braced->value)) {
             list->nodes.append(node);
         } else {
-            list = mem.New<CommaSeparatedSyntax>(braced->node);
+            list = mem.New<CommaSeparatedSyntax>(braced->value);
             list->nodes.append(node);
-            braced->node = list;
+            braced->value = list;
         }
     }
     if (is.CloseCurly(cursor.pos)) {
         braced->close = cursor.pos;
         cursor.advance(); // Past '}'.
     } else {
-        err(braced->pos, "unmatched %tok", &braced->pos);
+        syntax_error(braced->pos, "unmatched %tok", &braced->pos);
     }
     return braced;
+}
+
+FunctionSyntax* Parser::parseWith() {
+    auto kwWith = cursor.pos;
+    if (is.OpenParen(cursor.pos)) {
+        auto fn = mem.New<FunctionSyntax>(/* modifiers = */ nullptr, *cursor.pos);
+        ((SourceToken&)fn->pos).keyword = Keyword::Lambda; // Sneaky!
+        currentFunction = { &currentFunction, fn };
+        fn->parameters = (ParenthesizedSyntax*)parseFunctionParameters();
+        if (is.Colon(cursor.pos) || is.DashArrow(cursor.pos)) {
+            fn->fnreturnOp = cursor.pos;
+            fn->fnreturn = parseStructureSupers();
+        }
+        if (is.OpenCurly(cursor.pos)) {
+            fn->body = parseBlock(nullptr);
+        } else if (is.SemiColon(cursor.pos)) {
+            fn->body = mem.New<EmptySyntax>(*cursor.pos);
+            cursor.advance(); // Past ';'
+        } else if (is.Assign(cursor.pos) || is.AssignArrow(cursor.pos)) {
+            fn->bodyOp = cursor.pos;
+            cursor.advance(); // Past '=' | '=>'.
+            fn->body = parseStatement();
+        } else {
+            syntax_error(cursor.pos, "expected '{', ';', '=' or '=>', not %tok", cursor.pos);
+        }
+        if (currentFunction.prev) {
+            currentFunction = *currentFunction.prev;
+        }
+        return fn;
+    } 
+    if (is.OpenCurly(cursor.pos)) {
+        auto fn = mem.New<FunctionSyntax>(/* modifiers = */ nullptr, *cursor.pos);
+        ((SourceToken&)fn->pos).keyword = Keyword::Lambda; // Sneaky!
+        currentFunction = { &currentFunction, fn };
+        fn->body = parseBlock(nullptr);
+        if (currentFunction.prev) {
+            currentFunction = *currentFunction.prev;
+        }
+        return fn;
+    } 
+    syntax_error(cursor.pos, "expected '(',  or '{' after %tok, not %tok", kwWith, cursor.pos);
+    return nullptr;
 }
 
 Node Parser::parsePrimary(Ctx ctx) {
@@ -1810,7 +1960,7 @@ Node Parser::parsePrimary(Ctx ctx) {
         if (is.OpenParen(cursor.pos)) {
             return parseMultiVariable(modifiers);
         }
-        err(modifiers, "dangling modifiers: expected a UDT or variable declaration after modifiers");
+        syntax_error(modifiers, "dangling modifiers: expected a UDT or variable declaration after modifiers");
         return modifiers;
     }
     if (is.UDT(cursor.pos)) {
@@ -1826,6 +1976,8 @@ Node Parser::parsePrimary(Ctx ctx) {
             return parseParenthesized(ctx);
         case Tok::OpenBracket:
             return parseBracketed(ctx);
+        case Tok::OpenCurly:
+            return parseCurlyBraced(ctx);
         case Tok::Ellipsis:
             return parseRest();
         case Tok::Decimal:
@@ -1887,7 +2039,7 @@ Node Parser::parsePrimary(Ctx ctx) {
         cursor.advance(); // Past compiler keyword.
         return node;
     }
-    err(cursor.pos, "expected an expression, not %tok", cursor.pos);
+    syntax_error(cursor.pos, "expected an expression, not %tok", cursor.pos);
     return nullptr;
 }
 
@@ -1896,14 +2048,14 @@ Node Parser::parseParenthesized(Ctx ctx) {
     cursor.advance(); // Past '('.
     while (is.NotEndOfFile(cursor.pos) && is.NotCloseParen(cursor.pos)) {
         if (auto node = parseExpression((ctx & ctxTypeName) != 0 ? ctxTypeName : ctxLhsExpr)) {
-            if (parenthesized->node == nullptr) {
-                parenthesized->node = node;
-            } else if (auto list = is.CommaSeparated(parenthesized->node)) {
+            if (parenthesized->value == nullptr) {
+                parenthesized->value = node;
+            } else if (auto list = is.CommaSeparatedSyntax(parenthesized->value)) {
                 list->nodes.append(node);
             } else {
-                list = mem.New<CommaSeparatedSyntax>(parenthesized->node);
+                list = mem.New<CommaSeparatedSyntax>(parenthesized->value);
                 list->nodes.append(node);
-                parenthesized->node = list;
+                parenthesized->value = list;
             }
         } else {
             cursor.advance(); // Past bad token.
@@ -1916,7 +2068,7 @@ Node Parser::parseParenthesized(Ctx ctx) {
         parenthesized->close = cursor.pos;
         cursor.advance(); // Past ')'.
     } else {
-        err(parenthesized->pos, "unmatched %tok", &parenthesized->pos);
+        syntax_error(parenthesized->pos, "unmatched %tok", &parenthesized->pos);
     }
     return parenthesized;
 }
@@ -1926,14 +2078,14 @@ Node Parser::parseBracketed(Ctx ctx) {
     cursor.advance(); // Past '['.
     while (is.NotEndOfFile(cursor.pos) && is.NotCloseBracket(cursor.pos)) {
         if (auto node = parseExpression((ctx & ctxTypeName) != 0 ? ctxTypeName : ctxLhsExpr)) {
-            if (bracketed->node == nullptr) {
-                bracketed->node = node;
-            } else if (auto list = is.CommaSeparated(bracketed->node)) {
+            if (bracketed->value == nullptr) {
+                bracketed->value = node;
+            } else if (auto list = is.CommaSeparatedSyntax(bracketed->value)) {
                 list->nodes.append(node);
             } else {
-                list = mem.New<CommaSeparatedSyntax>(bracketed->node);
+                list = mem.New<CommaSeparatedSyntax>(bracketed->value);
                 list->nodes.append(node);
-                bracketed->node = list;
+                bracketed->value = list;
             }
         } else {
             cursor.advance(); // Past bad token.
@@ -1946,9 +2098,17 @@ Node Parser::parseBracketed(Ctx ctx) {
         bracketed->close = cursor.pos;
         cursor.advance(); // Past ']'.
     } else {
-        err(bracketed->pos, "unmatched %tok", &bracketed->pos);
+        syntax_error(bracketed->pos, "unmatched %tok", &bracketed->pos);
     }
     return bracketed;
+}
+
+Node Parser::parseCurlyBraced(Ctx ctx) {
+    if (!cursor.hasNewLineBefore() && (ctx & ctxLhsExpr) != 0) {
+        return parseBraceArguments();
+    }
+    syntax_error(cursor.pos, "unexpected %tok", &cursor.pos);
+    return nullptr;
 }
 
 Node Parser::parseRest() {

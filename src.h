@@ -37,7 +37,7 @@ struct SourceFolder {
     void initialize();
     void dispose();
 
-    SourceToken pos();
+    SourceFile& posFile();
 };
 //----------------------------------------------------------
 struct SourceFile {

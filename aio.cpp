@@ -86,10 +86,10 @@ struct Iocp {
 
         while (iocp->isRunning == TRUE) {
             DWORD bytesTransferred{};
-            volatile LONG *counter{};
+            ULONG_PTR completionKey{};
             OVERLAPPED *overlapped{};
             auto status = GetQueuedCompletionStatus(iocp->handle, &bytesTransferred,
-                                                    (PULONG_PTR)&counter, &overlapped, 1);
+                                                    &completionKey, &overlapped, 1);
             if (status == FALSE) {
                 auto hResult = GetLastError();
                 if (hResult == WAIT_TIMEOUT) {

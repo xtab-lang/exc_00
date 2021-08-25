@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "src.h"
+#include "typer.h"
 
 namespace exy {
 struct Line {
@@ -132,15 +133,17 @@ struct HotLine {
     const CHAR *start;
     const CHAR *end;
     const CHAR *lnEnd;
+    bool hasEllipsis;
 };
 
 static auto parseHotLine(const Line &ln, const CHAR *hotStart, const CHAR *hotEnd) {
-    HotLine hot{ ln.start, hotStart, hotEnd, ln.end };
+    HotLine hot{ ln.start, hotStart, hotEnd, ln.end, false };
     if (hot.start < hot.lnStart) {
         hot.start = hot.lnStart;
     }
     if (hot.end > hot.lnEnd) {
         hot.end = hot.lnEnd;
+        hot.hasEllipsis = true;
     }
     return hot;
 }
@@ -175,7 +178,6 @@ INT Compiler::highlight(const SourceFile *file, const SourceChar *hotStart, cons
             maxLineLength = lineLength;
         }
     }
-
     for (auto i = 0; i < lns; i++) {
         const auto &ln = lines[i];
         _itoa_s(ln.line, tmpbuf, 10);
@@ -195,9 +197,7 @@ INT Compiler::highlight(const SourceFile *file, const SourceChar *hotStart, cons
         } else if (ln.line == hotLine.line) {
             auto hot = parseHotLine(ln, hotStart->text, hotEnd->text);
             String str{ hot.lnStart, hot.start };
-            if (str.isNotEmpty()) {
-                trace("  %s", &str);
-            }
+            trace("  %s", &str);
             str = { hot.start, hot.end };
             if (str.isEmpty()) {
                 trace("%c#<darkred>", "«EOF»");
@@ -205,7 +205,11 @@ INT Compiler::highlight(const SourceFile *file, const SourceChar *hotStart, cons
                 trace("%s#<red underline>", &str);
             }
             str = { hot.end, hot.lnEnd };
-            if (str.isNotEmpty()) {
+            if (str.isEmpty()) {
+                if (hot.hasEllipsis) {
+                    trace("…");
+                }
+            } else {
                 trace("%s", &str);
             }
         } else {
@@ -215,5 +219,102 @@ INT Compiler::highlight(const SourceFile *file, const SourceChar *hotStart, cons
         traceln("");
     }
     return maxLineNumberLength;
+}
+
+constexpr auto maxGraphFileNameLength = 0x10;
+constexpr auto maxGraphLocationLength = 0x14;
+
+static auto int2strLength(auto n) {
+    _itoa_s(n, tmpbuf, 10);
+    return cstrlen(tmpbuf);
+}
+
+void Compiler::graph(INT indent) {
+    if (typer == nullptr) {
+        return;
+    }
+    auto &tp = *typer;
+    if (tp.current == nullptr || tp.current->site == nullptr) {
+        return;
+    }
+    for (auto i = 0; i < indent; i++) {
+        trace(" ");
+    }
+    traceln("  %c#<darkyellow>", "Call graph");
+    for (auto site = tp.current->site; site != nullptr; site = site->prev) {
+        if (site->pos == nullptr) {
+            continue;
+        }
+        const auto       pos = tp.mkPos(site->pos);
+        const auto     &file = pos.file; 
+        const auto      &src = file.source;
+        const auto  srcStart = src.start();
+        const auto    srcEnd = src.end();
+        const auto &hotStart = pos.range.start;
+        const auto   &hotEnd = pos.range.end;
+        Assert(hotStart.text <= hotEnd.text);
+        Assert(hotStart.text >= srcStart && hotStart.text <= srcEnd);
+        Assert(hotEnd.text >= srcStart && hotEnd.text <= srcEnd);
+        Assert(hotStart.line <= hotEnd.line);
+        if (hotStart.line == hotEnd.line) {
+            Assert(hotStart.col <= hotEnd.col);
+        }
+        const auto line = makeLine(srcStart, hotStart.text, hotStart.line, srcEnd);
+        // fileName(line:col) source
+        const auto fileName = file.dotName;
+        if (fileName->length > maxGraphFileNameLength) {
+            const auto diff = fileName->length - maxGraphFileNameLength;
+            String shortName{ fileName->text + diff + 3, fileName->end() };
+            trace("...");
+            trace("%s#<yellow>", &shortName);
+        } else {
+            for (auto i = fileName->length; i < maxGraphFileNameLength; i++) {
+                trace(" ");
+            }
+            trace("%s#<yellow>", fileName);
+        }
+        trace("(");
+        auto locationLength = 1;
+        if (hotStart.line == hotEnd.line) {
+            if (hotStart.col == hotEnd.col) {
+                locationLength += int2strLength(hotStart.line) + 1 + int2strLength(hotStart.col) + 
+                    int2strLength(hotEnd.col) + 1;
+                trace("%i#<yellow>:%i#<yellow>", hotStart.line, hotStart.col);
+            } else {
+                locationLength += int2strLength(hotStart.line) + 1 + int2strLength(hotStart.col) + 1 +
+                    int2strLength(hotEnd.col);
+                trace("%i#<yellow>:%i#<yellow>―%i#<yellow>", hotStart.line, hotStart.col, hotEnd.col);
+            }
+        } else {
+            locationLength += int2strLength(hotStart.line) + 1 + int2strLength(hotStart.col) + 1 +
+                int2strLength(hotEnd.line) + 1 + int2strLength(hotEnd.col);
+            trace("%i#<yellow>:%i#<yellow>―%i#<yellow>:%i#<yellow>", hotStart.line, hotStart.col,
+                  hotEnd.line, hotEnd.col);
+        }
+        ++locationLength;
+        trace(")");
+        for (; locationLength < maxGraphLocationLength; ++locationLength) {
+            trace(" ");
+        }
+        trace("%c#<darkyellow>", "|");
+        auto hot = parseHotLine(line, hotStart.text, hotEnd.text);
+        String str{ hot.lnStart, hot.start };
+        trace("  %s", &str);
+        str = { hot.start, hot.end };
+        if (str.isEmpty()) {
+            trace("%c#<darkred>", "«EOF»");
+        } else {
+            trace("%s#<red underline>", &str);
+        }
+        str = { hot.end, hot.lnEnd };
+        if (str.isEmpty()) {
+            if (hot.hasEllipsis) {
+                trace("…");
+            }
+        } else {
+            trace("%s", &str);
+        }
+        traceln("");
+    }
 }
 } // namespace exy

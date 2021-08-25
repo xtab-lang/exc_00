@@ -20,15 +20,15 @@ struct Block {
 
 struct Blocks {
     Block **list;
-    INT     length;
+    UINT64  length;
 
     auto initialize() {
-        Assert(list == nullptr && length == 0);
+        Assert(list == nullptr && length == 0ui64);
     }
 
     auto dispose() {
         if (list != nullptr) {
-            for (auto i = 0; i < length; ++i) {
+            for (auto i = 0ui64; i < length; ++i) {
                 auto block = list[i];
                 if (block != nullptr) {
                     Assert(0);
@@ -41,42 +41,30 @@ struct Blocks {
     }
 
     auto set(Block *block) {
-        if (block->id < length) {
-            //Assert(block->id != 5);
-            if (list != nullptr) {
-                list[block->id] = block;
-            } else {
-                Assert(0);
-            }
-        } else {
-            Assert(0);
-        }
+        //Assert(block->id != 1120);
+        list[block->id] = block;
     }
 
     auto put(Block *block) {
         if (list == nullptr) {
+            Assert(block->id == 0ui64);
             length = INITIAL_BLOCKS_CAPACITY;
             list = (Block**)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(Block*) * length);
-        } else while (block->id >= UINT64(length)) {
-            length *= 2;
-            auto tmp = (Block**)HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, list, sizeof(Block*) * length);
-            if (tmp != nullptr) {
-                list = tmp;
-            } else 	{
-                Assert(0);
-            }
+        } else if (block->id < length) {
+            // Do nothing. 'set' will complete this.
+        } else if (block->id == length) {
+            length *= 2ui64;
+            list = (Block**)HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, list, sizeof(Block*) * length);
+        } else {
+            Assert(0);
         }
         set(block);
     }
 
     auto remove(Block *block) {
         if (block->id < length) {
-            if (list != nullptr) {
-                list[block->id] = nullptr;
-            } else 	{
-                Assert(0);
-            }
-        } else 	{
+            list[block->id] = nullptr;
+        } else {
             Assert(0);
         }
     }
@@ -84,58 +72,14 @@ struct Blocks {
 
 static Blocks blocks{};
 
-struct BlockIds {
-    UINT64 *list;
-    INT     length;
-    INT     capacity;
-
-    auto initialize() {
-        Assert(list == nullptr && length == 0 && capacity == 0);
-    }
-
-    auto dispose() {
-        if (list != nullptr) {
-            HeapFree(GetProcessHeap(), 0, list);
-            list = nullptr;
-            length = 0;
-            capacity = 0;
-        }
-    }
-
-    auto pop() {
-        return list[--length];
-    }
-
-    auto push(UINT64 id) {
-        if (capacity == 0) {
-            capacity = INITIAL_IDS_CAPACITY;
-            list = (UINT64*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(UINT64) * capacity);
-        } else if (length == capacity) {
-            capacity += INITIAL_IDS_CAPACITY;
-            list = (UINT64*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(UINT64) * capacity);
-        } else 	{
-            Assert(length < capacity);
-        }
-        if (list != nullptr) {
-            list[length++] = id;
-        } else 	{
-            Assert(0);
-        }
-    }
-};
-
-static BlockIds blockIds{};
-
 constexpr auto sizeOfBlock = sizeof(Block);
 
 void initialize() {
     blocks.initialize();
-    blockIds.initialize();
 }
 
 void dispose() {
     blocks.dispose();
-    blockIds.dispose();
     Assert(allocs == frees);
     Assert(used == 0);
     allocs = 0;
@@ -157,11 +101,7 @@ void* alloc(INT size) {
     auto block = (Block*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeOfBlock + SIZE_T(size));
     if (block != nullptr) {
         AcquireSRWLockExclusive(&srw);
-        if (blockIds.length > 0) {
-            block->id = blockIds.pop();
-        } else 	{
-            block->id = allocs;
-        }
+        block->id = allocs;
         blocks.put(block);
         block->size = size;
         used += size;
@@ -206,7 +146,6 @@ void* free(void *m) {
     AcquireSRWLockExclusive(&srw);
     Assert(used >= block->size);
     blocks.remove(block);
-    blockIds.push(block->id);
     used -= block->size;
     ++frees;
     ReleaseSRWLockExclusive(&srw);

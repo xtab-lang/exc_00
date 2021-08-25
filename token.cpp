@@ -64,7 +64,7 @@ String SourceToken::name(Keyword k) {
         DeclareModifiers(ZM)
         DeclareUserDefinedTypeKeywords(ZM)
         DeclareBuiltinTypeKeywords(ZM)
-        DeclareCompilerKeywords(ZM)
+        DeclareCompileTimeKeywords(ZM)
     #undef ZM
         default:
             Assert(0);
@@ -97,7 +97,7 @@ String SourceToken::value(Keyword k) {
         DeclareKeywords(ZM)
         DeclareModifiers(ZM)
         DeclareUserDefinedTypeKeywords(ZM)
-        DeclareCompilerKeywords(ZM)
+        DeclareCompileTimeKeywords(ZM)
     #undef ZM
     #define ZM(zName, zSize) case Keyword::zName: return { S(#zName), 0u };
         DeclareBuiltinTypeKeywords(ZM)

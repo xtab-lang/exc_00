@@ -66,6 +66,81 @@
     <ClCompile Include="compiler_format_error.cpp">
       <Filter>compiler</Filter>
     </ClCompile>
+    <ClCompile Include="tp.cpp">
+      <Filter>typer\nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_type.cpp">
+      <Filter>typer\nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="typer.cpp">
+      <Filter>typer</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_bind_statement.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_bind_expression.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_import.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_mk.cpp">
+      <Filter>typer</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_apply_modfiers.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_var.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_collect.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_lookup.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_cast.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_site.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_current.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_fn.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_struct.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_module.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_binary.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_upper_bound.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_isa.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_lambda.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_unary.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_parenthesized.cpp">
+      <Filter>typer\bind\enclosed</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_bracketed.cpp">
+      <Filter>typer\bind\enclosed</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_braced.cpp">
+      <Filter>typer\bind\enclosed</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="exc.h" />
@@ -124,6 +199,63 @@
     <ClInclude Include="syntax.h">
       <Filter>parser</Filter>
     </ClInclude>
+    <ClInclude Include="tp.h">
+      <Filter>typer\nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_type.h">
+      <Filter>typer\nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="typer.h">
+      <Filter>typer</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_mk.h">
+      <Filter>typer</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_site.h">
+      <Filter>typer\bind</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_current.h">
+      <Filter>typer\bind</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_fn.h">
+      <Filter>typer\bind</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_cast.h">
+      <Filter>typer\bind</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_lookup.h">
+      <Filter>typer\bind</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_struct.h">
+      <Filter>typer\bind</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_module.h">
+      <Filter>typer\bind</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_var.h">
+      <Filter>typer\bind</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_binary.h">
+      <Filter>typer\bind</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_isa.h">
+      <Filter>typer\bind</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_lambda.h">
+      <Filter>typer\bind</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_unary.h">
+      <Filter>typer\bind</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_parenthesized.h">
+      <Filter>typer\bind\enclosed</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_bracketed.h">
+      <Filter>typer\bind\enclosed</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_braced.h">
+      <Filter>typer\bind\enclosed</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="lib">
@@ -137,6 +269,18 @@
     </Filter>
     <Filter Include="parser">
       <UniqueIdentifier>{d5568f67-a801-415d-b7c4-69ef8dde8332}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="typer">
+      <UniqueIdentifier>{1c8ea868-a13e-4aa8-84e7-fb8aefc51286}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="typer\nodes">
+      <UniqueIdentifier>{a95fa3b9-720e-4897-a35c-3ddc12ef50a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="typer\bind">
+      <UniqueIdentifier>{3f9fd92b-1c7a-4d20-8bac-2cec61a1450a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="typer\bind\enclosed">
+      <UniqueIdentifier>{793bcab4-4d21-4436-af06-ccc162f90314}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

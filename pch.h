@@ -6,6 +6,9 @@
 // unreferenced inline function has been removed
 #pragma warning(disable: 4514)
 
+// assignment within conditional expression
+#pragma warning(disable: 4706)
+
 #define _AMD64_
 #undef _INC_WINDOWS
 #include <winapifamily.h>
@@ -55,6 +58,13 @@ U reinterpret(T t) {
 
 #define S(text) (text), ((INT)__crt_countof(text) - 1)
 
+#define SIZEOF_BYTE    sizeof(UINT8)
+#define SIZEOF_SHORT   sizeof(UINT16)
+#define SIZEOF_INT     sizeof(UINT32)
+#define SIZEOF_FLOAT   sizeof(float)
+#define SIZEOF_DOUBLE  sizeof(double)
+#define SIZEOF_POINTER sizeof(void*)
+
 namespace exy {
 using DOUBLE = double;
 } // namespace exy
@@ -74,7 +84,7 @@ static thread_local CHAR tmpbuf[tmpbufcap]{};
 namespace exy {
 template<typename T>
 T* ndispose(T *node) {
-    if (node) {
+    if (node != nullptr) {
         node->dispose();
     }
     return nullptr;
@@ -94,6 +104,20 @@ template<typename T>
 void ldispose(Dict<T*> &dict) {
     dict.dispose([](T *x) { ndispose(x); });
 }
+
+struct Status {
+    enum { Idle, Busy, Done } value;
+
+    auto isIdle() const { return value == Idle; }
+    auto isBusy() const { return value == Busy; }
+    auto isDone() const { return value == Done; }
+
+    auto isNotIdle() const { return value > Idle; }
+    auto isNotDone() const { return value < Done; }
+
+    auto begin() { if (value == Idle) { value = Busy; return true; } return false; }
+    auto finish() { Assert(value == Busy); value = Done; }
+};
 } // namespace exy
 
 #include "keywords.h"
