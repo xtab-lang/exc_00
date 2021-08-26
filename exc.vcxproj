@@ -194,6 +194,7 @@
     <ClCompile Include="tp_binary.cpp" />
     <ClCompile Include="tp_bind_statement.cpp" />
     <ClCompile Include="tp_bind_expression.cpp" />
+    <ClCompile Include="tp_dump.cpp" />
     <ClCompile Include="tp_parenthesized.cpp" />
     <ClCompile Include="tp_bracketed.cpp" />
     <ClCompile Include="tp_braced.cpp" />
@@ -238,6 +239,7 @@
     <ClInclude Include="token_kind.h" />
     <ClInclude Include="tp.h" />
     <ClInclude Include="tp_binary.h" />
+    <ClInclude Include="tp_dump.h" />
     <ClInclude Include="tp_parenthesized.h" />
     <ClInclude Include="tp_bracketed.h" />
     <ClInclude Include="tp_braced.h" />

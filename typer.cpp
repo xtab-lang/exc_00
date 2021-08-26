@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "typer.h"
 
+#include "tp_dump.h"
+
 namespace exy {
 Typer::Typer() 
     : tree(*compiler.tpTree), mem(compiler.tpTree->mem), mk(this) {
@@ -44,6 +46,9 @@ void Typer::run() {
 				compiler.errors, compiler.errors == 1 ? "" : "s");
 		leave(scope);
 	}
+	tp_dump dump{ };
+	aio::run(dump, tree.modules);
+	dump.dispose();
 }
 
 void Typer::makeBuiltinAliases(SyntaxNode *syntax) {

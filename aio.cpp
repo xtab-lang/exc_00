@@ -4,7 +4,42 @@
 #define MIN_THREADS      4
 
 namespace exy {
+namespace aio {
+namespace __internal__ {
+BYTE* WorkProvider::pop() {
+    BYTE *work = nullptr;
+    AcquireSRWLockExclusive(&srw);
+    if (list.isNotEmpty()) {
+        work = list.pop();
+    }
+    ReleaseSRWLockExclusive(&srw);
+    return work;
+}
 
+struct Thread {
+    OVERLAPPED    overlapped;
+    Worker       *worker;
+    WorkerFn      workerFn;
+    WorkProvider &workProvider;
+
+    Thread(Worker *worker, WorkerFn workerFn, WorkProvider &workProvider)
+        : worker(worker), workerFn(workerFn), workProvider(workProvider) {}
+
+    void run(volatile long *counter) {
+        while (true) {
+            auto work = workProvider.pop();
+            if (work == nullptr) {
+                break;
+            }
+            (worker->*workerFn)(work);
+        }
+        MemFree(this);
+        InterlockedDecrement(counter);
+        WakeByAddressSingle((void*)counter);
+    }
+};
+} // namespace aio::__internal__
+} // namespace aio
 static auto numberOfThreads() {
     SYSTEM_INFO si{};
     GetSystemInfo(&si);
@@ -97,11 +132,8 @@ struct Iocp {
                 }
                 OsError("GetQueuedCompletionStatus", nullptr);
             } else {
-                Assert(0);
-                /*auto runner = (aio::_internal_::Runner*)overlapped;
-                Assert(runner);
-                Assert(counter);
-                runner->next(counter);*/
+                auto thread = (aio::__internal__::Thread*)overlapped;
+                thread->run((volatile long*)completionKey);
             }
         }
 
@@ -123,6 +155,25 @@ bool open() {
 
 void close() {
     iocp.close();
+}
+
+namespace __internal__ {
+void post(Worker *worker, WorkProvider &workProvider, WorkerFn workerFn) {
+    const auto runners = iocp.threads.length;
+    static thread_local auto counter = 0;
+    static const auto           zero = 0;
+    counter = runners;
+    for (auto i = 0; i < runners; i++) {
+        auto thread = MemAlloc<Thread>();
+        thread = new(thread) Thread(worker, workerFn, workProvider);
+        PostQueuedCompletionStatus(iocp.handle, 0, (ULONG_PTR)&counter, (OVERLAPPED*)thread);
+    }
+    auto value = counter;
+    while (value != 0) {
+        WaitOnAddress(&counter, (void*)&zero, sizeof(counter), INFINITE);
+        value = counter;
+    }
+}
 }
 } // namespace aio
 } // namespace exy

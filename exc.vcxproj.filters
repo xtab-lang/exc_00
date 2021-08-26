@@ -141,6 +141,9 @@
     <ClCompile Include="tp_braced.cpp">
       <Filter>typer\bind\enclosed</Filter>
     </ClCompile>
+    <ClCompile Include="tp_dump.cpp">
+      <Filter>typer\bind</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="exc.h" />
@@ -255,6 +258,9 @@
     </ClInclude>
     <ClInclude Include="tp_braced.h">
       <Filter>typer\bind\enclosed</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_dump.h">
+      <Filter>typer\bind</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
